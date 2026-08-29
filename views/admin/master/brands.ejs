@@ -47,12 +47,13 @@
                       <th>Brand Name</th>
                       <th>Description</th>
                       <th style="text-align: center;">Status</th>
+                      <th style="text-align: center;">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% if (brands.length === 0) { %>
                       <tr>
-                        <td colspan="4" class="table-empty-state">
+                        <td colspan="5" class="table-empty-state">
                           <i class="ti ti-tags-off icon"></i>
                           <p>No brands registered.</p>
                           <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
@@ -72,6 +73,15 @@
                           <span class="badge-modern <%= brand.is_active ? 'success' : 'secondary' %>">
                             <%= brand.is_active ? 'Active' : 'Inactive' %>
                           </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern"
+                            data-id="<%= brand.id %>"
+                            data-name="<%= brand.name %>"
+                            data-description="<%= brand.description || '' %>"
+                            onclick="editBrand(this)" title="Edit Brand">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
                         </td>
                       </tr>
                     <% }); %>
@@ -94,7 +104,7 @@
   <div id="brandModal" class="modal-backdrop-modern">
     <div class="modal-dialog-modern" style="max-width: 500px;">
       <div class="modal-header-modern">
-        <h2 class="modal-title-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
           <i class="ti ti-tags" style="color: var(--primary);"></i> Add Product Brand
         </h2>
         <button type="button" class="modal-close-btn" onclick="closeModal()">
@@ -102,8 +112,10 @@
         </button>
       </div>
 
-      <form id="brandForm">
+      <form id="brandForm" novalidate>
         <div class="modal-body-modern">
+          <input type="hidden" id="brandId" name="id">
+
           <div class="form-group-modern">
             <label class="form-label-modern" for="name">Brand Name <span class="required-dot">*</span></label>
             <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Nestle / Fortune" required>
@@ -128,6 +140,8 @@
   <script>
     function openModal() {
       $('#brandForm').trigger('reset');
+      $('#brandId').val('');
+      $('#modalTitle').html('<i class="ti ti-tags" style="color: var(--primary);"></i> Add Product Brand');
       $('#brandModal').addClass('show');
       setTimeout(() => $('#name').focus(), 100);
     }
@@ -137,35 +151,74 @@
       resetFormValidation('#brandForm');
     }
 
+    function editBrand(button) {
+      const $btn = $(button);
+      $('#modalTitle').html('<i class="ti ti-edit" style="color: var(--primary);"></i> Edit Product Brand');
+      $('#brandId').val($btn.data('id') || '');
+      $('#name').val($btn.data('name') || '');
+      $('#description').val($btn.data('description') || '');
+      $('#brandModal').addClass('show');
+      setTimeout(() => $('#name').focus(), 100);
+    }
+
     $(document).ready(function() {
       initFormValidation('#brandForm', {
         rules: {
-          name: { required: true, minlength: 2 }
+          name: {
+            required: true,
+            minlength: 2,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'brand',
+                field: 'name',
+                id: function() { return $('#brandId').val(); }
+              }
+            }
+          }
         },
         messages: {
-          name: { required: 'Please enter brand name', minlength: 'Brand name must be at least 2 characters' }
+          name: {
+            required: 'Please enter brand name',
+            minlength: 'Brand name must be at least 2 characters',
+            remote: 'This brand name already exists in your database'
+          }
         },
         onSubmit: function(form, $form) {
+          const id = $('#brandId').val();
           const data = {
             name: $('#name').val().trim(),
             description: $('#description').val().trim()
           };
+          const url = id ? '/admin/master/brands/' + id : '/admin/master/brands';
+          const method = id ? 'PUT' : 'POST';
           const saveBtn = $form.find('[type="submit"]');
           saveBtn.prop('disabled', true);
 
-          fetch('/admin/master/brands', {
-            method: 'POST',
+          fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify(data)
           }).then(res => res.json()).then(resData => {
             saveBtn.prop('disabled', false);
             if (resData.success) {
               closeModal();
-              showToast('success', 'Brand added successfully!');
+              showToast('success', id ? 'Brand updated successfully!' : 'Brand added successfully!');
               setTimeout(() => location.reload(), 1100);
             } else {
-              const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to create brand');
-              showError('Save Failed', errMsg);
+              const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save brand');
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                $('#name').addClass('is-invalid');
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           }).catch(err => {
             saveBtn.prop('disabled', false);

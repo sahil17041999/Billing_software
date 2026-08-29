@@ -3125,6 +3125,41 @@ table, th, td, h1, h2, h3, h4, h5, h6 {
   color: #fde68a;
 }
 
+/* ==========================================================================
+   GLOBAL FORM VALIDATION & REALTIME DUPLICATE FEEDBACK STYLES
+   ========================================================================== */
+.form-control-modern.is-invalid,
+.form-control.is-invalid,
+.form-control-client.error,
+input.error,
+select.error,
+textarea.error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.form-control-modern.is-valid,
+.form-control.is-valid,
+.form-control-client.valid,
+input.valid,
+select.valid,
+textarea.valid {
+  border-color: #10b981 !important;
+  background-color: #f0fdf4 !important;
+}
+
+.invalid-feedback-custom,
+.field-error-text,
+.error-feedback {
+  color: #dc2626 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  margin-top: 4px !important;
+  display: block !important;
+  line-height: 1.4 !important;
+}
+
 
 
 

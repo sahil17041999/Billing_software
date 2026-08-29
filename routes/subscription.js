@@ -12,6 +12,7 @@ router.post('/api/order', subscriptionController.orderSubscription);
 router.use(isAuthenticated);
 
 router.get('/', subscriptionController.getSubscription);
+router.get('/entitlements', subscriptionController.getEntitlementsApi);
 router.post('/upgrade', subscriptionController.upgradePlan);
 router.post('/cancel', subscriptionController.cancelSubscription);
 router.get('/invoices/:invoiceId/receipt', subscriptionController.getInvoiceReceipt);

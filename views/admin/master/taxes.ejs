@@ -171,11 +171,26 @@
     $(document).ready(function() {
       initFormValidation('#taxForm', {
         rules: {
-          name: { required: true, minlength: 2 },
+          name: {
+            required: true,
+            minlength: 2,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'tax',
+                field: 'name',
+                id: function() { return $('#taxId').val(); }
+              }
+            }
+          },
           rate: { required: true, validPercentage: true }
         },
         messages: {
-          name: { required: 'Please enter tax label (e.g. 18% GST)' },
+          name: {
+            required: 'Please enter tax label (e.g. 18% GST)',
+            remote: 'This tax label already exists in your database'
+          },
           rate: { required: 'Please enter tax percentage rate', validPercentage: 'Rate must be between 0% and 100%' }
         },
         onSubmit: function(form, $form) {
@@ -201,7 +216,17 @@
               setTimeout(() => location.reload(), 1100);
             } else {
               const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save');
-              showError('Save Failed', errMsg);
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                $('#taxName').addClass('is-invalid');
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           }).catch(() => {
             saveBtn.prop('disabled', false);

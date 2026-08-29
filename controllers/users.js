@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { User, Role, Company } = require('../models');
+const { User, Role, Company, sequelize } = require('../models');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { PERMISSION_MODULES, DEFAULT_ROLE_PRESETS } = require('../config/permissions');
@@ -755,6 +755,65 @@ exports.deleteRole = async (req, res) => {
   } catch (error) {
     console.error('deleteRole error:', error);
     return res.status(500).json({ error: error.message });
+  }
+};
+
+// ============================================================
+// REALTIME DUPLICATE CHECK FOR USERS (Phone / Email / Username)
+// ============================================================
+exports.checkDuplicate = async (req, res) => {
+  try {
+    const q = req.query || {};
+    const b = req.body || {};
+    const field = (q.field || b.field || '').toLowerCase().trim();
+    const id = q.id || b.id || null;
+
+    let value = q.value !== undefined ? q.value : b.value;
+    if (value === undefined && field && q[field] !== undefined) {
+      value = q[field];
+    } else if (value === undefined && field && b[field] !== undefined) {
+      value = b[field];
+    }
+
+    if (!value || String(value).trim() === '') return res.json(true);
+    let cleanVal = String(value).trim();
+
+    if (field === 'phone') {
+      cleanVal = cleanVal.replace(/[^0-9]/g, '');
+      if (cleanVal.length > 10 && cleanVal.startsWith('91')) cleanVal = cleanVal.substring(2);
+      else if (cleanVal.length > 10 && cleanVal.startsWith('0')) cleanVal = cleanVal.substring(1);
+      if (!cleanVal) return res.json(true);
+
+      const where = { phone: cleanVal };
+      if (id) where.id = { [Op.ne]: id };
+      const exists = await User.findOne({ where });
+      if (exists) {
+        return res.json(`Mobile number "${cleanVal}" is already registered.`);
+      }
+    } else if (field === 'email') {
+      const where = {
+        email: { [Op.like]: cleanVal }
+      };
+      if (id) where.id = { [Op.ne]: id };
+      const exists = await User.findOne({ where });
+      if (exists) {
+        return res.json(`Email address "${cleanVal}" is already in use.`);
+      }
+    } else if (field === 'username') {
+      const where = {
+        username: { [Op.like]: cleanVal }
+      };
+      if (id) where.id = { [Op.ne]: id };
+      const exists = await User.findOne({ where });
+      if (exists) {
+        return res.json(`Username "${cleanVal}" is already taken.`);
+      }
+    }
+
+    return res.json(true);
+  } catch (err) {
+    console.error('User checkDuplicate error:', err);
+    return res.json(true);
   }
 };
 

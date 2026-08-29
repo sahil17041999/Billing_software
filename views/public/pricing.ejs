@@ -17,9 +17,36 @@
 
   <!-- jQuery & SweetAlert2 -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
+    /* jQuery Validation Feedback Styles */
+    .error-feedback {
+      color: #ef4444;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      animation: fieldSlideDown 0.2s ease;
+    }
+    @keyframes fieldSlideDown {
+      from { opacity: 0; transform: translateY(-3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .form-control-client.error {
+      border-color: #ef4444 !important;
+      background-color: #fef2f2 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+    }
+    .form-control-client.valid {
+      border-color: #10b981 !important;
+      background-color: #f0fdf4 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+    }
     :root {
       --primary: #1366d9;
       --primary-hover: #0f52b0;
@@ -716,6 +743,30 @@
               <td style="text-align: center; font-weight: 700; color: #1366d9;">15,000 Bills/mo</td>
               <td style="text-align: center; font-weight: 700; color: #107c41;">Unlimited</td>
             </tr>
+            <tr>
+              <td style="font-weight: 700;">Customer &amp; Supplier Ledger Accounts</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Full Khata</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Enterprise Ledgers</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Role Privileges &amp; Custom Permissions</td>
+              <td style="text-align: center;">Standard Roles</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Custom Roles</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Enterprise RBAC</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Advanced Sales &amp; Profit/Loss Analytics</td>
+              <td style="text-align: center;">Daily Summaries</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Full P&amp;L Reports</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> AI Predictive Insights</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Customer Support Level &amp; SLA</td>
+              <td style="text-align: center;">Community Standard</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">Priority Email &amp; Chat</td>
+              <td style="text-align: center; font-weight: 700; color: #107c41;">Dedicated 24/7 Manager</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -732,7 +783,7 @@
         <button type="button" class="b2c-modal-close" onclick="closeClientCheckout()">&times;</button>
       </div>
 
-      <form id="clientCheckoutForm" onsubmit="handleClientOrderSubmit(event)">
+      <form id="clientCheckoutForm" novalidate>
         <div class="b2c-modal-body">
           <!-- Order Summary Card -->
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
@@ -753,29 +804,29 @@
 
           <!-- Store Registration Details -->
           <div class="form-group-client">
-            <label>Store / Grocery / Supermarket Name <span style="color:#ef4444;">*</span></label>
-            <input type="text" id="cust_store_name" class="form-control-client" placeholder="e.g. Apex Supermarket" required>
+            <label for="cust_store_name">Store / Grocery / Supermarket Name <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="cust_store_name" name="cust_store_name" class="form-control-client" placeholder="e.g. Apex Supermarket" autocomplete="organization">
           </div>
 
           <div class="form-row-2">
             <div class="form-group-client">
-              <label>Owner / Contact Name <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="cust_owner_name" class="form-control-client" placeholder="e.g. Ramesh Kumar" required>
+              <label for="cust_owner_name">Owner / Contact Name <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="cust_owner_name" name="cust_owner_name" class="form-control-client" placeholder="e.g. Ramesh Kumar" autocomplete="name">
             </div>
             <div class="form-group-client">
-              <label>10-Digit Mobile Number <span style="color:#ef4444;">*</span></label>
-              <input type="tel" id="cust_phone" class="form-control-client" placeholder="e.g. 9876543210" pattern="[6-9][0-9]{9}" required>
+              <label for="cust_phone">10-Digit Mobile Number <span style="color:#ef4444;">*</span></label>
+              <input type="tel" id="cust_phone" name="cust_phone" class="form-control-client" placeholder="e.g. 9876543210" maxlength="10" autocomplete="tel">
             </div>
           </div>
 
           <div class="form-row-2">
             <div class="form-group-client">
-              <label>Email Address <span style="color:#ef4444;">*</span></label>
-              <input type="email" id="cust_email" class="form-control-client" placeholder="name@store.com" required>
+              <label for="cust_email">Email Address <span style="color:#ef4444;">*</span></label>
+              <input type="email" id="cust_email" name="cust_email" class="form-control-client" placeholder="name@store.com" autocomplete="email">
             </div>
             <div class="form-group-client">
-              <label>City / Location</label>
-              <input type="text" id="cust_city" class="form-control-client" placeholder="e.g. Mumbai">
+              <label for="cust_city">City / Location <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="cust_city" name="cust_city" class="form-control-client" placeholder="e.g. Mumbai" autocomplete="address-level2">
             </div>
           </div>
 
@@ -841,6 +892,92 @@
     let selectedCycle = 'monthly';
     let targetPlanId = null;
     let selectedPayment = 'UPI';
+    let checkoutValidator = null;
+
+    $(document).ready(function() {
+      // Restrict phone to digits only in real time
+      $('#cust_phone').on('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      });
+
+      // Custom Indian mobile validator (starts with 6, 7, 8, 9, exactly 10 digits)
+      $.validator.addMethod("indianPhone", function(value, element) {
+        return this.optional(element) || /^[6-9]\d{9}$/.test(value);
+      }, "Please enter a valid 10-digit Indian mobile number (e.g. 9876543210)");
+
+      // Initialize jQuery Validation for smooth feedback
+      checkoutValidator = $('#clientCheckoutForm').validate({
+        rules: {
+          cust_store_name: {
+            required: true,
+            minlength: 3,
+            maxlength: 100
+          },
+          cust_owner_name: {
+            required: true,
+            minlength: 3,
+            maxlength: 60
+          },
+          cust_phone: {
+            required: true,
+            digits: true,
+            minlength: 10,
+            maxlength: 10,
+            indianPhone: true
+          },
+          cust_email: {
+            required: true,
+            email: true,
+            maxlength: 100
+          },
+          cust_city: {
+            required: true,
+            minlength: 2,
+            maxlength: 60
+          }
+        },
+        messages: {
+          cust_store_name: {
+            required: "Please enter your store or grocery name",
+            minlength: "Store name must be at least 3 characters long"
+          },
+          cust_owner_name: {
+            required: "Please enter the owner or contact person's name",
+            minlength: "Name must be at least 3 characters long"
+          },
+          cust_phone: {
+            required: "Mobile number is required for store login",
+            digits: "Please enter numbers only",
+            minlength: "Mobile number must be exactly 10 digits",
+            maxlength: "Mobile number must be exactly 10 digits"
+          },
+          cust_email: {
+            required: "Email is required for billing invoices",
+            email: "Please enter a valid email address"
+          },
+          cust_city: {
+            required: "Please enter your city or store location",
+            minlength: "City must be at least 2 characters long"
+          }
+        },
+        errorElement: 'span',
+        errorClass: 'error-feedback',
+        errorPlacement: function(error, element) {
+          error.html('<i class="ti ti-alert-circle"></i> ' + error.text());
+          error.insertAfter(element);
+        },
+        highlight: function(element) {
+          $(element).addClass('error').removeClass('valid');
+        },
+        unhighlight: function(element) {
+          $(element).removeClass('error').addClass('valid');
+        },
+        submitHandler: function(form) {
+          handleClientOrderSubmit();
+          return false;
+        }
+      });
+    });
 
     function switchPublicCycle(cycle) {
       selectedCycle = cycle;
@@ -889,16 +1026,25 @@
       const upiUrl = `upi://pay?pa=grocerycloud@icici&pn=GroceryERP&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Register_' + planName)}`;
       $('#publicQrImg').attr('src', `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiUrl)}`);
 
+      // Reset validation state for clean user experience
+      if (checkoutValidator) {
+        checkoutValidator.resetForm();
+        $('#clientCheckoutForm .form-control-client').removeClass('error valid');
+      }
+
       $('#clientCheckoutModal').addClass('show');
+      setTimeout(() => $('#cust_store_name').focus(), 150);
     }
 
     function closeClientCheckout() {
       $('#clientCheckoutModal').removeClass('show');
+      if (checkoutValidator) {
+        checkoutValidator.resetForm();
+        $('#clientCheckoutForm .form-control-client').removeClass('error valid');
+      }
     }
 
-    function handleClientOrderSubmit(e) {
-      e.preventDefault();
-
+    function handleClientOrderSubmit() {
       const btn = $('#btnSubmitClientOrder');
       const origText = btn.html();
       btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:spin 0.75s linear infinite"></i> Processing Order...');

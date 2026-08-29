@@ -131,6 +131,269 @@ async function ensurePlansAvailable() {
 }
 
 /**
+ * Master Feature Entitlements Matrix
+ * Defines capabilities, categories, plan levels, module URLs, and descriptions
+ */
+function getEntitlementsMatrix() {
+  return [
+    {
+      category: 'Point of Sale (POS) & Billing',
+      icon: 'ti-device-laptop',
+      features: [
+        {
+          key: 'pos_multicart',
+          name: 'Multi-Level & Multi-Cart POS Terminal',
+          desc: 'Hold multiple customer shopping carts simultaneously and recall with 1-click.',
+          url: '/admin/sales/pos',
+          starter: { enabled: false, text: 'Single Cart Only' },
+          pro: { enabled: true, text: 'Multi-Cart (5 Carts)' },
+          enterprise: { enabled: true, text: 'Unlimited Carts & Counters' }
+        },
+        {
+          key: 'pos_scanning',
+          name: 'Rapid Barcode Scanner & POS Item Lookup',
+          desc: 'Instant USB/Bluetooth barcode lookup with sound tone and quick add to cart.',
+          url: '/admin/sales/pos',
+          starter: { enabled: true, text: 'Standard (USB/Camera)' },
+          pro: { enabled: true, text: 'High-Speed with Audio Beep' },
+          enterprise: { enabled: true, text: 'Ultra Turbo Laser Scanner' }
+        },
+        {
+          key: 'pos_gst_engine',
+          name: 'GST Compliant Invoicing & Tax Engine',
+          desc: 'Automatic CGST, SGST, IGST breakdown, HSN/SAC codes (SAC 998313), and invoice numbering.',
+          url: '/admin/sales/',
+          starter: { enabled: true, text: 'Standard GST Matrix' },
+          pro: { enabled: true, text: 'Full Multi-Tier GST Engine' },
+          enterprise: { enabled: true, text: 'Enterprise Tax & E-Way Ready' }
+        },
+        {
+          key: 'pos_printing',
+          name: 'Thermal (80mm/58mm) & A4 PDF Printing',
+          desc: 'Fast receipt generation formatted for standard 80mm/58mm thermal rolls and full A4 tax invoices.',
+          url: '/admin/sales/',
+          starter: { enabled: true, text: '80mm Thermal & A4 Standard' },
+          pro: { enabled: true, text: '80mm, 58mm + Custom Store Logo' },
+          enterprise: { enabled: true, text: 'Thermal, Laser + Custom CSS' }
+        },
+        {
+          key: 'pos_email',
+          name: 'Automated SMTP Email Invoicing & Presets',
+          desc: 'Send professional digital receipts directly to customer emails automatically upon sale completion.',
+          url: '/admin/settings/smtp',
+          starter: { enabled: true, text: 'Basic SMTP Receipts' },
+          pro: { enabled: true, text: 'Full Gateway & Custom Presets' },
+          enterprise: { enabled: true, text: 'Dedicated High-Volume Relay' }
+        },
+        {
+          key: 'pos_branding',
+          name: 'Custom Logo Branding on Invoices & Receipts',
+          desc: 'Embed store logo, contact info, and custom footer terms on all printed and emailed receipts.',
+          url: '/admin/settings/company',
+          starter: { enabled: false, text: 'System Header' },
+          pro: { enabled: true, text: 'Full Logo & Store Branding' },
+          enterprise: { enabled: true, text: 'White-Label Branding' }
+        }
+      ]
+    },
+    {
+      category: 'Catalog & Inventory Control',
+      icon: 'ti-boxes',
+      features: [
+        {
+          key: 'inv_products_limit',
+          name: 'Product Catalog Capacity',
+          desc: 'Maximum items, SKUs, and variations you can register in the store inventory catalog.',
+          url: '/admin/master/products',
+          starter: { enabled: true, text: '1,000 Products' },
+          pro: { enabled: true, text: '10,000 Products' },
+          enterprise: { enabled: true, text: 'Unlimited Products' }
+        },
+        {
+          key: 'inv_invoices_limit',
+          name: 'Monthly Invoicing & Billing Quota',
+          desc: 'Number of customer sales invoices you can issue every calendar month.',
+          url: '/admin/sales/',
+          starter: { enabled: true, text: '2,000 Bills / month' },
+          pro: { enabled: true, text: '15,000 Bills / month' },
+          enterprise: { enabled: true, text: 'Unlimited Invoices' }
+        },
+        {
+          key: 'inv_stock_ledger',
+          name: 'Real-Time Stock Valuation & Ledger',
+          desc: 'Track every stock inward, sale deduction, adjustment, and purchase return history in real-time.',
+          url: '/admin/inventory/stock',
+          starter: { enabled: true, text: 'Current Stock Summary' },
+          pro: { enabled: true, text: 'Detailed Stock Ledger' },
+          enterprise: { enabled: true, text: 'Multi-Branch Stock Ledger' }
+        },
+        {
+          key: 'inv_alerts_expiry',
+          name: 'Low Stock & Expiry Date Alerts',
+          desc: 'Proactive warnings for low stock levels and items approaching expiration dates.',
+          url: '/admin/inventory/stock/low',
+          starter: { enabled: false, text: 'Not Included' },
+          pro: { enabled: true, text: 'Low Stock & Expiry Alerts' },
+          enterprise: { enabled: true, text: 'Automated Purchase Reorder' }
+        },
+        {
+          key: 'inv_purchases_returns',
+          name: 'Purchase Inward Orders & Vendor Returns',
+          desc: 'Manage supplier stock inward entries, purchase invoices, and vendor goods return notes.',
+          url: '/admin/purchases/',
+          starter: { enabled: true, text: 'Standard Inward' },
+          pro: { enabled: true, text: 'Full Purchase & Returns' },
+          enterprise: { enabled: true, text: 'Advanced PO Workflow' }
+        }
+      ]
+    },
+    {
+      category: 'Cash Management & Accounting Ledgers',
+      icon: 'ti-wallet',
+      features: [
+        {
+          key: 'acc_dayend',
+          name: 'Day-End Cash Reconciliation & Shift Audit',
+          desc: 'Reconcile drawer cash against recorded sales, register denomination counts, and lock daily books.',
+          url: '/admin/day-end/',
+          starter: { enabled: false, text: 'Locked (Pro Required)' },
+          pro: { enabled: true, text: 'Full Day-End Closing & Audit' },
+          enterprise: { enabled: true, text: 'Multi-Terminal Shift Balancing' }
+        },
+        {
+          key: 'acc_customer_ledger',
+          name: 'Customer Ledger & Udhar/Credit Statements',
+          desc: 'Individual customer account statements, credit limits, payment history, and overdue tracking.',
+          url: '/admin/ledger/customer',
+          starter: { enabled: false, text: 'Locked (Pro Required)' },
+          pro: { enabled: true, text: 'Customer Khata Statements' },
+          enterprise: { enabled: true, text: 'Credit Limits & Aging Matrix' }
+        },
+        {
+          key: 'acc_supplier_ledger',
+          name: 'Supplier Inward Ledger & Payables',
+          desc: 'Track accounts payable for wholesale suppliers, inward purchase bills, and pending payments.',
+          url: '/admin/ledger/supplier',
+          starter: { enabled: false, text: 'Locked (Pro Required)' },
+          pro: { enabled: true, text: 'Supplier Accounts & Khata' },
+          enterprise: { enabled: true, text: 'Automated AP/AR Matching' }
+        },
+        {
+          key: 'acc_expenses',
+          name: 'Store Expense Management & Categorization',
+          desc: 'Record utility bills, shop rent, staff tea/misc expenses, and payment vouchers.',
+          url: '/admin/expenses/',
+          starter: { enabled: true, text: 'Basic Expense Tracking' },
+          pro: { enabled: true, text: 'Categorized Expense Book' },
+          enterprise: { enabled: true, text: 'Cost Center & Departmental' }
+        }
+      ]
+    },
+    {
+      category: 'Staff, Access Control & Security',
+      icon: 'ti-shield-lock',
+      features: [
+        {
+          key: 'sec_users_limit',
+          name: 'Staff & Cashier User Accounts',
+          desc: 'Total number of login accounts for store owners, managers, cashiers, and stock keepers.',
+          url: '/admin/users/',
+          starter: { enabled: true, text: '2 User Logins' },
+          pro: { enabled: true, text: '6 User Logins' },
+          enterprise: { enabled: true, text: 'Unlimited Users' }
+        },
+        {
+          key: 'sec_rbac',
+          name: 'Role-Based Access Control (RBAC)',
+          desc: 'Custom roles and granular permissions to restrict cashiers from seeing cost prices or profit reports.',
+          url: '/admin/users/roles',
+          starter: { enabled: false, text: 'Standard Roles Only' },
+          pro: { enabled: true, text: 'Custom Roles & Permissions' },
+          enterprise: { enabled: true, text: 'Enterprise Granular RBAC' }
+        },
+        {
+          key: 'sec_license',
+          name: 'Cryptographic Store License Key',
+          desc: 'Cryptographically generated, unique store license for official verification and offline activation.',
+          url: '/admin/subscription',
+          starter: { enabled: true, text: 'Standard Key' },
+          pro: { enabled: true, text: 'Cryptographic SHA Key' },
+          enterprise: { enabled: true, text: 'Enterprise Bound License' }
+        }
+      ]
+    },
+    {
+      category: 'Reports, Analytics & Exports',
+      icon: 'ti-chart-pie',
+      features: [
+        {
+          key: 'rep_sales',
+          name: 'Daily & Periodic Sales Analytics',
+          desc: 'Track daily turnover, hourly rush trends, peak sales times, and top-selling product metrics.',
+          url: '/admin/reports/sales',
+          starter: { enabled: true, text: 'Daily Sales Summary' },
+          pro: { enabled: true, text: 'Comprehensive Sales Insights' },
+          enterprise: { enabled: true, text: 'Predictive Sales & Heatmaps' }
+        },
+        {
+          key: 'rep_profit_loss',
+          name: 'Profit & Loss (P&L) Financial Reporting',
+          desc: 'Gross margin calculations based on purchase prices, net profit analysis, and tax liabilities.',
+          url: '/admin/reports/profit-loss',
+          starter: { enabled: false, text: 'Locked (Pro Required)' },
+          pro: { enabled: true, text: 'Gross & Net Profit Reports' },
+          enterprise: { enabled: true, text: 'Full P&L, Tax & Balance Sheet' }
+        },
+        {
+          key: 'rep_cashier_audit',
+          name: 'Cashier Shift Performance & Audit Logs',
+          desc: 'Audit individual cashier sales, cash discrepancies, canceled bills, and discount tracking.',
+          url: '/admin/reports/cashier',
+          starter: { enabled: false, text: 'Locked (Pro Required)' },
+          pro: { enabled: true, text: 'Cashier Audits & Shifts' },
+          enterprise: { enabled: true, text: 'Real-time Discrepancy Alerts' }
+        },
+        {
+          key: 'rep_export',
+          name: 'Data Export to Excel & CSV',
+          desc: 'Download one-click CSV and Excel spreadsheets of all sales, inventory, and customer databases.',
+          url: '/admin/reports/sales',
+          starter: { enabled: true, text: 'Standard CSV Export' },
+          pro: { enabled: true, text: 'Excel, CSV & PDF Exports' },
+          enterprise: { enabled: true, text: 'Scheduled Cloud Auto-Export' }
+        }
+      ]
+    },
+    {
+      category: 'Support & Infrastructure SLA',
+      icon: 'ti-headset',
+      features: [
+        {
+          key: 'sup_support',
+          name: 'Customer Technical Support SLA',
+          desc: 'Response time commitment and available channels for software support and assistance.',
+          url: null,
+          starter: { enabled: true, text: 'Community Support (48h)' },
+          pro: { enabled: true, text: 'Priority Email & Chat (4h)' },
+          enterprise: { enabled: true, text: '24/7 Dedicated Account Mgr' }
+        },
+        {
+          key: 'sup_sla',
+          name: 'Cloud Backup & Zero-Downtime Guarantee',
+          desc: 'Automated data replication to prevent data loss from local hardware failures.',
+          url: null,
+          starter: { enabled: true, text: 'Daily Backup' },
+          pro: { enabled: true, text: 'Automated Daily Cloud Backup' },
+          enterprise: { enabled: true, text: 'Real-time Sync & 99.99% SLA' }
+        }
+      ]
+    }
+  ];
+}
+
+exports.getEntitlementsMatrix = getEntitlementsMatrix;
+
+/**
  * Public B2C Pricing Storefront
  */
 exports.getPublicPricing = async (req, res) => {
@@ -412,44 +675,14 @@ exports.getSubscription = async (req, res) => {
       }
     }
 
-    // Ensure subscription has license key & invoice
-    if (subscription && !subscription.license_key) {
+    // Ensure subscription has license key if active
+    if (subscription && !subscription.license_key && subscription.status === 'active') {
       const genKey = generateLicenseKey(subscription.plan ? subscription.plan.code : 'PRO', companyId);
-      const genInv = generateInvoiceNumber();
-      const base = parseFloat((subscription.amount_paid / 1.18).toFixed(2));
-      const tax = parseFloat((subscription.amount_paid - base).toFixed(2));
-      await subscription.update({
-        license_key: genKey,
-        invoice_number: genInv,
-        base_amount: base,
-        tax_amount: tax
-      });
+      await subscription.update({ license_key: genKey });
       subscription.license_key = genKey;
-      subscription.invoice_number = genInv;
-
-      // Seed initial invoice record if none exists
-      const invCount = await SubscriptionInvoice.count({ where: { company_id: companyId } });
-      if (invCount === 0) {
-        await SubscriptionInvoice.create({
-          company_id: companyId,
-          plan_id: subscription.plan_id,
-          invoice_number: genInv,
-          billing_cycle: subscription.billing_cycle || 'monthly',
-          base_amount: base,
-          tax_amount: tax,
-          total_amount: subscription.amount_paid,
-          payment_method: subscription.payment_method || 'UPI',
-          transaction_id: subscription.transaction_id || `TXN-${Date.now()}`,
-          license_key: genKey,
-          payment_status: 'paid',
-          period_start: subscription.start_date || new Date(),
-          period_end: subscription.end_date || new Date(Date.now() + 30 * 86400000),
-          paid_at: subscription.start_date || new Date()
-        });
-      }
     }
 
-    // Fetch Billing Receipts & Tax Invoices History
+    // Fetch Real Billing Receipts & Tax Invoices History (Only authentic records)
     const billingHistory = await SubscriptionInvoice.findAll({
       where: isSuperAdmin ? {} : { company_id: companyId },
       include: [
@@ -479,6 +712,27 @@ exports.getSubscription = async (req, res) => {
       adminMetrics.pendingStoresCount = await Company.count({ where: { id: { [Op.gt]: 1 }, is_active: 0 } });
     }
 
+    // Feature Entitlements Breakdown Computation
+    const entitlementsMatrix = getEntitlementsMatrix();
+    const currentPlanCode = isSuperAdmin ? 'enterprise' : (subscription && subscription.plan ? subscription.plan.code : 'starter');
+    let totalEntitlements = 0;
+    let unlockedEntitlements = 0;
+    entitlementsMatrix.forEach(cat => {
+      cat.features.forEach(f => {
+        totalEntitlements++;
+        const tier = f[currentPlanCode];
+        if (isSuperAdmin || (tier && tier.enabled)) {
+          unlockedEntitlements++;
+        }
+      });
+    });
+    const entitlementStats = {
+      total: totalEntitlements,
+      unlocked: unlockedEntitlements,
+      locked: totalEntitlements - unlockedEntitlements,
+      percentage: Math.round((unlockedEntitlements / totalEntitlements) * 100)
+    };
+
     if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
       return res.json({
         success: true,
@@ -489,7 +743,10 @@ exports.getSubscription = async (req, res) => {
         isSuperAdmin,
         clientStores,
         billingHistory,
-        adminMetrics
+        adminMetrics,
+        currentPlanCode,
+        entitlementsMatrix,
+        entitlementStats
       });
     }
 
@@ -502,6 +759,9 @@ exports.getSubscription = async (req, res) => {
       clientStores,
       billingHistory,
       adminMetrics,
+      currentPlanCode,
+      entitlementsMatrix,
+      entitlementStats,
       user: req.user,
       currentPage: 'subscription'
     });
@@ -1080,4 +1340,64 @@ exports.regenerateLicenseKey = async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
+
+/**
+ * Feature Entitlements JSON API Endpoint
+ * Returns categorized breakdown and unlock status as per user active plan
+ */
+exports.getEntitlementsApi = async (req, res) => {
+  try {
+    const companyId = req.session.companyId || (req.user ? req.user.company_id : 1) || 1;
+    const isSuperAdmin = req.isSuperAdmin || (req.user && req.user.company_id === 1 && req.session.role === 'admin') || (req.session.userId === 1);
+    
+    let subscription = await CompanySubscription.findOne({
+      where: { company_id: companyId },
+      include: [{ model: SubscriptionPlan, as: 'plan' }]
+    });
+
+    const planCode = isSuperAdmin ? 'enterprise' : (subscription && subscription.plan ? subscription.plan.code : 'starter');
+    const matrix = getEntitlementsMatrix();
+
+    let totalFeatures = 0;
+    let unlockedCount = 0;
+
+    const enrichedMatrix = matrix.map(cat => {
+      const enrichedFeatures = cat.features.map(f => {
+        totalFeatures++;
+        const planTier = f[planCode] || { enabled: false, text: 'Not Included' };
+        const isUnlocked = isSuperAdmin || planTier.enabled;
+        if (isUnlocked) unlockedCount++;
+        return {
+          ...f,
+          is_unlocked: isUnlocked,
+          tier_detail: planTier
+        };
+      });
+      return {
+        ...cat,
+        features: enrichedFeatures
+      };
+    });
+
+    return res.json({
+      success: true,
+      current_plan: {
+        code: planCode,
+        name: isSuperAdmin ? 'Enterprise Supermarket (Super Admin)' : (subscription && subscription.plan ? subscription.plan.name : 'Starter Retailer'),
+        id: subscription && subscription.plan ? subscription.plan.id : 1
+      },
+      summary: {
+        total_features: totalFeatures,
+        unlocked_count: unlockedCount,
+        locked_count: totalFeatures - unlockedCount,
+        unlock_percentage: Math.round((unlockedCount / totalFeatures) * 100)
+      },
+      categories: enrichedMatrix
+    });
+  } catch (error) {
+    console.error('Error fetching entitlements API:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 

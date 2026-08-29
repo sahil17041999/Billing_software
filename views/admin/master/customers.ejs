@@ -303,16 +303,44 @@
       initFormValidation('#customerForm', {
         rules: {
           name: { required: true, minlength: 2 },
-          phone: { phoneIN: true },
-          email: { email: true },
+          phone: {
+            phoneIN: true,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'customer',
+                field: 'phone',
+                id: function() { return $('#customerId').val(); }
+              }
+            }
+          },
+          email: {
+            email: true,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'customer',
+                field: 'email',
+                id: function() { return $('#customerId').val(); }
+              }
+            }
+          },
           gstin: { gstin: true },
           postal_code: { pincode: true },
           credit_limit: { nonNegativeNumber: true }
         },
         messages: {
           name: { required: 'Please enter customer full name', minlength: 'Name must be at least 2 characters' },
-          phone: { phoneIN: 'Please enter a valid 10-digit mobile number' },
-          email: { email: 'Please enter a valid email address' },
+          phone: {
+            phoneIN: 'Please enter a valid 10-digit mobile number',
+            remote: 'This mobile number is already registered in your database'
+          },
+          email: {
+            email: 'Please enter a valid email address',
+            remote: 'This email address is already registered in your database'
+          },
           gstin: { gstin: 'Please enter a valid 15-character GSTIN' },
           postal_code: { pincode: 'Please enter a valid 6-digit pincode' }
         },
@@ -352,7 +380,18 @@
               setTimeout(() => location.reload(), 1100);
             } else {
               const errMsg = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.error || 'Failed to save customer');
-              showError('Save Failed', errMsg);
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                if (errMsg.toLowerCase().includes('mobile') || errMsg.toLowerCase().includes('phone')) $('#phone').addClass('is-invalid');
+                else if (errMsg.toLowerCase().includes('email')) $('#email').addClass('is-invalid');
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           })
           .catch(err => {

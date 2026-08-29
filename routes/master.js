@@ -8,6 +8,12 @@ const { isAuthenticated, hasRole } = require('../middleware/auth');
 router.use(isAuthenticated);
 
 // ============================================
+// REALTIME DUPLICATE CHECK ROUTE (For jQuery Validate & AJAX)
+// ============================================
+router.get('/check-duplicate', masterController.checkDuplicate);
+router.post('/check-duplicate', masterController.checkDuplicate);
+
+// ============================================
 // CATEGORY ROUTES
 // ============================================
 router.get('/categories', masterController.getCategories);
@@ -19,6 +25,7 @@ router.put('/categories/:id', masterController.updateCategory);
 // ============================================
 router.get('/brands', masterController.getBrands);
 router.post('/brands', masterController.createBrand);
+router.put('/brands/:id', masterController.updateBrand);
 
 // ============================================
 // PRODUCT ROUTES

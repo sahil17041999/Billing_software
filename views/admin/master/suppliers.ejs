@@ -309,18 +309,76 @@
     $(document).ready(function() {
       initFormValidation('#supplierForm', {
         rules: {
-          name: { required: true, minlength: 2 },
-          phone: { phoneIN: true },
-          email: { email: true },
-          gstin: { gstin: true },
+          name: {
+            required: true,
+            minlength: 2,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'supplier',
+                field: 'name',
+                id: function() { return $('#supplierId').val(); }
+              }
+            }
+          },
+          phone: {
+            phoneIN: true,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'supplier',
+                field: 'phone',
+                id: function() { return $('#supplierId').val(); }
+              }
+            }
+          },
+          email: {
+            email: true,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'supplier',
+                field: 'email',
+                id: function() { return $('#supplierId').val(); }
+              }
+            }
+          },
+          gstin: {
+            gstin: true,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'supplier',
+                field: 'gstin',
+                id: function() { return $('#supplierId').val(); }
+              }
+            }
+          },
           pan: { pan: true },
           postal_code: { pincode: true }
         },
         messages: {
-          name: { required: 'Please enter supplier or vendor name', minlength: 'Name must be at least 2 characters' },
-          phone: { phoneIN: 'Please enter a valid 10-digit phone number' },
-          email: { email: 'Please enter a valid email address' },
-          gstin: { gstin: 'Please enter a valid 15-character GSTIN' },
+          name: {
+            required: 'Please enter supplier or vendor name',
+            minlength: 'Name must be at least 2 characters',
+            remote: 'This supplier name already exists in your database'
+          },
+          phone: {
+            phoneIN: 'Please enter a valid 10-digit phone number',
+            remote: 'This phone number is already registered for another supplier'
+          },
+          email: {
+            email: 'Please enter a valid email address',
+            remote: 'This email address is already registered for another supplier'
+          },
+          gstin: {
+            gstin: 'Please enter a valid 15-character GSTIN',
+            remote: 'This GSTIN is already registered for another supplier'
+          },
           pan: { pan: 'Please enter a valid 10-character PAN' },
           postal_code: { pincode: 'Please enter a valid 6-digit pincode' }
         },
@@ -362,7 +420,20 @@
               setTimeout(() => location.reload(), 1100);
             } else {
               const errMsg = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.error || 'Failed to save supplier');
-              showError('Save Failed', errMsg);
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                if (errMsg.toLowerCase().includes('phone') || errMsg.toLowerCase().includes('mobile')) $('#phone').addClass('is-invalid');
+                else if (errMsg.toLowerCase().includes('email')) $('#email').addClass('is-invalid');
+                else if (errMsg.toLowerCase().includes('gstin')) $('#gstin').addClass('is-invalid');
+                else $('#name').addClass('is-invalid');
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           })
           .catch(err => {

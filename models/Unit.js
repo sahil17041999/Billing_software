@@ -19,6 +19,15 @@ const Unit = sequelize.define('Unit', {
     type: DataTypes.STRING(10),
     allowNull: false
   },
+  abbreviation: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.getDataValue('short_name');
+    },
+    set(val) {
+      this.setDataValue('short_name', val);
+    }
+  },
   description: DataTypes.TEXT,
   is_active: {
     type: DataTypes.TINYINT,

@@ -65,7 +65,7 @@
                       <tr>
                         <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= unit.id %></span></td>
                         <td><strong><%= unit.name %></strong></td>
-                        <td><span class="badge-modern secondary" style="font-family: var(--font-mono);"><%= unit.abbreviation || '-' %></span></td>
+                        <td><span class="badge-modern secondary" style="font-family: var(--font-mono);"><%= unit.short_name || unit.abbreviation || '-' %></span></td>
                         <td style="text-align: center;">
                           <span class="badge-modern <%= unit.is_active ? 'success' : 'secondary' %>">
                             <%= unit.is_active ? 'Active' : 'Inactive' %>
@@ -75,7 +75,7 @@
                           <button class="btn-modern btn-secondary-modern btn-sm-modern"
                             data-id="<%= unit.id %>"
                             data-name="<%= unit.name %>"
-                            data-abbreviation="<%= unit.abbreviation || '' %>"
+                            data-abbreviation="<%= unit.short_name || unit.abbreviation || '' %>"
                             onclick="editUnit(this)" title="Edit unit">
                             <i class="ti ti-edit"></i> Edit
                           </button>
@@ -168,16 +168,49 @@
     $(document).ready(function() {
       initFormValidation('#unitForm', {
         rules: {
-          name: { required: true, minlength: 1 }
+          name: {
+            required: true,
+            minlength: 1,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'unit',
+                field: 'name',
+                id: function() { return $('#unitId').val(); }
+              }
+            }
+          },
+          abbreviation: {
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'unit',
+                field: 'short_name',
+                id: function() { return $('#unitId').val(); }
+              }
+            }
+          }
         },
         messages: {
-          name: { required: 'Please enter unit name (e.g. Kilogram, Pieces)' }
+          name: {
+            required: 'Please enter unit name (e.g. Kilogram, Pieces)',
+            remote: 'This unit name already exists in your database'
+          },
+          abbreviation: {
+            remote: 'This symbol / abbreviation already exists in your database'
+          }
         },
         onSubmit: function(form, $form) {
           const id = $('#unitId').val();
+          const nameVal = $('#unitName').val().trim();
+          const abbrVal = $('#unitAbbr').val().trim();
+          const shortNameVal = abbrVal || nameVal.slice(0, 10);
           const data = {
-            name: $('#unitName').val().trim(),
-            abbreviation: $('#unitAbbr').val().trim()
+            name: nameVal,
+            short_name: shortNameVal,
+            abbreviation: shortNameVal
           };
           const url = id ? '/admin/master/units/' + id : '/admin/master/units';
           const method = id ? 'PUT' : 'POST';
@@ -196,7 +229,21 @@
               setTimeout(() => location.reload(), 1100);
             } else {
               const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save');
-              showError('Save Failed', errMsg);
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                if (errMsg.toLowerCase().includes('symbol') || errMsg.toLowerCase().includes('abbreviation')) {
+                  $('#unitAbbr').addClass('is-invalid');
+                } else {
+                  $('#unitName').addClass('is-invalid');
+                }
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           }).catch(err => {
             saveBtn.prop('disabled', false);

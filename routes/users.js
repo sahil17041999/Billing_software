@@ -20,6 +20,10 @@ router.post('/profile/password', validate(schemas.changeOwnPassword), usersContr
 // ── User List (admin only) ───────────────────────────────────
 router.get('/', isAdmin, usersController.getUsers);
 
+// ── Duplicate Check (admin only - must be defined before /:id) ─
+router.get('/check-duplicate', isAdmin, usersController.checkDuplicate);
+router.post('/check-duplicate', isAdmin, usersController.checkDuplicate);
+
 // ── Roles & Privileges (admin only - must be defined before /:id) ─
 router.get('/roles', isAdmin, usersController.getRoles);
 router.post('/roles', isAdmin, usersController.createRole);

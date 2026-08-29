@@ -52,6 +52,123 @@ const buildErrors = (validations) => {
 };
 
 // ============================================
+// CENTRALIZED DUPLICATE CHECK API (For jQuery Validation & Realtime Checks)
+// ============================================
+exports.checkDuplicate = async (req, res) => {
+  try {
+    const companyId = req.session.companyId;
+    const q = req.query || {};
+    const b = req.body || {};
+    const entity = (q.entity || b.entity || '').toLowerCase().trim();
+    const field = (q.field || b.field || '').toLowerCase().trim();
+    const id = q.id || b.id || null;
+
+    let value = q.value !== undefined ? q.value : b.value;
+    if (value === undefined && field && q[field] !== undefined) {
+      value = q[field];
+    } else if (value === undefined && field && b[field] !== undefined) {
+      value = b[field];
+    }
+
+    if (!value || String(value).trim() === '') {
+      return res.json(true);
+    }
+    const cleanValue = String(value).trim();
+
+    let model = null;
+    let fieldCol = field;
+    let entityLabel = entity;
+    let fieldLabel = field;
+
+    switch (entity) {
+      case 'category':
+        model = Category;
+        entityLabel = 'Category';
+        fieldLabel = 'name';
+        fieldCol = 'name';
+        break;
+      case 'brand':
+        model = Brand;
+        entityLabel = 'Brand';
+        fieldLabel = 'name';
+        fieldCol = 'name';
+        break;
+      case 'unit':
+        model = Unit;
+        entityLabel = 'Unit';
+        if (field === 'abbreviation' || field === 'short_name') {
+          fieldCol = 'short_name';
+          fieldLabel = 'symbol / abbreviation';
+        } else {
+          fieldCol = 'name';
+          fieldLabel = 'name';
+        }
+        break;
+      case 'product':
+        model = Product;
+        entityLabel = 'Product';
+        if (field === 'barcode') { fieldCol = 'barcode'; fieldLabel = 'barcode'; }
+        else if (field === 'sku') { fieldCol = 'sku'; fieldLabel = 'SKU'; }
+        else { fieldCol = 'name'; fieldLabel = 'name'; }
+        break;
+      case 'customer':
+        model = Customer;
+        entityLabel = 'Customer';
+        if (field === 'phone') { fieldCol = 'phone'; fieldLabel = 'phone number'; }
+        else if (field === 'email') { fieldCol = 'email'; fieldLabel = 'email address'; }
+        else { fieldCol = 'name'; fieldLabel = 'name'; }
+        break;
+      case 'supplier':
+        model = Supplier;
+        entityLabel = 'Supplier';
+        if (field === 'phone') { fieldCol = 'phone'; fieldLabel = 'phone number'; }
+        else if (field === 'email') { fieldCol = 'email'; fieldLabel = 'email address'; }
+        else if (field === 'gstin') { fieldCol = 'gstin'; fieldLabel = 'GSTIN'; }
+        else { fieldCol = 'name'; fieldLabel = 'name'; }
+        break;
+      case 'tax':
+        model = Tax;
+        entityLabel = 'Tax rate';
+        fieldLabel = 'label/name';
+        fieldCol = 'name';
+        break;
+      case 'payment_mode':
+      case 'paymentmode':
+      case 'payment-mode':
+        model = PaymentMode;
+        entityLabel = 'Payment mode';
+        fieldLabel = 'name';
+        fieldCol = 'name';
+        break;
+      default:
+        return res.json(true);
+    }
+
+    const whereClause = {
+      company_id: companyId
+    };
+    whereClause[fieldCol] = { [Op.like]: cleanValue };
+    if (model.rawAttributes && model.rawAttributes.is_active) {
+      whereClause.is_active = 1;
+    }
+
+    if (id) {
+      whereClause.id = { [Op.ne]: id };
+    }
+
+    const existing = await model.findOne({ where: whereClause });
+    if (existing) {
+      return res.json(`${entityLabel} with this ${fieldLabel} "${cleanValue}" already exists in the database.`);
+    }
+
+    return res.json(true);
+  } catch (error) {
+    console.error('Check duplicate error:', error);
+    return res.json(true);
+  }
+};
+
+// ============================================
 // CATEGORY MANAGEMENT
 // ============================================
 
@@ -79,10 +196,24 @@ exports.createCategory = async (req, res) => {
     const { name, description } = req.body;
     const companyId = req.session.companyId;
 
+    const trimmedName = String(name || '').trim();
+    if (!trimmedName) return res.status(400).json({ error: 'Category name is required' });
+
+    // Enforce uniqueness within company
+    const existingCategory = await Category.findOne({
+      where: {
+        company_id: companyId,
+        name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+      }
+    });
+    if (existingCategory) {
+      return res.status(400).json({ error: `Category with name "${trimmedName}" already exists in the database.` });
+    }
+
     const category = await Category.create({
       company_id: companyId,
-      name,
-      description,
+      name: trimmedName,
+      description: description ? String(description).trim() : null,
       is_active: 1
     });
 
@@ -106,7 +237,28 @@ exports.updateCategory = async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    await category.update({ name, description });
+    const updatePayload = {};
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      if (!trimmedName) return res.status(400).json({ error: 'Category name cannot be empty' });
+
+      const existingCategory = await Category.findOne({
+        where: {
+          company_id: companyId,
+          id: { [Op.ne]: id },
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+        }
+      });
+      if (existingCategory) {
+        return res.status(400).json({ error: `Another category with name "${trimmedName}" already exists in the database.` });
+      }
+      updatePayload.name = trimmedName;
+    }
+    if (description !== undefined) {
+      updatePayload.description = description ? String(description).trim() : null;
+    }
+
+    await category.update(updatePayload);
     res.json({ success: true, category });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -141,13 +293,64 @@ exports.createBrand = async (req, res) => {
     const { name, description } = req.body;
     const companyId = req.session.companyId;
 
+    const trimmedName = String(name || '').trim();
+    if (!trimmedName) return res.status(400).json({ error: 'Brand name is required' });
+
+    // Enforce uniqueness within company
+    const existingBrand = await Brand.findOne({
+      where: {
+        company_id: companyId,
+        name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+      }
+    });
+    if (existingBrand) {
+      return res.status(400).json({ error: `Brand with name "${trimmedName}" already exists in the database.` });
+    }
+
     const brand = await Brand.create({
       company_id: companyId,
-      name,
-      description,
+      name: trimmedName,
+      description: description ? String(description).trim() : null,
       is_active: 1
     });
 
+    res.json({ success: true, brand });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.updateBrand = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const companyId = req.session.companyId;
+
+    const brand = await Brand.findOne({ where: { id, company_id: companyId } });
+    if (!brand) return res.status(404).json({ error: 'Brand not found' });
+
+    const updatePayload = {};
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      if (!trimmedName) return res.status(400).json({ error: 'Brand name cannot be empty' });
+
+      const existingBrand = await Brand.findOne({
+        where: {
+          company_id: companyId,
+          id: { [Op.ne]: id },
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+        }
+      });
+      if (existingBrand) {
+        return res.status(400).json({ error: `Another brand with name "${trimmedName}" already exists in the database.` });
+      }
+      updatePayload.name = trimmedName;
+    }
+    if (description !== undefined) {
+      updatePayload.description = description ? String(description).trim() : null;
+    }
+
+    await brand.update(updatePayload);
     res.json({ success: true, brand });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -271,7 +474,7 @@ exports.createProduct = async (req, res) => {
         where: { company_id: companyId, sku: String(sku).trim(), is_active: 1 }
       });
       if (existingSku) {
-        return res.status(400).json({ error: `Product with SKU "${sku}" already exists.` });
+        return res.status(400).json({ error: `Product with SKU "${sku}" already exists in the database.` });
       }
     }
 
@@ -280,8 +483,20 @@ exports.createProduct = async (req, res) => {
         where: { company_id: companyId, barcode: String(barcode).trim(), is_active: 1 }
       });
       if (existingBarcode) {
-        return res.status(400).json({ error: `Product with Barcode "${barcode}" already exists.` });
+        return res.status(400).json({ error: `Product with Barcode "${barcode}" already exists in the database.` });
       }
+    }
+
+    const trimmedProductName = String(name).trim();
+    const existingName = await Product.findOne({
+      where: {
+        company_id: companyId,
+        name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedProductName.toLowerCase()),
+        is_active: 1
+      }
+    });
+    if (existingName) {
+      return res.status(400).json({ error: `Product with title "${trimmedProductName}" already exists in the database.` });
     }
 
     // Resolve tax_id fallback
@@ -307,7 +522,7 @@ exports.createProduct = async (req, res) => {
       category_id: parseInt(category_id),
       brand_id: brand_id ? parseInt(brand_id) : null,
       unit_id: parseInt(unit_id),
-      name: String(name).trim(),
+      name: trimmedProductName,
       description: description ? String(description).trim() : null,
       sku: sku && String(sku).trim() !== '' ? String(sku).trim() : null,
       barcode: barcode && String(barcode).trim() !== '' ? String(barcode).trim() : null,
@@ -366,7 +581,7 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Check duplicate SKU or Barcode excluding current product
+    // Check duplicate SKU or Barcode or Name excluding current product
     if (updateData.sku && String(updateData.sku).trim() !== '') {
       const existingSku = await Product.findOne({
         where: {
@@ -377,7 +592,7 @@ exports.updateProduct = async (req, res) => {
         }
       });
       if (existingSku) {
-        return res.status(400).json({ error: `Another product with SKU "${updateData.sku}" already exists.` });
+        return res.status(400).json({ error: `Another product with SKU "${updateData.sku}" already exists in the database.` });
       }
     }
 
@@ -391,7 +606,22 @@ exports.updateProduct = async (req, res) => {
         }
       });
       if (existingBarcode) {
-        return res.status(400).json({ error: `Another product with Barcode "${updateData.barcode}" already exists.` });
+        return res.status(400).json({ error: `Another product with Barcode "${updateData.barcode}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.name && String(updateData.name).trim() !== '') {
+      const trimmedUpdateName = String(updateData.name).trim();
+      const existingName = await Product.findOne({
+        where: {
+          company_id: companyId,
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedUpdateName.toLowerCase()),
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingName) {
+        return res.status(400).json({ error: `Another product with title "${trimmedUpdateName}" already exists in the database.` });
       }
     }
 
@@ -479,16 +709,41 @@ exports.createCustomer = async (req, res) => {
       return res.status(400).json({ error: 'Validation failed', errors });
     }
 
+    // Check duplicate phone or email in company
+    const cleanPhone = phone ? String(phone).trim() : null;
+    if (cleanPhone) {
+      const existingPhone = await Customer.findOne({
+        where: { company_id: companyId, phone: cleanPhone, is_active: 1 }
+      });
+      if (existingPhone) {
+        return res.status(400).json({ error: `Customer with mobile number "${cleanPhone}" already exists in the database.` });
+      }
+    }
+
+    const cleanEmail = email ? String(email).trim() : null;
+    if (cleanEmail) {
+      const existingEmail = await Customer.findOne({
+        where: {
+          company_id: companyId,
+          email: sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), cleanEmail.toLowerCase()),
+          is_active: 1
+        }
+      });
+      if (existingEmail) {
+        return res.status(400).json({ error: `Customer with email "${cleanEmail}" already exists in the database.` });
+      }
+    }
+
     const customer = await Customer.create({
       company_id: companyId,
-      name,
-      phone,
-      email,
-      address,
-      city,
-      state,
-      postal_code,
-      gstin,
+      name: String(name).trim(),
+      phone: cleanPhone,
+      email: cleanEmail,
+      address: address ? String(address).trim() : null,
+      city: city ? String(city).trim() : null,
+      state: state ? String(state).trim() : null,
+      postal_code: postal_code ? String(postal_code).trim() : null,
+      gstin: gstin ? String(gstin).trim().toUpperCase() : null,
       credit_limit: parseFloat(credit_limit || 0),
       customer_type: customer_type || 'retail',
       is_active: 1
@@ -527,6 +782,42 @@ exports.updateCustomer = async (req, res) => {
     if (!customer) {
       return res.status(404).json({ error: 'Customer not found' });
     }
+
+    // Check duplicate phone or email excluding current customer
+    if (updateData.phone && String(updateData.phone).trim() !== '') {
+      const cleanPhone = String(updateData.phone).trim();
+      const existingPhone = await Customer.findOne({
+        where: {
+          company_id: companyId,
+          phone: cleanPhone,
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingPhone) {
+        return res.status(400).json({ error: `Another customer with mobile number "${cleanPhone}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.email && String(updateData.email).trim() !== '') {
+      const cleanEmail = String(updateData.email).trim();
+      const existingEmail = await Customer.findOne({
+        where: {
+          company_id: companyId,
+          email: sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), cleanEmail.toLowerCase()),
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingEmail) {
+        return res.status(400).json({ error: `Another customer with email "${cleanEmail}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.name) updateData.name = String(updateData.name).trim();
+    if (updateData.phone !== undefined) updateData.phone = updateData.phone ? String(updateData.phone).trim() : null;
+    if (updateData.email !== undefined) updateData.email = updateData.email ? String(updateData.email).trim() : null;
+    if (updateData.gstin !== undefined) updateData.gstin = updateData.gstin ? String(updateData.gstin).trim().toUpperCase() : null;
 
     await customer.update(updateData);
     res.json({ success: true, customer });
@@ -599,21 +890,70 @@ exports.createSupplier = async (req, res) => {
       return res.status(400).json({ error: 'Validation failed', errors });
     }
 
+    // Check duplicate phone, email, gstin, or name in company
+    const trimmedName = String(name || '').trim();
+    if (trimmedName) {
+      const existingName = await Supplier.findOne({
+        where: {
+          company_id: companyId,
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase()),
+          is_active: 1
+        }
+      });
+      if (existingName) {
+        return res.status(400).json({ error: `Supplier with name "${trimmedName}" already exists in the database.` });
+      }
+    }
+
+    const cleanPhone = phone ? String(phone).trim() : null;
+    if (cleanPhone) {
+      const existingPhone = await Supplier.findOne({
+        where: { company_id: companyId, phone: cleanPhone, is_active: 1 }
+      });
+      if (existingPhone) {
+        return res.status(400).json({ error: `Supplier with phone number "${cleanPhone}" already exists in the database.` });
+      }
+    }
+
+    const cleanEmail = email ? String(email).trim() : null;
+    if (cleanEmail) {
+      const existingEmail = await Supplier.findOne({
+        where: {
+          company_id: companyId,
+          email: sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), cleanEmail.toLowerCase()),
+          is_active: 1
+        }
+      });
+      if (existingEmail) {
+        return res.status(400).json({ error: `Supplier with email "${cleanEmail}" already exists in the database.` });
+      }
+    }
+
+    const cleanGstin = gstin ? String(gstin).trim().toUpperCase() : null;
+    if (cleanGstin) {
+      const existingGstin = await Supplier.findOne({
+        where: { company_id: companyId, gstin: cleanGstin, is_active: 1 }
+      });
+      if (existingGstin) {
+        return res.status(400).json({ error: `Supplier with GSTIN "${cleanGstin}" already exists in the database.` });
+      }
+    }
+
     const supplier = await Supplier.create({
       company_id: companyId,
-      name,
-      phone,
-      email,
-      address,
-      city,
-      state,
-      postal_code,
-      gstin,
-      pan,
-      bank_name,
-      bank_account,
-      ifsc_code,
-      payment_terms,
+      name: trimmedName,
+      phone: cleanPhone,
+      email: cleanEmail,
+      address: address ? String(address).trim() : null,
+      city: city ? String(city).trim() : null,
+      state: state ? String(state).trim() : null,
+      postal_code: postal_code ? String(postal_code).trim() : null,
+      gstin: cleanGstin,
+      pan: pan ? String(pan).trim().toUpperCase() : null,
+      bank_name: bank_name ? String(bank_name).trim() : null,
+      bank_account: bank_account ? String(bank_account).trim() : null,
+      ifsc_code: ifsc_code ? String(ifsc_code).trim() : null,
+      payment_terms: payment_terms ? String(payment_terms).trim() : null,
       is_active: 1
     });
 
@@ -650,6 +990,73 @@ exports.updateSupplier = async (req, res) => {
     if (!supplier) {
       return res.status(404).json({ error: 'Supplier not found' });
     }
+
+    // Check duplicate name, phone, email, or gstin excluding current supplier
+    if (updateData.name && String(updateData.name).trim() !== '') {
+      const trimmedName = String(updateData.name).trim();
+      const existingName = await Supplier.findOne({
+        where: {
+          company_id: companyId,
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase()),
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingName) {
+        return res.status(400).json({ error: `Another supplier with name "${trimmedName}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.phone && String(updateData.phone).trim() !== '') {
+      const cleanPhone = String(updateData.phone).trim();
+      const existingPhone = await Supplier.findOne({
+        where: {
+          company_id: companyId,
+          phone: cleanPhone,
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingPhone) {
+        return res.status(400).json({ error: `Another supplier with phone number "${cleanPhone}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.email && String(updateData.email).trim() !== '') {
+      const cleanEmail = String(updateData.email).trim();
+      const existingEmail = await Supplier.findOne({
+        where: {
+          company_id: companyId,
+          email: sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), cleanEmail.toLowerCase()),
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingEmail) {
+        return res.status(400).json({ error: `Another supplier with email "${cleanEmail}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.gstin && String(updateData.gstin).trim() !== '') {
+      const cleanGstin = String(updateData.gstin).trim().toUpperCase();
+      const existingGstin = await Supplier.findOne({
+        where: {
+          company_id: companyId,
+          gstin: cleanGstin,
+          id: { [Op.ne]: id },
+          is_active: 1
+        }
+      });
+      if (existingGstin) {
+        return res.status(400).json({ error: `Another supplier with GSTIN "${cleanGstin}" already exists in the database.` });
+      }
+    }
+
+    if (updateData.name) updateData.name = String(updateData.name).trim();
+    if (updateData.phone !== undefined) updateData.phone = updateData.phone ? String(updateData.phone).trim() : null;
+    if (updateData.email !== undefined) updateData.email = updateData.email ? String(updateData.email).trim() : null;
+    if (updateData.gstin !== undefined) updateData.gstin = updateData.gstin ? String(updateData.gstin).trim().toUpperCase() : null;
+    if (updateData.pan !== undefined) updateData.pan = updateData.pan ? String(updateData.pan).trim().toUpperCase() : null;
 
     await supplier.update(updateData);
     res.json({ success: true, supplier });
@@ -730,7 +1137,7 @@ exports.getPaymentModes = async (req, res) => {
 
 exports.createUnit = async (req, res) => {
   try {
-    const { name, abbreviation } = req.body;
+    const { name, abbreviation, short_name } = req.body;
     const companyId = req.session.companyId;
 
     const errors = buildErrors([
@@ -738,10 +1145,34 @@ exports.createUnit = async (req, res) => {
     ]);
     if (errors) return res.status(400).json({ error: 'Validation failed', errors });
 
+    const trimmedName = String(name).trim();
+    const finalShortName = (short_name || abbreviation || trimmedName).toString().trim().slice(0, 10);
+
+    // Check duplicate name or short_name in company
+    const existingName = await Unit.findOne({
+      where: {
+        company_id: companyId,
+        name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+      }
+    });
+    if (existingName) {
+      return res.status(400).json({ error: `Unit with name "${trimmedName}" already exists in the database.` });
+    }
+
+    const existingShort = await Unit.findOne({
+      where: {
+        company_id: companyId,
+        short_name: sequelize.where(sequelize.fn('LOWER', sequelize.col('short_name')), finalShortName.toLowerCase())
+      }
+    });
+    if (existingShort) {
+      return res.status(400).json({ error: `Unit with symbol / abbreviation "${finalShortName}" already exists in the database.` });
+    }
+
     const unit = await Unit.create({
       company_id: companyId,
-      name: String(name).trim(),
-      abbreviation: abbreviation ? String(abbreviation).trim() : null,
+      name: trimmedName,
+      short_name: finalShortName,
       is_active: 1
     });
 
@@ -754,7 +1185,7 @@ exports.createUnit = async (req, res) => {
 exports.updateUnit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, abbreviation } = req.body;
+    const { name, abbreviation, short_name } = req.body;
     const companyId = req.session.companyId;
 
     const errors = buildErrors([
@@ -765,7 +1196,38 @@ exports.updateUnit = async (req, res) => {
     const unit = await Unit.findOne({ where: { id, company_id: companyId } });
     if (!unit) return res.status(404).json({ error: 'Unit not found' });
 
-    await unit.update({ name: String(name).trim(), abbreviation: abbreviation ? String(abbreviation).trim() : null });
+    const updatePayload = {};
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      const existingName = await Unit.findOne({
+        where: {
+          company_id: companyId,
+          id: { [Op.ne]: id },
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+        }
+      });
+      if (existingName) {
+        return res.status(400).json({ error: `Another unit with name "${trimmedName}" already exists in the database.` });
+      }
+      updatePayload.name = trimmedName;
+    }
+    if (short_name !== undefined || abbreviation !== undefined) {
+      const source = short_name || abbreviation || updatePayload.name || unit.name;
+      const targetShort = source.toString().trim().slice(0, 10);
+      const existingShort = await Unit.findOne({
+        where: {
+          company_id: companyId,
+          id: { [Op.ne]: id },
+          short_name: sequelize.where(sequelize.fn('LOWER', sequelize.col('short_name')), targetShort.toLowerCase())
+        }
+      });
+      if (existingShort) {
+        return res.status(400).json({ error: `Another unit with symbol / abbreviation "${targetShort}" already exists in the database.` });
+      }
+      updatePayload.short_name = targetShort;
+    }
+
+    await unit.update(updatePayload);
     res.json({ success: true, unit });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -788,9 +1250,20 @@ exports.createTax = async (req, res) => {
     ]);
     if (errors) return res.status(400).json({ error: 'Validation failed', errors });
 
+    const trimmedName = String(name).trim();
+    const existingTax = await Tax.findOne({
+      where: {
+        company_id: companyId,
+        name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+      }
+    });
+    if (existingTax) {
+      return res.status(400).json({ error: `Tax rate with label "${trimmedName}" already exists in the database.` });
+    }
+
     const tax = await Tax.create({
       company_id: companyId,
-      name: String(name).trim(),
+      name: trimmedName,
       rate: parseFloat(rate),
       is_active: 1
     });
@@ -817,7 +1290,20 @@ exports.updateTax = async (req, res) => {
     if (!tax) return res.status(404).json({ error: 'Tax not found' });
 
     const updateData = {};
-    if (name !== undefined) updateData.name = String(name).trim();
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      const existingTax = await Tax.findOne({
+        where: {
+          company_id: companyId,
+          id: { [Op.ne]: id },
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+        }
+      });
+      if (existingTax) {
+        return res.status(400).json({ error: `Another tax rate with label "${trimmedName}" already exists in the database.` });
+      }
+      updateData.name = trimmedName;
+    }
     if (rate !== undefined) updateData.rate = parseFloat(rate);
 
     await tax.update(updateData);
@@ -841,9 +1327,20 @@ exports.createPaymentMode = async (req, res) => {
     ]);
     if (errors) return res.status(400).json({ error: 'Validation failed', errors });
 
+    const trimmedName = String(name).trim();
+    const existingMode = await PaymentMode.findOne({
+      where: {
+        company_id: companyId,
+        name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+      }
+    });
+    if (existingMode) {
+      return res.status(400).json({ error: `Payment mode with name "${trimmedName}" already exists in the database.` });
+    }
+
     const paymentMode = await PaymentMode.create({
       company_id: companyId,
-      name: String(name).trim(),
+      name: trimmedName,
       is_active: 1
     });
 
@@ -868,7 +1365,20 @@ exports.updatePaymentMode = async (req, res) => {
     if (!paymentMode) return res.status(404).json({ error: 'Payment mode not found' });
 
     const updateData = {};
-    if (name !== undefined) updateData.name = String(name).trim();
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      const existingMode = await PaymentMode.findOne({
+        where: {
+          company_id: companyId,
+          id: { [Op.ne]: id },
+          name: sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), trimmedName.toLowerCase())
+        }
+      });
+      if (existingMode) {
+        return res.status(400).json({ error: `Another payment mode with name "${trimmedName}" already exists in the database.` });
+      }
+      updateData.name = trimmedName;
+    }
     if (is_active !== undefined) updateData.is_active = is_active ? 1 : 0;
 
     await paymentMode.update(updateData);

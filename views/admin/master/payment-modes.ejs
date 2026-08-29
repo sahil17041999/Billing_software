@@ -166,10 +166,25 @@
     $(document).ready(function() {
       initFormValidation('#modeForm', {
         rules: {
-          name: { required: true, minlength: 2 }
+          name: {
+            required: true,
+            minlength: 2,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'payment_mode',
+                field: 'name',
+                id: function() { return $('#modeId').val(); }
+              }
+            }
+          }
         },
         messages: {
-          name: { required: 'Please enter payment mode name (e.g. UPI, NetBanking, Credit)' }
+          name: {
+            required: 'Please enter payment mode name (e.g. UPI, NetBanking, Credit)',
+            remote: 'This payment mode already exists in your database'
+          }
         },
         onSubmit: function(form, $form) {
           const id = $('#modeId').val();
@@ -191,7 +206,17 @@
               setTimeout(() => location.reload(), 1100);
             } else {
               const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save');
-              showError('Save Failed', errMsg);
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                $('#modeName').addClass('is-invalid');
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           }).catch(() => {
             saveBtn.prop('disabled', false);

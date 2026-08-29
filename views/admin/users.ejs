@@ -1067,11 +1067,45 @@ $(document).ready(function() {
   // 1. Create User Form Validation
   initFormValidation('#createUserForm', {
     rules: {
-      phone: { required: true, phoneIN: true },
+      phone: {
+        required: true,
+        phoneIN: true,
+        remote: {
+          url: '/admin/users/check-duplicate',
+          type: 'GET',
+          data: { field: 'phone' }
+        }
+      },
+      email: {
+        email: true,
+        remote: {
+          url: '/admin/users/check-duplicate',
+          type: 'GET',
+          data: { field: 'email' }
+        }
+      },
+      username: {
+        remote: {
+          url: '/admin/users/check-duplicate',
+          type: 'GET',
+          data: { field: 'username' }
+        }
+      },
       role_id: { required: true }
     },
     messages: {
-      phone: { required: 'Please enter a 10-digit mobile number', phoneIN: 'Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)' },
+      phone: {
+        required: 'Please enter a 10-digit mobile number',
+        phoneIN: 'Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)',
+        remote: 'This mobile number is already registered in the database'
+      },
+      email: {
+        email: 'Please enter a valid email address',
+        remote: 'This email address is already in use'
+      },
+      username: {
+        remote: 'This username is already taken'
+      },
       role_id: { required: 'Please assign a role' }
     },
     onSubmit: async function(form, $form) {
@@ -1106,6 +1140,13 @@ $(document).ready(function() {
             const err = data.error || 'Failed to create user';
             if (err.includes('mobile') || err.includes('phone') || err.includes('Mobile')) {
               setFieldError('cu_phone_err', err);
+              $('#cu_phone').addClass('is-invalid');
+            } else if (err.includes('email') || err.includes('Email')) {
+              setFieldError('cu_email_err', err);
+              $('#cu_email').addClass('is-invalid');
+            } else if (err.includes('username')) {
+              setFieldError('cu_username_err', err);
+              $('#cu_username').addClass('is-invalid');
             }
             showAlert(err, 'error');
           }
@@ -1126,11 +1167,41 @@ $(document).ready(function() {
   // 2. Edit User Form Validation
   initFormValidation('#editUserForm', {
     rules: {
-      phone: { required: true, phoneIN: true },
+      phone: {
+        required: true,
+        phoneIN: true,
+        remote: {
+          url: '/admin/users/check-duplicate',
+          type: 'GET',
+          data: {
+            field: 'phone',
+            id: function() { return $('#eu_id').val(); }
+          }
+        }
+      },
+      email: {
+        email: true,
+        remote: {
+          url: '/admin/users/check-duplicate',
+          type: 'GET',
+          data: {
+            field: 'email',
+            id: function() { return $('#eu_id').val(); }
+          }
+        }
+      },
       role_id: { required: true }
     },
     messages: {
-      phone: { required: 'Please enter a 10-digit mobile number', phoneIN: 'Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)' },
+      phone: {
+        required: 'Please enter a 10-digit mobile number',
+        phoneIN: 'Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)',
+        remote: 'This mobile number is already in use by another user'
+      },
+      email: {
+        email: 'Please enter a valid email address',
+        remote: 'This email address is already in use by another user'
+      },
       role_id: { required: 'Please select a role' }
     },
     onSubmit: async function(form, $form) {

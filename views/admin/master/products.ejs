@@ -331,7 +331,41 @@
     $(document).ready(function() {
       initFormValidation('#productForm', {
         rules: {
-          name: { required: true, minlength: 2 },
+          name: {
+            required: true,
+            minlength: 2,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'product',
+                field: 'name',
+                id: function() { return $('#productId').val(); }
+              }
+            }
+          },
+          sku: {
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'product',
+                field: 'sku',
+                id: function() { return $('#productId').val(); }
+              }
+            }
+          },
+          barcode: {
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'product',
+                field: 'barcode',
+                id: function() { return $('#productId').val(); }
+              }
+            }
+          },
           category_id: { required: true },
           unit_id: { required: true },
           purchase_price: { required: true, positiveNumber: true },
@@ -340,7 +374,17 @@
           reorder_quantity: { nonNegativeNumber: true }
         },
         messages: {
-          name: { required: 'Please enter product title', minlength: 'Product title must be at least 2 characters' },
+          name: {
+            required: 'Please enter product title',
+            minlength: 'Product title must be at least 2 characters',
+            remote: 'A product with this title already exists in your database'
+          },
+          sku: {
+            remote: 'A product with this SKU already exists in your database'
+          },
+          barcode: {
+            remote: 'A product with this Barcode already exists in your database'
+          },
           category_id: { required: 'Please select a category' },
           unit_id: { required: 'Please select a unit of measurement' },
           purchase_price: { required: 'Please enter cost/purchase price', positiveNumber: 'Cost price must be greater than 0' },
@@ -405,7 +449,19 @@
             setTimeout(() => location.reload(), 1100);
           } else {
             const errMsg = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.error || 'Failed to save product');
-            showError('Save Failed', errMsg);
+            if (errMsg.toLowerCase().includes('already exists')) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Duplicate Entry',
+                html: errMsg,
+                confirmButtonColor: '#1366d9'
+              });
+              if (errMsg.toLowerCase().includes('barcode')) $('#barcode').addClass('is-invalid');
+              else if (errMsg.toLowerCase().includes('sku')) $('#sku').addClass('is-invalid');
+              else $('#name').addClass('is-invalid');
+            } else {
+              showError('Save Failed', errMsg);
+            }
           }
         })
         .catch(err => {

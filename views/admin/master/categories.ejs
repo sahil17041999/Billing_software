@@ -164,10 +164,26 @@
     $(document).ready(function() {
       initFormValidation('#categoryForm', {
         rules: {
-          name: { required: true, minlength: 2 }
+          name: {
+            required: true,
+            minlength: 2,
+            remote: {
+              url: '/admin/master/check-duplicate',
+              type: 'GET',
+              data: {
+                entity: 'category',
+                field: 'name',
+                id: function() { return $('#categoryId').val(); }
+              }
+            }
+          }
         },
         messages: {
-          name: { required: 'Please enter category name', minlength: 'Category name must be at least 2 characters' }
+          name: {
+            required: 'Please enter category name',
+            minlength: 'Category name must be at least 2 characters',
+            remote: 'This category name already exists in your database'
+          }
         },
         onSubmit: function(form, $form) {
           const id = $('#categoryId').val();
@@ -192,7 +208,17 @@
               setTimeout(() => location.reload(), 1100);
             } else {
               const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save category');
-              showError('Save Failed', errMsg);
+              if (errMsg.toLowerCase().includes('already exists')) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Duplicate Entry',
+                  text: errMsg,
+                  confirmButtonColor: '#1366d9'
+                });
+                $('#name').addClass('is-invalid');
+              } else {
+                showError('Save Failed', errMsg);
+              }
             }
           }).catch(err => {
             saveBtn.prop('disabled', false);
