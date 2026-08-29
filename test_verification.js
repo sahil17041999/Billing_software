@@ -53,7 +53,7 @@ async function runAllTests() {
   console.log('🔄 Billing Cycle Switcher (Monthly & 20% Off Annual):', subHtml.includes('cycle-switcher-pills') && subHtml.includes('Save 20%') ? '✅ Verified' : '❌ Missing');
   console.log('🏷️ Tier Pricing Cards (Starter, Pro, Enterprise):', subHtml.includes('Starter Retailer') && subHtml.includes('Professional Store') && subHtml.includes('Enterprise Supermarket') ? '✅ Verified' : '❌ Missing');
   console.log('📋 Complete Feature Entitlements Breakdown Table:', subHtml.includes('compare-section') && subHtml.includes('Complete Feature Entitlements Breakdown') ? '✅ Verified' : '❌ Missing');
-  console.log('💳 Checkout & Plan Upgrade Modal (UPI, Card, NetBanking):', subHtml.includes('checkoutModal') && subHtml.includes('pay-method-btn') ? '✅ Verified' : '❌ Missing');
+  console.log('💳 Checkout & Plan Upgrade Modal (UPI, Card, NetBanking):', subHtml.includes('checkoutModal') && (subHtml.includes('pay-rail-tab') || subHtml.includes('pay-method-btn')) ? '✅ Verified' : '❌ Missing');
 
   // 5. Test Plan Upgrade API Endpoint
   const upgradeRes = await fetch('http://localhost:3000/admin/subscription/upgrade', {

@@ -1,8 +1,29 @@
-// controllers/subscription.js
-// Enterprise Subscription & Licensing Manager
-
-const { SubscriptionPlan, CompanySubscription, Company, User, Product, Sale, seedSubscriptionPlans } = require('../models');
+const { SubscriptionPlan, CompanySubscription, SubscriptionInvoice, Company, User, Product, Sale, seedSubscriptionPlans } = require('../models');
 const { Op } = require('sequelize');
+const crypto = require('crypto');
+
+/**
+ * Generate a Cryptographic-Grade Store License Key
+ * Format: GROC-XXXX-XXXX-XXXX-XXXX-PLAN
+ */
+function generateLicenseKey(planCode = 'PRO', companyId = 1) {
+  const rand1 = crypto.randomBytes(2).toString('hex').toUpperCase();
+  const rand2 = crypto.randomBytes(2).toString('hex').toUpperCase();
+  const rand3 = crypto.randomBytes(2).toString('hex').toUpperCase();
+  const rand4 = crypto.randomBytes(2).toString('hex').toUpperCase();
+  const tag = (planCode || 'PRO').toUpperCase();
+  return `GROC-${rand1}-${rand2}-${rand3}-${rand4}-${tag}`;
+}
+
+/**
+ * Generate Standardized GST Tax Invoice Number
+ * Format: INV-SUB-YYYY-XXXXXX
+ */
+function generateInvoiceNumber() {
+  const year = new Date().getFullYear();
+  const serial = Math.floor(100000 + Math.random() * 900000);
+  return `INV-SUB-${year}-${serial}`;
+}
 
 /**
  * Ensure Subscription Plans are populated in Database
@@ -207,6 +228,11 @@ exports.orderSubscription = async (req, res) => {
       is_active: 0 // Pending Admin Verification
     });
 
+    const baseAmount = parseFloat((amount / 1.18).toFixed(2));
+    const taxAmount = parseFloat((amount - baseAmount).toFixed(2));
+    const licenseKey = generateLicenseKey(targetPlan.code, company.id);
+    const invoiceNumber = generateInvoiceNumber();
+
     // 6. Create Company Subscription Record
     await CompanySubscription.create({
       company_id: company.id,
@@ -217,15 +243,39 @@ exports.orderSubscription = async (req, res) => {
       end_date: expiryDate,
       next_billing_date: expiryDate,
       amount_paid: amount,
+      base_amount: baseAmount,
+      tax_amount: taxAmount,
+      license_key: licenseKey,
+      invoice_number: invoiceNumber,
       payment_method,
       transaction_id: orderId,
       auto_renew: true
+    });
+
+    // 7. Create Subscription Invoice Record
+    await SubscriptionInvoice.create({
+      company_id: company.id,
+      plan_id: targetPlan.id,
+      invoice_number: invoiceNumber,
+      billing_cycle,
+      base_amount: baseAmount,
+      tax_amount: taxAmount,
+      total_amount: amount,
+      payment_method,
+      transaction_id: orderId,
+      license_key: licenseKey,
+      payment_status: 'paid',
+      period_start: now,
+      period_end: expiryDate,
+      paid_at: now
     });
 
     return res.status(201).json({
       success: true,
       order_id: orderId,
       store_id: company.id,
+      license_key: licenseKey,
+      invoice_number: invoiceNumber,
       message: 'Subscription order placed successfully! Admin will verify and activate your store dashboard.'
     });
 
@@ -362,6 +412,73 @@ exports.getSubscription = async (req, res) => {
       }
     }
 
+    // Ensure subscription has license key & invoice
+    if (subscription && !subscription.license_key) {
+      const genKey = generateLicenseKey(subscription.plan ? subscription.plan.code : 'PRO', companyId);
+      const genInv = generateInvoiceNumber();
+      const base = parseFloat((subscription.amount_paid / 1.18).toFixed(2));
+      const tax = parseFloat((subscription.amount_paid - base).toFixed(2));
+      await subscription.update({
+        license_key: genKey,
+        invoice_number: genInv,
+        base_amount: base,
+        tax_amount: tax
+      });
+      subscription.license_key = genKey;
+      subscription.invoice_number = genInv;
+
+      // Seed initial invoice record if none exists
+      const invCount = await SubscriptionInvoice.count({ where: { company_id: companyId } });
+      if (invCount === 0) {
+        await SubscriptionInvoice.create({
+          company_id: companyId,
+          plan_id: subscription.plan_id,
+          invoice_number: genInv,
+          billing_cycle: subscription.billing_cycle || 'monthly',
+          base_amount: base,
+          tax_amount: tax,
+          total_amount: subscription.amount_paid,
+          payment_method: subscription.payment_method || 'UPI',
+          transaction_id: subscription.transaction_id || `TXN-${Date.now()}`,
+          license_key: genKey,
+          payment_status: 'paid',
+          period_start: subscription.start_date || new Date(),
+          period_end: subscription.end_date || new Date(Date.now() + 30 * 86400000),
+          paid_at: subscription.start_date || new Date()
+        });
+      }
+    }
+
+    // Fetch Billing Receipts & Tax Invoices History
+    const billingHistory = await SubscriptionInvoice.findAll({
+      where: isSuperAdmin ? {} : { company_id: companyId },
+      include: [
+        { model: SubscriptionPlan, as: 'plan' },
+        { model: Company, as: 'company', attributes: ['id', 'name', 'phone', 'city'] }
+      ],
+      order: [['paid_at', 'DESC'], ['created_at', 'DESC']],
+      limit: 25
+    });
+
+    // Super Admin Revenue & Licensing Metrics
+    let adminMetrics = { mrr: 0, arr: 0, activeStoresCount: 0, pendingStoresCount: 0 };
+    if (isSuperAdmin) {
+      const activeSubs = await CompanySubscription.findAll({
+        where: { status: 'active' },
+        include: [{ model: SubscriptionPlan, as: 'plan' }]
+      });
+      let mrr = 0;
+      for (const s of activeSubs) {
+        if (s.plan) {
+          mrr += s.billing_cycle === 'yearly' ? Math.round(s.plan.price_yearly / 12) : Math.round(s.plan.price_monthly);
+        }
+      }
+      adminMetrics.mrr = mrr;
+      adminMetrics.arr = mrr * 12;
+      adminMetrics.activeStoresCount = await Company.count({ where: { id: { [Op.gt]: 1 }, is_active: 1 } });
+      adminMetrics.pendingStoresCount = await Company.count({ where: { id: { [Op.gt]: 1 }, is_active: 0 } });
+    }
+
     if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
       return res.json({
         success: true,
@@ -370,7 +487,9 @@ exports.getSubscription = async (req, res) => {
         usage,
         daysRemaining,
         isSuperAdmin,
-        clientStores
+        clientStores,
+        billingHistory,
+        adminMetrics
       });
     }
 
@@ -381,6 +500,8 @@ exports.getSubscription = async (req, res) => {
       daysRemaining,
       isSuperAdmin,
       clientStores,
+      billingHistory,
+      adminMetrics,
       user: req.user,
       currentPage: 'subscription'
     });
@@ -425,6 +546,10 @@ exports.upgradePlan = async (req, res) => {
     }
 
     const txId = `TXN-${Date.now().toString().slice(-8)}`;
+    const baseAmount = parseFloat((amount / 1.18).toFixed(2));
+    const taxAmount = parseFloat((amount - baseAmount).toFixed(2));
+    const licenseKey = generateLicenseKey(targetPlan.code, companyId);
+    const invoiceNumber = generateInvoiceNumber();
 
     let [subscription] = await CompanySubscription.findOrCreate({
       where: { company_id: companyId },
@@ -436,6 +561,10 @@ exports.upgradePlan = async (req, res) => {
         end_date: expiryDate,
         next_billing_date: expiryDate,
         amount_paid: amount,
+        base_amount: baseAmount,
+        tax_amount: taxAmount,
+        license_key: licenseKey,
+        invoice_number: invoiceNumber,
         payment_method,
         transaction_id: txId,
         auto_renew: true
@@ -450,20 +579,46 @@ exports.upgradePlan = async (req, res) => {
       end_date: expiryDate,
       next_billing_date: expiryDate,
       amount_paid: amount,
+      base_amount: baseAmount,
+      tax_amount: taxAmount,
+      license_key: licenseKey,
+      invoice_number: invoiceNumber,
       payment_method,
       transaction_id: txId,
       auto_renew: true
     });
 
+    // Create Subscription Tax Invoice Record
+    const invoice = await SubscriptionInvoice.create({
+      company_id: companyId,
+      plan_id: targetPlan.id,
+      invoice_number: invoiceNumber,
+      billing_cycle,
+      base_amount: baseAmount,
+      tax_amount: taxAmount,
+      total_amount: amount,
+      payment_method,
+      transaction_id: txId,
+      license_key: licenseKey,
+      payment_status: 'paid',
+      period_start: now,
+      period_end: expiryDate,
+      paid_at: now
+    });
+
     return res.json({
       success: true,
       message: `Successfully activated ${targetPlan.name} (${isYearly ? 'Annual' : 'Monthly'})!`,
+      invoice_id: invoice.id,
+      invoice_number: invoiceNumber,
+      license_key: licenseKey,
       subscription: {
         plan_name: targetPlan.name,
         billing_cycle,
         amount_paid: amount,
         end_date: expiryDate,
-        transaction_id: txId
+        transaction_id: txId,
+        license_key: licenseKey
       }
     });
 
@@ -736,6 +891,7 @@ exports.deleteClientStore = async (req, res) => {
     }
 
     const storeName = company.name;
+    await SubscriptionInvoice.destroy({ where: { company_id: companyId } });
     await CompanySubscription.destroy({ where: { company_id: companyId } });
     await User.destroy({ where: { company_id: companyId } });
     await company.destroy();
@@ -812,3 +968,116 @@ exports.exitImpersonation = async (req, res) => {
     return res.redirect('/admin/dashboard');
   }
 };
+
+/**
+ * View & Print Official Subscription GST Tax Invoice Receipt
+ */
+exports.getInvoiceReceipt = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const invoice = await SubscriptionInvoice.findByPk(invoiceId, {
+      include: [
+        { model: SubscriptionPlan, as: 'plan' },
+        { model: Company, as: 'company' }
+      ]
+    });
+
+    if (!invoice) {
+      return res.status(404).render('error', { error: 'Subscription Tax Invoice not found.' });
+    }
+
+    // Access check: Only Super Admin or the owning company can view
+    if (!req.isSuperAdmin && req.user && req.user.company_id !== invoice.company_id) {
+      return res.status(403).render('error', { error: 'Access denied to this tax invoice.' });
+    }
+
+    res.render('admin/subscription/receipt', {
+      invoice,
+      user: req.user
+    });
+
+  } catch (error) {
+    console.error('Error rendering subscription receipt:', error);
+    res.status(500).render('error', { error: 'Failed to load tax invoice: ' + error.message });
+  }
+};
+
+/**
+ * Super Admin: Export Client Stores & Subscription Ledger to CSV
+ */
+exports.exportSubscriptionsReport = async (req, res) => {
+  try {
+    const stores = await Company.findAll({
+      where: { id: { [Op.gt]: 1 } },
+      include: [
+        { model: CompanySubscription, as: 'subscription', include: [{ model: SubscriptionPlan, as: 'plan' }] },
+        { model: User, as: 'users' }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+
+    let csv = 'Store ID,Store Name,Owner Name,Phone,Email,City,Plan Name,Billing Cycle,Amount Paid (INR),Status,License Key,Expiry Date,Registration Date\n';
+
+    for (const store of stores) {
+      const owner = store.users && store.users[0];
+      const sub = store.subscription;
+      const planName = sub && sub.plan ? sub.plan.name : 'N/A';
+      const licenseKey = sub && sub.license_key ? sub.license_key : 'N/A';
+      
+      let expiry = 'N/A';
+      try {
+        if (sub && sub.end_date && !isNaN(new Date(sub.end_date).getTime())) {
+          expiry = new Date(sub.end_date).toISOString().split('T')[0];
+        }
+      } catch (e) { expiry = 'N/A'; }
+
+      let regDate = 'N/A';
+      try {
+        if (store.created_at && !isNaN(new Date(store.created_at).getTime())) {
+          regDate = new Date(store.created_at).toISOString().split('T')[0];
+        }
+      } catch (e) { regDate = 'N/A'; }
+
+      csv += `"${store.id}","${(store.name || '').replace(/"/g, '""')}","${owner ? (owner.first_name || '').replace(/"/g, '""') : 'N/A'}","${store.phone || ''}","${store.email || ''}","${(store.city || '').replace(/"/g, '""')}","${planName}","${sub ? sub.billing_cycle : 'monthly'}","${sub ? sub.amount_paid : '0.00'}","${store.is_active ? 'Active' : 'Pending'}","${licenseKey}","${expiry}","${regDate}"\n`;
+    }
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=store_subscriptions_${Date.now()}.csv`);
+    return res.send(csv);
+
+  } catch (error) {
+    console.error('Error exporting subscription report:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Super Admin: Regenerate Cryptographic Store License Key
+ */
+exports.regenerateLicenseKey = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const subscription = await CompanySubscription.findOne({
+      where: { company_id: companyId },
+      include: [{ model: SubscriptionPlan, as: 'plan' }]
+    });
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, error: 'Store subscription not found.' });
+    }
+
+    const newKey = generateLicenseKey(subscription.plan ? subscription.plan.code : 'PRO', companyId);
+    await subscription.update({ license_key: newKey });
+
+    return res.json({
+      success: true,
+      license_key: newKey,
+      message: 'Cryptographic license key successfully regenerated!'
+    });
+
+  } catch (error) {
+    console.error('Error regenerating license key:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+

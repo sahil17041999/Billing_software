@@ -29,6 +29,7 @@ const SupplierLedger = require('./SupplierLedger');
 const SmtpSetting = require('./SmtpSetting');
 const SubscriptionPlan = require('./SubscriptionPlan');
 const CompanySubscription = require('./CompanySubscription');
+const SubscriptionInvoice = require('./SubscriptionInvoice');
 
 // Define associations (idempotent guard)
 let associationsSetup = false;
@@ -195,6 +196,11 @@ const setupAssociations = () => {
   SupplierLedger.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
   SupplierLedger.belongsTo(Supplier, { foreignKey: 'supplier_id', as: 'supplier' });
   SupplierLedger.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+  // SubscriptionInvoice associations
+  SubscriptionInvoice.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
+  SubscriptionInvoice.belongsTo(SubscriptionPlan, { foreignKey: 'plan_id', as: 'plan' });
+  Company.hasMany(SubscriptionInvoice, { foreignKey: 'company_id', as: 'subscriptionInvoices' });
 };
 
 // Run associations immediately
@@ -232,6 +238,7 @@ module.exports = {
   SmtpSetting,
   SubscriptionPlan,
   CompanySubscription,
+  SubscriptionInvoice,
   setupAssociations,
   seedSubscriptionPlans
 };

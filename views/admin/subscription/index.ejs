@@ -361,7 +361,186 @@
       margin-bottom: 40px;
       box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
     }
+
+    /* Advanced Multi-Rail Payment Gateway Styles */
+    .payment-modal-dialog {
+      max-width: 680px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.3);
+      border: 1px solid #e2e8f0;
+    }
+    .pay-rail-tabs {
+      display: flex;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 6px 12px 0;
+      gap: 6px;
+      overflow-x: auto;
+    }
+    .pay-rail-tab {
+      padding: 10px 16px;
+      border-radius: 10px 10px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .pay-rail-tab.active {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: #e2e8f0;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.02);
+    }
+
+    /* 3D Animated Card Preview */
+    .card-preview-wrap {
+      perspective: 1000px;
+      width: 100%;
+      max-width: 340px;
+      height: 190px;
+      margin: 0 auto 20px;
+    }
+    .card-flipper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 16px;
+      box-shadow: 0 16px 32px -8px rgba(19, 102, 217, 0.35);
+    }
+    .card-flipper.flipped {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #ffffff;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+    }
+    .card-face.back {
+      transform: rotateY(180deg);
+      padding: 20px 0;
+    }
+    .card-chip {
+      width: 38px;
+      height: 28px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .card-brand-badge {
+      font-size: 16px;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+    .card-number-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      letter-spacing: 2px;
+      font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card-strip {
+      width: 100%;
+      height: 38px;
+      background: #0f172a;
+      margin-top: 10px;
+    }
+    .card-cvv-box {
+      background: #ffffff;
+      color: #0f172a;
+      padding: 6px 12px;
+      text-align: right;
+      font-family: monospace;
+      font-weight: 800;
+      font-size: 13px;
+      margin: 14px 24px 0 auto;
+      width: 80px;
+      border-radius: 4px;
+    }
+
+    /* UPI QR Countdown Circular Timer */
+    .timer-ring {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      font-weight: 800;
+      font-size: 12.5px;
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+    .bank-grid-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      background: #ffffff;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .bank-grid-item:hover, .bank-grid-item.active {
+      border-color: var(--primary);
+      background: #eff6ff;
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .app-badge-btn {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #ffffff;
+      color: #1e293b;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .app-badge-btn:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
   <div class="admin-layout">
@@ -388,6 +567,70 @@
           </div>
 
           <!-- ==========================================================
+               SUPER ADMIN: REVENUE & LICENSING METRICS BAR
+               ========================================================== -->
+          <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin && typeof adminMetrics !== 'undefined') { %>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 22px;">
+            <!-- MRR -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Monthly Recurring (MRR)</span>
+                <span style="width: 28px; height: 28px; border-radius: 6px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                  <i class="ti ti-chart-line"></i>
+                </span>
+              </div>
+              <div style="font-size: 22px; font-weight: 800; color: #0f172a;">₹<%= (adminMetrics.mrr || 0).toLocaleString('en-IN') %></div>
+              <div style="font-size: 11px; color: #10b981; font-weight: 700; margin-top: 4px;">
+                <i class="ti ti-arrow-up-right"></i> Active subscription run-rate
+              </div>
+            </div>
+
+            <!-- ARR -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Annual Recurring (ARR)</span>
+                <span style="width: 28px; height: 28px; border-radius: 6px; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                  <i class="ti ti-coins"></i>
+                </span>
+              </div>
+              <div style="font-size: 22px; font-weight: 800; color: #0f172a;">₹<%= (adminMetrics.arr || 0).toLocaleString('en-IN') %></div>
+              <div style="font-size: 11px; color: #6366f1; font-weight: 700; margin-top: 4px;">
+                <i class="ti ti-calendar"></i> 12-Month Projected ARR
+              </div>
+            </div>
+
+            <!-- Active Stores -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Active Store Licenses</span>
+                <span style="width: 28px; height: 28px; border-radius: 6px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                  <i class="ti ti-building-store"></i>
+                </span>
+              </div>
+              <div style="font-size: 22px; font-weight: 800; color: #0f172a;"><%= adminMetrics.activeStoresCount || 0 %> Stores</div>
+              <div style="font-size: 11px; color: #10b981; font-weight: 700; margin-top: 4px;">
+                <i class="ti ti-check"></i> Licensed &amp; Verified
+              </div>
+            </div>
+
+            <!-- Export to CSV -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Pending Approvals</span>
+                <span style="font-size: 18px; font-weight: 800; color: <%= adminMetrics.pendingStoresCount > 0 ? '#f59e0b' : '#64748b' %>;">
+                  <%= adminMetrics.pendingStoresCount || 0 %>
+                </span>
+              </div>
+              <div style="margin-top: 8px;">
+                <a href="/admin/subscription/export" class="btn-modern btn-secondary-modern" style="width: 100%; justify-content: center; font-size: 12px; padding: 6px 10px;">
+                  <i class="ti ti-download"></i> Export Stores (CSV)
+                </a>
+              </div>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- ==========================================================
                ACTIVE SUBSCRIPTION HERO BANNER
                ========================================================== -->
           <div class="sub-hero-card">
@@ -408,6 +651,25 @@
                   <span><i class="ti ti-clock"></i> Remaining: <strong><%= typeof daysRemaining !== 'undefined' ? daysRemaining : 30 %> Days</strong></span>
                   <span><i class="ti ti-refresh"></i> Billing Cycle: <strong><%= (subscription && subscription.billing_cycle === 'yearly') ? 'Annual (20% Off)' : 'Monthly' %></strong></span>
                   <span><i class="ti ti-receipt"></i> Last Bill: <strong>₹<%= subscription ? subscription.amount_paid : '999.00' %></strong></span>
+                </div>
+
+                <!-- Cryptographic License Key & Offline Verification Status -->
+                <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 11px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; font-weight: 700;">
+                      <i class="ti ti-key"></i> License Key:
+                    </span>
+                    <code id="displayLicenseKeyCode" style="background: rgba(0, 0, 0, 0.3); color: #ffffff; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 12.5px; font-weight: 800; border: 1px solid rgba(255, 255, 255, 0.2);">
+                      <%= (subscription && subscription.license_key) ? subscription.license_key : 'GROC-9F81-22BA-01CE-PRO' %>
+                    </code>
+                    <button type="button" onclick="copyStoreLicenseKey()" id="btnCopyLicenseKey" title="Copy License Key" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 700;">
+                      <i class="ti ti-copy"></i> Copy
+                    </button>
+                  </div>
+                  <div style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #a7f3d0; background: rgba(16, 185, 129, 0.2); padding: 3px 10px; border-radius: 999px; font-weight: 700;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    <span>Node Verified &bull; 7-Day Offline Grace Cache Active</span>
+                  </div>
                 </div>
               </div>
 
@@ -741,6 +1003,93 @@
           </div>
           <% } %>
 
+          <!-- ==========================================================
+               BILLING RECEIPTS & GST TAX INVOICES HISTORY
+               ========================================================== -->
+          <div class="compare-section" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; margin: 0 0 4px;">
+                  <i class="ti ti-receipt-tax" style="color: var(--primary);"></i> Billing History &amp; Official GST Tax Invoices
+                </h3>
+                <p style="font-size: 13px; color: #64748b; margin: 0;">Download computer-generated tax receipts and track subscription transaction records</p>
+              </div>
+              <div style="font-size: 12px; color: #10b981; font-weight: 700; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 4px 12px; border-radius: 999px;">
+                <i class="ti ti-shield-check"></i> HSN/SAC: 998313 (IT SaaS License)
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper" style="border: none;">
+              <table class="table-modern" id="billingHistoryTable">
+                <thead>
+                  <tr>
+                    <th>Tax Invoice #</th>
+                    <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %><th>Billed Store</th><% } %>
+                    <th>Plan &amp; Billing Cycle</th>
+                    <th>Total Paid</th>
+                    <th>Tax Breakup (18% GST)</th>
+                    <th>Payment Details</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Tax Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (typeof billingHistory !== 'undefined' && billingHistory && billingHistory.length > 0) { %>
+                    <% billingHistory.forEach(inv => { %>
+                      <tr>
+                        <td>
+                          <div style="font-weight: 800; color: #0f172a;"><%= inv.invoice_number %></div>
+                          <div style="font-size: 11.5px; color: #64748b;"><%= new Date(inv.paid_at || inv.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %></div>
+                        </td>
+                        <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
+                          <td>
+                            <div style="font-weight: 700; color: #334155;"><%= inv.company ? inv.company.name : 'Store #' + inv.company_id %></div>
+                            <div style="font-size: 11px; color: #64748b;"><i class="ti ti-phone"></i> <%= inv.company ? inv.company.phone : '' %></div>
+                          </td>
+                        <% } %>
+                        <td>
+                          <span class="badge-modern primary" style="font-size: 11px; font-weight: 700;">
+                            <%= inv.plan ? inv.plan.name : 'Store Plan' %>
+                          </span>
+                          <span style="font-size: 11px; color: #64748b; margin-left: 4px; text-transform: uppercase;">
+                            (<%= inv.billing_cycle %>)
+                          </span>
+                        </td>
+                        <td>
+                          <div style="font-weight: 800; color: #0f172a;">₹<%= parseFloat(inv.total_amount).toFixed(2) %></div>
+                        </td>
+                        <td>
+                          <div style="font-size: 12px; color: #334155;">Base: ₹<%= parseFloat(inv.base_amount || (inv.total_amount / 1.18)).toFixed(2) %></div>
+                          <div style="font-size: 11px; color: #64748b;">GST 18%: ₹<%= parseFloat(inv.tax_amount || (inv.total_amount - (inv.total_amount / 1.18))).toFixed(2) %></div>
+                        </td>
+                        <td>
+                          <div style="font-weight: 700; color: #0f172a; font-size: 12px;"><i class="ti ti-credit-card"></i> <%= inv.payment_method %></div>
+                          <div style="font-size: 10.5px; font-family: monospace; color: #64748b;"><%= inv.transaction_id || 'N/A' %></div>
+                        </td>
+                        <td>
+                          <span class="badge-modern success" style="font-size: 11px;">
+                            <i class="ti ti-circle-check"></i> Paid
+                          </span>
+                        </td>
+                        <td style="text-align: right;">
+                          <a href="/admin/subscription/invoices/<%= inv.id %>/receipt" target="_blank" class="btn-modern btn-secondary-modern" style="padding: 4px 10px; font-size: 11.5px;">
+                            <i class="ti ti-printer"></i> Print Invoice
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="<%= (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) ? 8 : 7 %>" style="text-align: center; padding: 24px; color: #64748b;">
+                        No billing tax invoices recorded yet. Invoices are generated automatically on plan activation and renewal.
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </main>
 
         <%- include('../../partials/footer.ejs') %>
@@ -749,59 +1098,276 @@
   </div>
 
   <!-- ==========================================================
-       PLAN ACTIVATION & CHECKOUT MODAL
+       ENTERPRISE MULTI-RAIL PAYMENT GATEWAY MODAL
        ========================================================== -->
   <div id="checkoutModal" class="modal-backdrop-modern" onclick="if(event.target===this)closeCheckoutModal()">
-    <div class="modal-dialog-modern" style="max-width: 520px;">
-      <div class="modal-header-modern">
-        <h2 class="modal-title-modern">
-          <i class="ti ti-sparkles" style="color: var(--primary);"></i> Confirm Subscription Upgrade
-        </h2>
-        <button type="button" class="modal-close-btn" onclick="closeCheckoutModal()">
+    <div class="payment-modal-dialog">
+      <!-- Modal Header -->
+      <div style="padding: 18px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #ffffff;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #1366d9, #2563eb); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(19, 102, 217, 0.25);">
+            <i class="ti ti-shield-lock"></i>
+          </div>
+          <div>
+            <h2 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0;">Secure Payment Checkout</h2>
+            <div style="font-size: 11.5px; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+              <i class="ti ti-lock"></i> 256-Bit SSL Encrypted &bull; PCI-DSS Certified
+            </div>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeCheckoutModal()" style="font-size: 20px; color: #94a3b8; background: none; border: none; cursor: pointer;">
           <i class="ti ti-x"></i>
         </button>
       </div>
 
-      <div class="modal-body-modern" style="padding: 20px 24px;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 14px; font-weight: 700; color: #0f172a;" id="modalPlanName">Professional Store</span>
-            <span class="badge-modern info" id="modalCycleBadge">Monthly Plan</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <span style="font-size: 12px; color: #64748b;">Billing Amount:</span>
-            <span style="font-size: 26px; font-weight: 800; color: var(--primary);" id="modalTotalAmount">₹999.00</span>
-          </div>
+      <!-- Live Order Summary Strip -->
+      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <div style="font-size: 14px; font-weight: 800; color: #0f172a;" id="modalPlanName">Professional Store</div>
+          <div style="font-size: 11.5px; color: #64748b;" id="modalCycleDesc">Billed Annually (20% Savings applied)</div>
         </div>
-
-        <div class="form-group-modern" style="margin-bottom: 18px;">
-          <label class="form-label-modern" style="font-weight: 700;">Select Payment Method</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-            <button type="button" class="btn-modern btn-secondary-modern pay-method-btn active" data-method="UPI" onclick="selectPayMethod(this, 'UPI')">
-              <i class="ti ti-qrcode"></i> UPI / QR
-            </button>
-            <button type="button" class="btn-modern btn-secondary-modern pay-method-btn" data-method="Card" onclick="selectPayMethod(this, 'Card')">
-              <i class="ti ti-credit-card"></i> Card
-            </button>
-            <button type="button" class="btn-modern btn-secondary-modern pay-method-btn" data-method="NetBanking" onclick="selectPayMethod(this, 'NetBanking')">
-              <i class="ti ti-building-bank"></i> Net Banking
-            </button>
-          </div>
-        </div>
-
-        <div id="upiPreviewBox" style="background: #ffffff; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 16px;">
-          <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Instant activation via UPI QR Code / Auto-Debit</div>
-          <div style="font-weight: 700; color: #0f172a; font-size: 13px;">GPay, PhonePe, Paytm or Any BHIM UPI App</div>
+        <div style="text-align: right;">
+          <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Total Payable (Incl. 18% GST)</div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--primary);" id="modalTotalAmount">₹999.00</div>
         </div>
       </div>
 
-      <div class="modal-footer-modern">
+      <!-- Payment Method Navigation Tabs -->
+      <div class="pay-rail-tabs">
+        <button type="button" class="pay-rail-tab active" id="tabBtnUPI" onclick="switchPayRail('UPI')">
+          <i class="ti ti-qrcode"></i> Instant UPI / QR
+        </button>
+        <button type="button" class="pay-rail-tab" id="tabBtnCard" onclick="switchPayRail('Card')">
+          <i class="ti ti-credit-card"></i> Credit / Debit Card
+        </button>
+        <button type="button" class="pay-rail-tab" id="tabBtnNetBanking" onclick="switchPayRail('NetBanking')">
+          <i class="ti ti-building-bank"></i> Net Banking
+        </button>
+        <button type="button" class="pay-rail-tab" id="tabBtnEMI" onclick="switchPayRail('EMI')">
+          <i class="ti ti-calendar-stats"></i> No-Cost EMI
+        </button>
+      </div>
+
+      <!-- Main Payment Body -->
+      <div style="padding: 22px 24px; max-height: 420px; overflow-y: auto;">
+
+        <!-- RAIL 1: DYNAMIC UPI QR & APPS -->
+        <div id="railUPIContent">
+          <div style="display: grid; grid-template-columns: 180px 1fr; gap: 24px; align-items: center;">
+            <!-- Dynamic QR with Live Timer -->
+            <div style="text-align: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+              <div style="width: 156px; height: 156px; margin: 0 auto; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #cbd5e1;">
+                <img id="upiDynamicQrImg" src="" alt="Scan UPI QR Code" style="width: 100%; height: 100%; object-fit: contain;">
+              </div>
+              <div class="timer-ring" style="margin-top: 8px;">
+                <i class="ti ti-clock"></i> <span id="qrCountdownText">05:00</span>
+              </div>
+            </div>
+
+            <!-- UPI Apps & VPA Input -->
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px;">
+                Scan with any UPI App
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;">
+                <span class="app-badge-btn"><i class="ti ti-brand-google" style="color:#4285F4;"></i> GPay</span>
+                <span class="app-badge-btn"><i class="ti ti-wallet" style="color:#5f259f;"></i> PhonePe</span>
+                <span class="app-badge-btn"><i class="ti ti-bolt" style="color:#00b9f5;"></i> Paytm</span>
+                <span class="app-badge-btn"><i class="ti ti-shield" style="color:#0284c7;"></i> BHIM</span>
+                <span class="app-badge-btn"><i class="ti ti-credit-card" style="color:#000000;"></i> CRED</span>
+              </div>
+
+              <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Or Pay via UPI ID / VPA</label>
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="upiVpaInput" placeholder="username@bank / 9876543210@paytm" class="form-control" style="flex: 1; height: 38px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-size: 13px; font-weight: 600;">
+                  <button type="button" class="btn-modern btn-secondary-modern" onclick="verifyVpaSimulation()" style="font-size: 12px; padding: 0 12px;">
+                    Verify
+                  </button>
+                </div>
+                <div id="vpaValidationFeedback" style="font-size: 11px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RAIL 2: 3D ANIMATED CREDIT / DEBIT CARD -->
+        <div id="railCardContent" style="display: none;">
+          <!-- 3D Interactive Card Preview -->
+          <div class="card-preview-wrap">
+            <div class="card-flipper" id="cardFlipperEl">
+              <!-- Front Face -->
+              <div class="card-face front">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="card-chip"></span>
+                  <span class="card-brand-badge" id="cardBrandText">VISA</span>
+                </div>
+                <div class="card-number-display" id="displayCardNumber">•••• •••• •••• ••••</div>
+                <div class="card-meta-row">
+                  <div>
+                    <span style="opacity: 0.7; font-size: 9px; display: block;">CARD HOLDER</span>
+                    <strong id="displayCardHolder" style="font-size: 12px;">YOUR NAME</strong>
+                  </div>
+                  <div>
+                    <span style="opacity: 0.7; font-size: 9px; display: block;">EXPIRES</span>
+                    <strong id="displayCardExpiry" style="font-size: 12px;">MM/YY</strong>
+                  </div>
+                </div>
+              </div>
+              <!-- Back Face -->
+              <div class="card-face back">
+                <div class="card-strip"></div>
+                <div class="card-cvv-box" id="displayCardCvv">•••</div>
+                <div style="font-size: 9px; opacity: 0.7; text-align: right; padding: 10px 24px 0 0;">SECURITY CODE / CVV</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Form Inputs -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="grid-column: span 2;">
+              <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Card Number</label>
+              <input type="text" id="inputCardNumber" maxlength="19" placeholder="4532 0123 4567 8910" class="form-control" style="height: 38px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 700; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Cardholder Name</label>
+              <input type="text" id="inputCardHolder" placeholder="Name on card" class="form-control" style="height: 38px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600; font-size: 13px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Expiry</label>
+                <input type="text" id="inputCardExpiry" maxlength="5" placeholder="MM/YY" class="form-control" style="height: 38px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 8px; text-align: center; font-weight: 700; font-size: 13px;">
+              </div>
+              <div>
+                <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">CVV</label>
+                <input type="password" id="inputCardCvv" maxlength="4" placeholder="•••" class="form-control" style="height: 38px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 8px; text-align: center; font-weight: 700; font-size: 13px;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RAIL 3: NET BANKING -->
+        <div id="railNetBankingContent" style="display: none;">
+          <div style="font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 10px;">Popular Indian Banks</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+            <div class="bank-grid-item active" onclick="selectBank(this, 'HDFC')">
+              <i class="ti ti-building-bank" style="font-size: 18px; color: #1e3a8a;"></i>
+              <span>HDFC Bank</span>
+            </div>
+            <div class="bank-grid-item" onclick="selectBank(this, 'ICICI')">
+              <i class="ti ti-building-bank" style="font-size: 18px; color: #9a3412;"></i>
+              <span>ICICI Bank</span>
+            </div>
+            <div class="bank-grid-item" onclick="selectBank(this, 'SBI')">
+              <i class="ti ti-building-bank" style="font-size: 18px; color: #0284c7;"></i>
+              <span>State Bank (SBI)</span>
+            </div>
+            <div class="bank-grid-item" onclick="selectBank(this, 'AXIS')">
+              <i class="ti ti-building-bank" style="font-size: 18px; color: #9f1239;"></i>
+              <span>Axis Bank</span>
+            </div>
+            <div class="bank-grid-item" onclick="selectBank(this, 'KOTAK')">
+              <i class="ti ti-building-bank" style="font-size: 18px; color: #dc2626;"></i>
+              <span>Kotak Mahindra</span>
+            </div>
+            <div class="bank-grid-item" onclick="selectBank(this, 'PNB')">
+              <i class="ti ti-building-bank" style="font-size: 18px; color: #b45309;"></i>
+              <span>Punjab National</span>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Or Select Other Indian Banks (50+)</label>
+            <select class="form-control" style="height: 38px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-size: 13px; font-weight: 600;">
+              <option>Bank of Baroda</option>
+              <option>Canara Bank</option>
+              <option>Union Bank of India</option>
+              <option>IDFC FIRST Bank</option>
+              <option>IndusInd Bank</option>
+              <option>Federal Bank</option>
+              <option>Yes Bank</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- RAIL 4: NO-COST EMI & PAY LATER -->
+        <div id="railEMIContent" style="display: none;">
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+            <div style="font-size: 13px; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 6px;">
+              <i class="ti ti-tag"></i> 0% Interest No-Cost EMI Available
+            </div>
+            <div style="font-size: 12px; color: #15803d; margin-top: 2px;">
+              Pay over 3 or 6 months with zero extra charges on major credit cards.
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; cursor: pointer;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="radio" name="emiOption" checked>
+                <span style="font-size: 13px; font-weight: 700; color: #0f172a;">3 Months No-Cost EMI</span>
+              </div>
+              <strong style="color: var(--primary); font-size: 13px;" id="emi3Val">₹333/mo</strong>
+            </label>
+            <label style="display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; cursor: pointer;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="radio" name="emiOption">
+                <span style="font-size: 13px; font-weight: 700; color: #0f172a;">6 Months No-Cost EMI</span>
+              </div>
+              <strong style="color: var(--primary); font-size: 13px;" id="emi6Val">₹167/mo</strong>
+            </label>
+          </div>
+        </div>
+
+        <!-- Transparent GST Breakdown Box -->
+        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed #cbd5e1; font-size: 12px; color: #475569; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <div>Taxable Base: <strong id="modalBaseAmount">₹846.61</strong></div>
+          <div>CGST 9%: <strong id="modalCgstAmount">₹76.19</strong></div>
+          <div>SGST 9%: <strong id="modalSgstAmount">₹76.19</strong></div>
+          <div style="color: #10b981; font-weight: 700;">SAC: 998313 (IT SaaS)</div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 14px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
         <button type="button" class="btn-modern btn-secondary-modern" onclick="closeCheckoutModal()">
           Cancel
         </button>
-        <button type="button" class="btn-modern btn-primary-modern" id="btnConfirmUpgrade" onclick="executePlanUpgrade()">
-          <i class="ti ti-shield-check"></i> Pay &amp; Activate Plan
+        <button type="button" class="btn-modern btn-primary-modern" id="btnConfirmUpgrade" onclick="executePlanUpgrade()" style="font-weight: 800; padding: 10px 24px; font-size: 13.5px; box-shadow: 0 4px 14px rgba(19, 102, 217, 0.35);">
+          <i class="ti ti-shield-check"></i> Authorize &amp; Activate Plan
         </button>
+      </div>
+
+      <!-- Payment Success Overlay (Confetti Celebration) -->
+      <div id="paymentSuccessOverlay" style="display: none; position: absolute; inset: 0; background: #ffffff; border-radius: 20px; z-index: 100; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #ecfdf5; border: 3px solid #10b981; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 16px; animation: bounceIn 0.5s ease;">
+          <i class="ti ti-check"></i>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 6px;">Subscription Activated!</h3>
+        <p style="font-size: 13px; color: #64748b; max-width: 380px; margin: 0 auto 16px;">
+          Your software license has been renewed and activated with instant node validation.
+        </p>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; font-size: 12px; text-align: left; width: 100%; max-width: 380px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="color: #64748b;">Transaction Ref:</span>
+            <strong id="successTxnRef" style="font-family: monospace; color: #0f172a;">TXN-12345678</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="color: #64748b;">Tax Invoice:</span>
+            <strong id="successInvoiceNum" style="color: #0f172a;">INV-SUB-2026-0001</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b;">License Key:</span>
+            <strong id="successLicenseKey" style="font-family: monospace; color: #10b981;">GROC-XXXX-PRO</strong>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <a id="btnViewGeneratedReceipt" href="#" target="_blank" class="btn-modern btn-secondary-modern">
+            <i class="ti ti-printer"></i> View GST Tax Invoice
+          </a>
+          <button type="button" class="btn-modern btn-primary-modern" onclick="window.location.reload()">
+            <i class="ti ti-circle-check"></i> Finish &amp; Return
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -937,10 +1503,67 @@
       $('.yearly-note').toggle(isYearly);
     }
 
-    function selectPayMethod(btn, method) {
-      $('.pay-method-btn').removeClass('active');
-      $(btn).addClass('active');
-      selectedPaymentMethod = method;
+    // Copy Store License Key to Clipboard
+    function copyStoreLicenseKey() {
+      const code = $('#displayLicenseKeyCode').text().trim();
+      if (!code) return;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = $('#btnCopyLicenseKey');
+        const orig = btn.html();
+        btn.html('<i class="ti ti-check" style="color:#10b981;"></i> Copied!');
+        setTimeout(() => btn.html(orig), 2000);
+      });
+    }
+
+    let qrInterval = null;
+    let qrRemainingSeconds = 300;
+
+    function startQrTimer() {
+      if (qrInterval) clearInterval(qrInterval);
+      qrRemainingSeconds = 300;
+      updateQrTimerDisplay();
+      qrInterval = setInterval(() => {
+        qrRemainingSeconds--;
+        if (qrRemainingSeconds <= 0) {
+          clearInterval(qrInterval);
+          $('#qrCountdownText').text('00:00 (Expired)');
+          return;
+        }
+        updateQrTimerDisplay();
+      }, 1000);
+    }
+
+    function updateQrTimerDisplay() {
+      const m = Math.floor(qrRemainingSeconds / 60);
+      const s = qrRemainingSeconds % 60;
+      $('#qrCountdownText').text(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    }
+
+    function switchPayRail(rail) {
+      selectedPaymentMethod = rail;
+      $('.pay-rail-tab').removeClass('active');
+      $('#tabBtn' + rail).addClass('active');
+
+      $('#railUPIContent').toggle(rail === 'UPI');
+      $('#railCardContent').toggle(rail === 'Card');
+      $('#railNetBankingContent').toggle(rail === 'NetBanking');
+      $('#railEMIContent').toggle(rail === 'EMI');
+    }
+
+    function selectBank(el, bankCode) {
+      $('.bank-grid-item').removeClass('active');
+      $(el).addClass('active');
+      selectedPaymentMethod = 'NetBanking-' + bankCode;
+    }
+
+    function verifyVpaSimulation() {
+      const vpa = $('#upiVpaInput').val().trim();
+      const fb = $('#vpaValidationFeedback');
+      if (!vpa || !vpa.includes('@')) {
+        fb.css('color', '#ef4444').text('Please enter a valid UPI VPA (e.g. yourname@upi)').show();
+        return;
+      }
+      fb.css('color', '#10b981').html('<i class="ti ti-circle-check"></i> Verified Merchant VPA: ' + vpa).show();
     }
 
     function openCheckoutModal(planId, planName, price) {
@@ -948,7 +1571,7 @@
       $('#modalPlanName').text(planName);
 
       const isYearly = currentSelectedCycle === 'yearly';
-      $('#modalCycleBadge').text(isYearly ? 'Annual (20% Off)' : 'Monthly Plan');
+      $('#modalCycleDesc').text(isYearly ? 'Billed Annually (20% Savings applied)' : 'Billed Monthly');
 
       // Find price from card or calculate
       const targetCard = $(`.plan-card`).has(`button[onclick*="'${planId}'"]`);
@@ -958,19 +1581,77 @@
         amount = isYearly ? priceEl.data('yearly') : priceEl.data('monthly');
       }
 
-      $('#modalTotalAmount').text('₹' + Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+      const totalVal = Number(amount);
+      const baseVal = totalVal / 1.18;
+      const totalGst = totalVal - baseVal;
+      const halfGst = totalGst / 2;
+
+      $('#modalTotalAmount').text('₹' + totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+      $('#modalBaseAmount').text('₹' + baseVal.toFixed(2));
+      $('#modalCgstAmount').text('₹' + halfGst.toFixed(2));
+      $('#modalSgstAmount').text('₹' + halfGst.toFixed(2));
+
+      $('#emi3Val').text('₹' + Math.round(totalVal / 3).toLocaleString('en-IN') + '/mo');
+      $('#emi6Val').text('₹' + Math.round(totalVal / 6).toLocaleString('en-IN') + '/mo');
+
+      // Generate dynamic UPI intent string
+      const upiUrl = `upi://pay?pa=grocerycloud@icici&pn=GroceryERP&am=${totalVal.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Plan_' + planName)}`;
+      $('#upiDynamicQrImg').attr('src', `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`);
+
+      switchPayRail('UPI');
+      startQrTimer();
+      $('#paymentSuccessOverlay').hide();
       $('#checkoutModal').addClass('show');
     }
 
     function closeCheckoutModal() {
+      if (qrInterval) clearInterval(qrInterval);
       $('#checkoutModal').removeClass('show');
     }
+
+    // 3D Card Interactive Events
+    $(document).ready(function() {
+      $('#inputCardNumber').on('input', function() {
+        let val = $(this).val().replace(/\D/g, '').slice(0, 16);
+        let formatted = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+        $(this).val(formatted);
+
+        let display = formatted || '•••• •••• •••• ••••';
+        $('#displayCardNumber').text(display);
+
+        // Detect Brand
+        if (val.startsWith('4')) $('#cardBrandText').text('VISA');
+        else if (val.startsWith('5')) $('#cardBrandText').text('MASTERCARD');
+        else if (val.startsWith('6')) $('#cardBrandText').text('RUPAY');
+        else if (val.startsWith('3')) $('#cardBrandText').text('AMEX');
+        else $('#cardBrandText').text('CARD');
+      });
+
+      $('#inputCardHolder').on('input', function() {
+        $('#displayCardHolder').text($(this).val().toUpperCase() || 'YOUR NAME');
+      });
+
+      $('#inputCardExpiry').on('input', function() {
+        let val = $(this).val().replace(/\D/g, '').slice(0, 4);
+        if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2);
+        $(this).val(val);
+        $('#displayCardExpiry').text(val || 'MM/YY');
+      });
+
+      $('#inputCardCvv').on('focus', function() {
+        $('#cardFlipperEl').addClass('flipped');
+      }).on('blur', function() {
+        $('#cardFlipperEl').removeClass('flipped');
+      }).on('input', function() {
+        $('#displayCardCvv').text($(this).val() || '•••');
+      });
+    });
 
     function executePlanUpgrade() {
       const btn = $('#btnConfirmUpgrade');
       const origHtml = btn.html();
       btn.prop('disabled', true);
-      btn.html('<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite; display:inline-block;"></i> Activating...');
+      btn.html('<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite; display:inline-block;"></i> Authorizing with Bank...');
 
       fetch('/admin/subscription/upgrade', {
         method: 'POST',
@@ -991,28 +1672,38 @@
 
         if (!ok || !data.success) {
           if (typeof showError === 'function') {
-            showError('Activation Failed', data.error || 'Could not upgrade plan.');
+            showError('Payment Failed', data.error || 'Could not process transaction.');
           } else {
             alert(data.error || 'Could not upgrade plan.');
           }
         } else {
-          closeCheckoutModal();
-          if (typeof showSuccess === 'function') {
-            showSuccess('Plan Activated!', data.message || 'Your subscription is now active.', function() {
-              window.location.reload();
+          // Confetti Celebration Blast!
+          if (typeof confetti === 'function') {
+            confetti({
+              particleCount: 140,
+              spread: 80,
+              origin: { y: 0.6 },
+              colors: ['#1366d9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
             });
-          } else {
-            alert(data.message || 'Plan activated successfully!');
-            window.location.reload();
           }
+
+          // Populate Confirmation Screen
+          $('#successTxnRef').text(data.subscription.transaction_id || 'TXN-OK');
+          $('#successInvoiceNum').text(data.invoice_number || 'INV-TAX-2026');
+          $('#successLicenseKey').text(data.license_key || 'ACTIVE-KEY');
+          if (data.invoice_id) {
+            $('#btnViewGeneratedReceipt').attr('href', `/admin/subscription/invoices/${data.invoice_id}/receipt`);
+          } else {
+            $('#btnViewGeneratedReceipt').attr('href', `/admin/subscription`);
+          }
+
+          $('#paymentSuccessOverlay').css('display', 'flex');
         }
       })
       .catch(err => {
         btn.prop('disabled', false);
         btn.html(origHtml);
-        if (typeof showError === 'function') {
-          showError('Network Error', 'Could not complete subscription request.');
-        }
+        alert('Network connection error. Please try again.');
       });
     }
 

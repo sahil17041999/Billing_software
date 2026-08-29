@@ -14,6 +14,8 @@ router.use(isAuthenticated);
 router.get('/', subscriptionController.getSubscription);
 router.post('/upgrade', subscriptionController.upgradePlan);
 router.post('/cancel', subscriptionController.cancelSubscription);
+router.get('/invoices/:invoiceId/receipt', subscriptionController.getInvoiceReceipt);
+router.get('/export', isSuperAdmin, subscriptionController.exportSubscriptionsReport);
 
 // Admin Client Stores & License Approvals (Only Super Admin - Full Authority)
 router.post('/clients/:companyId/approve', isSuperAdmin, subscriptionController.approveClientStore);
@@ -23,6 +25,7 @@ router.post('/clients/:companyId/change-plan', isSuperAdmin, subscriptionControl
 router.post('/clients/:companyId/edit', isSuperAdmin, subscriptionController.editClientStore);
 router.post('/clients/:companyId/delete', isSuperAdmin, subscriptionController.deleteClientStore);
 router.post('/clients/:companyId/impersonate', isSuperAdmin, subscriptionController.impersonateClientStore);
+router.post('/clients/:companyId/regenerate-license', isSuperAdmin, subscriptionController.regenerateLicenseKey);
 router.get('/impersonate/exit', subscriptionController.exitImpersonation);
 
 module.exports = router;

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Invoice &bull; <%= invoice.invoice_number %></title>
+  
+  <!-- Standard Website Font-Family -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css">
+
+  <style>
+    :root {
+      --primary: #1366d9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    }
+    body {
+      background: #f1f5f9;
+      color: var(--text-main);
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .action-bar {
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1366d9, #2563eb);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(19, 102, 217, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(19, 102, 217, 0.35);
+    }
+    .btn-outline {
+      background: #ffffff;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .invoice-card {
+      max-width: 800px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border-color);
+      padding: 44px;
+      position: relative;
+      overflow: hidden;
+    }
+    .invoice-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #1366d9, #4f46e5, #06b6d4);
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-title i {
+      color: var(--primary);
+    }
+    .badge-tax-invoice {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .invoice-number-box {
+      text-align: right;
+    }
+    .invoice-number {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .invoice-date {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .parties-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .party-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    .party-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .party-meta {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .table-invoice {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+    .table-invoice th {
+      background: #f8fafc;
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #475569;
+      padding: 12px 14px;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .table-invoice td {
+      padding: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13.5px;
+      color: #1e293b;
+    }
+
+    .totals-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 20px;
+      padding-top: 16px;
+    }
+    .license-stamp {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 14px 18px;
+      max-width: 380px;
+      width: 100%;
+    }
+    .totals-table {
+      width: 280px;
+    }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 13px;
+      color: #475569;
+    }
+    .totals-row.grand-total {
+      border-top: 2px solid #0f172a;
+      margin-top: 6px;
+      padding-top: 10px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .invoice-footer {
+      border-top: 1px solid #f1f5f9;
+      margin-top: 40px;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .action-bar {
+        display: none !important;
+      }
+      .invoice-card {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar -->
+  <div class="action-bar">
+    <a href="/admin/subscription" class="btn-action btn-outline">
+      <i class="ti ti-arrow-left"></i> Back to Subscriptions
+    </a>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" onclick="window.print()" class="btn-action btn-primary">
+        <i class="ti ti-printer"></i> Print Tax Receipt
+      </button>
+    </div>
+  </div>
+
+  <!-- Tax Invoice Card -->
+  <div class="invoice-card" id="printableReceipt">
+    <div class="invoice-header">
+      <div>
+        <div class="brand-title">
+          <i class="ti ti-cloud-computing"></i>
+          <span>Grocery ERP Cloud</span>
+        </div>
+        <div class="badge-tax-invoice">Original for Recipient &bull; GST Tax Invoice</div>
+      </div>
+      <div class="invoice-number-box">
+        <div class="invoice-number"><%= invoice.invoice_number %></div>
+        <div class="invoice-date">
+          Invoice Date: <strong><%= new Date(invoice.paid_at || invoice.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) %></strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parties Grid -->
+    <div class="parties-grid">
+      <div>
+        <div class="party-title">Supplier / Platform Provider</div>
+        <div class="party-name">Grocery Cloud Billing Software Pvt. Ltd.</div>
+        <div class="party-meta">
+          GSTIN: 27AABCG1234F1Z5<br>
+          SAC Code: 998313 (IT Software Licensing)<br>
+          Cyber City Tech Park, Bandra West, Mumbai, MH - 400050<br>
+          Support: billing@groceryerp.in &bull; +91 9999999999
+        </div>
+      </div>
+      <div>
+        <div class="party-title">Billed To (Customer / Store)</div>
+        <div class="party-name"><%= invoice.company ? invoice.company.name : 'Client Store' %></div>
+        <div class="party-meta">
+          Mobile: +91 <%= invoice.company ? invoice.company.phone : 'N/A' %><br>
+          Email: <%= (invoice.company && invoice.company.email) ? invoice.company.email : 'N/A' %><br>
+          City / State: <%= (invoice.company && invoice.company.city) ? invoice.company.city : 'India' %><br>
+          Store License ID: <strong><%= invoice.company ? ('STR-' + invoice.company.id) : 'N/A' %></strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Line Items Table -->
+    <table class="table-invoice">
+      <thead>
+        <tr>
+          <th style="width: 8%;">#</th>
+          <th style="width: 44%;">Description of Service</th>
+          <th style="width: 14%; text-align: center;">SAC Code</th>
+          <th style="width: 14%; text-align: center;">Cycle</th>
+          <th style="width: 20%; text-align: right;">Amount (INR)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>
+            <div style="font-weight: 800; color: #0f172a;"><%= invoice.plan ? invoice.plan.name : 'Store Subscription' %> License</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+              Valid from <%= new Date(invoice.period_start).toLocaleDateString('en-IN') %> to <%= new Date(invoice.period_end).toLocaleDateString('en-IN') %>
+            </div>
+            <div style="font-size: 11px; color: #10b981; font-weight: 700; margin-top: 2px;">
+              <i class="ti ti-key"></i> Key: <%= invoice.license_key || 'ACTIVE-TOKEN' %>
+            </div>
+          </td>
+          <td style="text-align: center; font-weight: 700; color: #475569;">998313</td>
+          <td style="text-align: center; text-transform: capitalize; font-weight: 700;"><%= invoice.billing_cycle %></td>
+          <td style="text-align: right; font-weight: 800;">₹<%= parseFloat(invoice.base_amount || (invoice.total_amount / 1.18)).toFixed(2) %></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals Area -->
+    <div class="totals-area">
+      <div class="license-stamp">
+        <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: #64748b; margin-bottom: 4px;">
+          <i class="ti ti-shield-check" style="color: #10b981;"></i> Cryptographic License Verification
+        </div>
+        <div style="font-family: monospace; font-size: 12px; font-weight: 800; color: #0f172a; word-break: break-all;">
+          <%= invoice.license_key || 'GROC-9F81-22BA-01CE-PRO' %>
+        </div>
+        <div style="font-size: 11px; color: #64748b; margin-top: 6px;">
+          Payment Method: <strong><%= invoice.payment_method %></strong> &bull; TXN: <strong><%= invoice.transaction_id %></strong>
+        </div>
+      </div>
+
+      <div class="totals-table">
+        <div class="totals-row">
+          <span>Taxable Value:</span>
+          <span>₹<%= parseFloat(invoice.base_amount || (invoice.total_amount / 1.18)).toFixed(2) %></span>
+        </div>
+        <div class="totals-row">
+          <span>CGST (9%):</span>
+          <span>₹<%= parseFloat((invoice.tax_amount ? invoice.tax_amount / 2 : (invoice.total_amount - (invoice.total_amount / 1.18)) / 2)).toFixed(2) %></span>
+        </div>
+        <div class="totals-row">
+          <span>SGST (9%):</span>
+          <span>₹<%= parseFloat((invoice.tax_amount ? invoice.tax_amount / 2 : (invoice.total_amount - (invoice.total_amount / 1.18)) / 2)).toFixed(2) %></span>
+        </div>
+        <div class="totals-row grand-total">
+          <span>Total Paid:</span>
+          <span>₹<%= parseFloat(invoice.total_amount).toFixed(2) %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Footer -->
+    <div class="invoice-footer">
+      <div>
+        This is a computer-generated tax invoice and requires no physical signature.<br>
+        Issued in compliance with Goods and Services Tax Act 2017.
+      </div>
+      <div style="text-align: right; font-weight: 700; color: #10b981;">
+        <i class="ti ti-circle-check-filled"></i> PAYMENT STATUS: PAID
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
