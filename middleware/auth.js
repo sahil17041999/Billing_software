@@ -171,6 +171,7 @@ const attachUser = async (req, res, next) => {
   res.locals.subscriptionPlanCode = 'starter';
   res.locals.hasPermission = () => false;
   res.locals.canAccessFeature = () => false;
+  res.locals.session = req.session;
 
   if (req.session.userId) {
     try {

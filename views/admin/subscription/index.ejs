@@ -394,20 +394,20 @@
             <div class="sub-hero-grid">
               <div>
                 <div class="sub-plan-badge">
-                  <i class="ti ti-sparkles"></i> Active Plan: <%= subscription.plan ? subscription.plan.name : 'Professional Retailer' %>
+                  <i class="ti ti-sparkles"></i> Active Plan: <%= (subscription && subscription.plan) ? subscription.plan.name : 'Professional Store' %>
                 </div>
                 <h2 class="sub-hero-title">
-                  <%= subscription.plan ? subscription.plan.name : 'Professional Retailer' %>
-                  <span class="badge-modern <%= subscription.status === 'active' ? 'success' : 'warning' %>" style="font-size: 12px; vertical-align: middle;">
-                    <%= subscription.status ? subscription.status.toUpperCase() : 'ACTIVE' %>
+                  <%= (subscription && subscription.plan) ? subscription.plan.name : 'Professional Store' %>
+                  <span class="badge-modern <%= (subscription && subscription.status === 'active') ? 'success' : 'warning' %>" style="font-size: 12px; vertical-align: middle;">
+                    <%= (subscription && subscription.status) ? subscription.status.toUpperCase() : 'ACTIVE' %>
                   </span>
                 </h2>
 
                 <div class="sub-hero-meta">
-                  <span><i class="ti ti-calendar-time"></i> Valid Till: <strong><%= new Date(subscription.end_date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) %></strong></span>
-                  <span><i class="ti ti-clock"></i> Remaining: <strong><%= daysRemaining %> Days</strong></span>
-                  <span><i class="ti ti-refresh"></i> Billing Cycle: <strong><%= subscription.billing_cycle === 'yearly' ? 'Annual (20% Off)' : 'Monthly' %></strong></span>
-                  <span><i class="ti ti-receipt"></i> Last Bill: <strong>₹<%= subscription.amount_paid %></strong></span>
+                  <span><i class="ti ti-calendar-time"></i> Valid Till: <strong><%= (subscription && subscription.end_date) ? new Date(subscription.end_date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) : 'N/A' %></strong></span>
+                  <span><i class="ti ti-clock"></i> Remaining: <strong><%= typeof daysRemaining !== 'undefined' ? daysRemaining : 30 %> Days</strong></span>
+                  <span><i class="ti ti-refresh"></i> Billing Cycle: <strong><%= (subscription && subscription.billing_cycle === 'yearly') ? 'Annual (20% Off)' : 'Monthly' %></strong></span>
+                  <span><i class="ti ti-receipt"></i> Last Bill: <strong>₹<%= subscription ? subscription.amount_paid : '999.00' %></strong></span>
                 </div>
               </div>
 
@@ -415,7 +415,12 @@
                 <button type="button" class="btn-modern btn-primary-modern" onclick="scrollToPlans()" style="background: #ffffff; color: #1366d9; border: none; font-weight: 800;">
                   <i class="ti ti-arrow-up-right"></i> Upgrade Plan
                 </button>
-                <button type="button" class="btn-modern btn-secondary-modern" onclick="openCheckoutModal('<%= subscription.plan ? subscription.plan.id : 2 %>', '<%= subscription.plan ? subscription.plan.name : 'Professional' %>', <%= subscription.billing_cycle === 'yearly' ? subscription.plan.price_yearly : subscription.plan.price_monthly %>)" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);">
+                <% 
+                  const renewPlanId = (subscription && subscription.plan) ? subscription.plan.id : 2;
+                  const renewPlanName = (subscription && subscription.plan) ? subscription.plan.name : 'Professional Store';
+                  const renewPrice = (subscription && subscription.plan) ? (subscription.billing_cycle === 'yearly' ? subscription.plan.price_yearly : subscription.plan.price_monthly) : 999.00;
+                %>
+                <button type="button" class="btn-modern btn-secondary-modern" onclick="openCheckoutModal('<%= renewPlanId %>', '<%= renewPlanName %>', <%= renewPrice %>)" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);">
                   <i class="ti ti-rotate"></i> Renew Now
                 </button>
               </div>
@@ -682,20 +687,43 @@
                             </span>
                           <% } %>
                         </td>
-                        <td style="text-align: right;">
-                          <div style="display: inline-flex; gap: 6px;">
+                        <td style="text-align: right; white-space: nowrap;">
+                          <div style="display: inline-flex; gap: 5px; align-items: center;">
                             <% if (isPending) { %>
                               <button type="button" class="btn-modern btn-primary-modern" style="padding: 4px 10px; font-size: 11.5px;" onclick="approveStore('<%= store.id %>', '<%= store.name %>')" title="Approve and Grant Login Access">
-                                <i class="ti ti-user-check"></i> Approve Login
+                                <i class="ti ti-user-check"></i> Approve
                               </button>
                             <% } else { %>
-                              <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px;" onclick="extendStoreLicense('<%= store.id %>', '<%= store.name %>')" title="Add +30 Days">
-                                <i class="ti ti-calendar-plus"></i> +30 Days
+                              <!-- Access Store Workspace (Impersonation) -->
+                              <button type="button" class="btn-modern btn-primary-modern" style="padding: 4px 9px; font-size: 11.5px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="impersonateStore('<%= store.id %>', '<%= store.name %>')" title="Access Store Panel (Login directly)">
+                                <i class="ti ti-login"></i> Access
                               </button>
-                              <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px;" onclick="toggleStoreStatus('<%= store.id %>', '<%= store.name %>')" title="Suspend / Activate">
+                              
+                              <!-- Extend License (+30 Days) -->
+                              <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px;" onclick="extendStoreLicense('<%= store.id %>', '<%= store.name %>')" title="Add +30 Days Validity">
+                                <i class="ti ti-calendar-plus"></i> +30d
+                              </button>
+
+                              <!-- Toggle Active / Suspended -->
+                              <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px; color: <%= store.is_active ? '#10b981' : '#ef4444' %>;" onclick="toggleStoreStatus('<%= store.id %>', '<%= store.name %>')" title="<%= store.is_active ? 'Suspend Store' : 'Activate Store' %>">
                                 <i class="ti ti-power"></i>
                               </button>
                             <% } %>
+
+                            <!-- Change Plan Directly (Admin Authority) -->
+                            <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px; color: #6366f1;" onclick="openChangePlanModal('<%= store.id %>', '<%= store.name %>', '<%= sub ? sub.plan_id : '' %>', '<%= sub ? sub.billing_cycle : 'monthly' %>')" title="Admin: Switch / Upgrade Plan">
+                              <i class="ti ti-sparkles"></i>
+                            </button>
+
+                            <!-- Edit Store Details -->
+                            <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px; color: #0284c7;" onclick="openEditStoreModal('<%= store.id %>', '<%= store.name %>', '<%= owner ? owner.first_name : '' %>', '<%= store.phone || (owner ? owner.phone : '') %>', '<%= store.email || (owner ? owner.email : '') %>', '<%= store.city || '' %>')" title="Admin: Edit Store & Owner">
+                              <i class="ti ti-edit"></i>
+                            </button>
+
+                            <!-- Delete Store Registration -->
+                            <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444;" onclick="deleteStore('<%= store.id %>', '<%= store.name %>')" title="Admin: Delete Store Registration">
+                              <i class="ti ti-trash"></i>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -773,6 +801,106 @@
         </button>
         <button type="button" class="btn-modern btn-primary-modern" id="btnConfirmUpgrade" onclick="executePlanUpgrade()">
           <i class="ti ti-shield-check"></i> Pay &amp; Activate Plan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================
+       SUPER ADMIN: CHANGE STORE PLAN MODAL
+       ========================================================== -->
+  <div id="adminChangePlanModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; margin: 60px auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; border: 1px solid #e2e8f0;">
+      <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+        <div>
+          <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0;">Admin: Change Store Plan</h4>
+          <p style="font-size: 12px; color: #64748b; margin: 2px 0 0;">Override plan &amp; validity for <strong id="changePlanStoreName"></strong></p>
+        </div>
+        <button type="button" onclick="closeChangePlanModal()" style="background: none; border: none; font-size: 18px; color: #64748b; cursor: pointer;">&times;</button>
+      </div>
+      <div style="padding: 24px;">
+        <input type="hidden" id="changePlanCompanyId">
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Select Target Subscription Plan</label>
+          <select id="changePlanSelect" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+            <% if (typeof plans !== 'undefined' && plans) { %>
+              <% plans.forEach(p => { %>
+                <option value="<%= p.id %>"><%= p.name %> (<%= p.currency %><%= p.price_monthly %>/mo)</option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Billing Cycle</label>
+            <select id="changePlanCycle" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+              <option value="monthly">Monthly Cycle</option>
+              <option value="yearly">Annual Cycle</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Validity Duration</label>
+            <select id="changePlanDays" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+              <option value="30">+30 Days</option>
+              <option value="90">+90 Days (Quarterly)</option>
+              <option value="180">+180 Days (Half-Yearly)</option>
+              <option value="365">+365 Days (1 Year)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="closeChangePlanModal()">Cancel</button>
+        <button type="button" class="btn-modern btn-primary-modern" onclick="submitAdminChangePlan()">
+          <i class="ti ti-check"></i> Apply Plan Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================
+       SUPER ADMIN: EDIT STORE DETAILS MODAL
+       ========================================================== -->
+  <div id="adminEditStoreModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 500px; margin: 60px auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; border: 1px solid #e2e8f0;">
+      <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+        <div>
+          <h4 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0;">Admin: Edit Store Details</h4>
+          <p style="font-size: 12px; color: #64748b; margin: 2px 0 0;">Modify store and owner information</p>
+        </div>
+        <button type="button" onclick="closeEditStoreModal()" style="background: none; border: none; font-size: 18px; color: #64748b; cursor: pointer;">&times;</button>
+      </div>
+      <div style="padding: 24px;">
+        <input type="hidden" id="editStoreCompanyId">
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Store / Company Name</label>
+          <input type="text" id="editStoreName" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Owner Full Name</label>
+            <input type="text" id="editStoreOwner" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+          </div>
+          <div>
+            <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Mobile Number</label>
+            <input type="tel" id="editStorePhone" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Email Address</label>
+            <input type="email" id="editStoreEmail" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+          </div>
+          <div>
+            <label style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">City</label>
+            <input type="text" id="editStoreCity" class="form-control" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;">
+          </div>
+        </div>
+      </div>
+      <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="closeEditStoreModal()">Cancel</button>
+        <button type="button" class="btn-modern btn-primary-modern" onclick="submitAdminEditStore()">
+          <i class="ti ti-check"></i> Save Store Changes
         </button>
       </div>
     </div>
@@ -968,6 +1096,125 @@
             alert(data.error || 'Failed to toggle status');
           }
         });
+      }
+    }
+
+    // Impersonate / Direct Workspace Access
+    function impersonateStore(companyId, storeName) {
+      if (confirm(`Access workspace directly for store "${storeName}" as Super Admin?`)) {
+        if (typeof showPageLoader === 'function') showPageLoader(`Accessing ${storeName}...`);
+        fetch(`/admin/subscription/clients/${companyId}/impersonate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            alert(data.error || 'Could not access store');
+            window.location.reload();
+          }
+        })
+        .catch(() => alert('Network error accessing store'));
+      }
+    }
+
+    // Admin: Change Store Plan Modal
+    function openChangePlanModal(companyId, storeName, currentPlanId, currentCycle) {
+      $('#changePlanCompanyId').val(companyId);
+      $('#changePlanStoreName').text(storeName);
+      if (currentPlanId) $('#changePlanSelect').val(currentPlanId);
+      if (currentCycle) $('#changePlanCycle').val(currentCycle);
+      $('#adminChangePlanModal').fadeIn(200);
+    }
+
+    function closeChangePlanModal() {
+      $('#adminChangePlanModal').fadeOut(200);
+    }
+
+    function submitAdminChangePlan() {
+      const companyId = $('#changePlanCompanyId').val();
+      const planId = $('#changePlanSelect').val();
+      const cycle = $('#changePlanCycle').val();
+      const days = $('#changePlanDays').val();
+
+      fetch(`/admin/subscription/clients/${companyId}/change-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan_id: planId, billing_cycle: cycle, days: days })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          window.location.reload();
+        } else {
+          alert(data.error || 'Failed to update plan');
+        }
+      })
+      .catch(() => alert('Network error updating plan'));
+    }
+
+    // Admin: Edit Store Modal
+    function openEditStoreModal(companyId, storeName, ownerName, phone, email, city) {
+      $('#editStoreCompanyId').val(companyId);
+      $('#editStoreName').val(storeName);
+      $('#editStoreOwner').val(ownerName);
+      $('#editStorePhone').val(phone);
+      $('#editStoreEmail').val(email);
+      $('#editStoreCity').val(city);
+      $('#adminEditStoreModal').fadeIn(200);
+    }
+
+    function closeEditStoreModal() {
+      $('#adminEditStoreModal').fadeOut(200);
+    }
+
+    function submitAdminEditStore() {
+      const companyId = $('#editStoreCompanyId').val();
+      const body = {
+        store_name: $('#editStoreName').val(),
+        owner_name: $('#editStoreOwner').val(),
+        phone: $('#editStorePhone').val(),
+        email: $('#editStoreEmail').val(),
+        city: $('#editStoreCity').val()
+      };
+
+      fetch(`/admin/subscription/clients/${companyId}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          window.location.reload();
+        } else {
+          alert(data.error || 'Failed to update store');
+        }
+      })
+      .catch(() => alert('Network error updating store'));
+    }
+
+    // Admin: Delete Store
+    function deleteStore(companyId, storeName) {
+      if (confirm(`Are you SURE you want to permanently delete store "${storeName}"?\n\nThis will remove the store, user logins, and all associated records.`)) {
+        fetch(`/admin/subscription/clients/${companyId}/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+            window.location.reload();
+          } else {
+            alert(data.error || 'Failed to delete store');
+          }
+        })
+        .catch(() => alert('Network error deleting store'));
       }
     }
   </script>

@@ -15,9 +15,14 @@ router.get('/', subscriptionController.getSubscription);
 router.post('/upgrade', subscriptionController.upgradePlan);
 router.post('/cancel', subscriptionController.cancelSubscription);
 
-// Admin Client Stores & License Approvals (Only Super Admin)
+// Admin Client Stores & License Approvals (Only Super Admin - Full Authority)
 router.post('/clients/:companyId/approve', isSuperAdmin, subscriptionController.approveClientStore);
 router.post('/clients/:companyId/toggle', isSuperAdmin, subscriptionController.toggleClientStore);
 router.post('/clients/:companyId/extend', isSuperAdmin, subscriptionController.extendClientStore);
+router.post('/clients/:companyId/change-plan', isSuperAdmin, subscriptionController.changeClientPlan);
+router.post('/clients/:companyId/edit', isSuperAdmin, subscriptionController.editClientStore);
+router.post('/clients/:companyId/delete', isSuperAdmin, subscriptionController.deleteClientStore);
+router.post('/clients/:companyId/impersonate', isSuperAdmin, subscriptionController.impersonateClientStore);
+router.get('/impersonate/exit', subscriptionController.exitImpersonation);
 
 module.exports = router;

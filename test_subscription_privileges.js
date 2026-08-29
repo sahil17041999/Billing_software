@@ -46,7 +46,7 @@ async function runPrivilegeVerification() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      plan_id: 1, // Starter Retailer (Basic Billing Only)
+      plan_code: 'starter',
       billing_cycle: 'monthly',
       store_name: 'Quick Pick Groceries',
       owner_name: 'Anil Gupta',

@@ -8,7 +8,7 @@ const cors = require("cors");
 const compression = require("compression");
 
 const { sequelize, pool, testConnection } = require("./config/database");
-const { setupAssociations } = require("./models");
+const { setupAssociations, seedSubscriptionPlans } = require("./models");
 const { attachUser, requirePlanFeature, errorHandler } = require("./middleware/auth");
 
 const app = express();
@@ -88,6 +88,11 @@ const initializeApp = async () => {
     // Sync database models
     await sequelize.sync({ alter: false });
     console.log("✓ Database models synchronized");
+
+    // Ensure default subscription plans exist
+    if (typeof seedSubscriptionPlans === 'function') {
+      await seedSubscriptionPlans();
+    }
 
   } catch (error) {
     console.error("✗ Failed to initialize database:", error.message);
