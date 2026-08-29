@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products Catalog - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'master' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-package" style="color: var(--primary);"></i> Products Catalog
+              </h1>
+              <p class="page-subheading">Manage retail inventory items, barcodes, prices, and stock limits</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <button class="btn-modern btn-primary-modern" onclick="openModal()">
+                <i class="ti ti-plus"></i> Add New Product
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <!-- Toolbar -->
+              <div class="toolbar-modern">
+                <div class="search-input-group">
+                  <i class="ti ti-search icon"></i>
+                  <input type="text" id="searchInput" placeholder="Search by name, SKU, or barcode..." onkeydown="if(event.key==='Enter') searchProducts()">
+                </div>
+                <button class="btn-modern btn-secondary-modern" onclick="searchProducts()">
+                  <i class="ti ti-search"></i> Search
+                </button>
+              </div>
+
+              <!-- Data Table -->
+              <div class="table-responsive-wrapper">
+                <table class="table-modern" id="productsTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 60px;">ID</th>
+                      <th>Product Name</th>
+                      <th>SKU</th>
+                      <th>Barcode</th>
+                      <th>Category</th>
+                      <th>Brand</th>
+                      <th>Unit</th>
+                      <th style="text-align: right;">Cost Price</th>
+                      <th style="text-align: right;">Selling Price</th>
+                      <th style="text-align: center;">Min Stock</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (products.length === 0) { %>
+                      <tr>
+                        <td colspan="11" class="table-empty-state">
+                          <i class="ti ti-box-off icon"></i>
+                          <p>No products found in inventory.</p>
+                          <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Add First Product
+                          </button>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% products.forEach(product => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= product.id %></span></td>
+                        <td>
+                          <strong><%= product.name %></strong>
+                          <% if (product.tax) { %>
+                            <div style="font-size: 11px; color: var(--text-muted);">GST: <%= product.tax.rate %>%</div>
+                          <% } %>
+                        </td>
+                        <td><span style="font-family: var(--font-mono); font-size: 12px;"><%= product.sku || '-' %></span></td>
+                        <td><span class="badge-modern secondary"><%= product.barcode || '-' %></span></td>
+                        <td><%= product.category ? product.category.name : '-' %></td>
+                        <td><%= product.brand ? product.brand.name : '-' %></td>
+                        <td><span class="badge-modern secondary"><%= product.unit ? product.unit.name : '-' %></span></td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= Number(product.purchase_price).toFixed(2) %></td>
+                        <td style="text-align: right; color: var(--primary);" class="amount-cell">₹<%= Number(product.selling_price).toFixed(2) %></td>
+                        <td style="text-align: center;">
+                          <span class="badge-modern <%= product.min_stock_level > 10 ? 'info' : 'warning' %>">
+                            <%= product.min_stock_level %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern" 
+                            data-id="<%= product.id %>" 
+                            data-name="<%= product.name %>" 
+                            data-sku="<%= product.sku || '' %>" 
+                            data-barcode="<%= product.barcode || '' %>" 
+                            data-category="<%= product.category_id %>" 
+                            data-brand="<%= product.brand_id || '' %>" 
+                            data-unit="<%= product.unit_id || '' %>" 
+                            data-tax="<%= product.tax_id || '' %>"
+                            data-purchase="<%= product.purchase_price %>" 
+                            data-selling="<%= product.selling_price %>" 
+                            data-minstock="<%= product.min_stock_level %>" 
+                            data-reorder="<%= product.reorder_quantity || 0 %>"
+                            data-description="<%= product.description || '' %>"
+                            onclick="editProduct(this)" title="Edit product">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, Math.ceil(total / limit)) %></strong> (<%= total %> total items)
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/master/products?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page * limit < total) { %>
+                    <a href="/admin/master/products?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modern Add/Edit Modal Dialog -->
+  <div id="productModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
+          <i class="ti ti-plus" style="color: var(--primary);"></i> <span>Add New Product</span>
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeModal()" title="Close dialog">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="productForm" novalidate>
+        <div class="modal-body-modern">
+          <input type="hidden" id="productId" name="id">
+          
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="name">Product Title <span class="required-dot">*</span></label>
+            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Basmati Rice 5kg" required>
+            <div class="field-feedback" id="nameFeedback" style="display:none; color: var(--danger); font-size: 11.5px; margin-top: 4px;">Product name is required</div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="sku">SKU Code</label>
+              <input type="text" id="sku" name="sku" class="form-control-modern" placeholder="e.g. RICE-001">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="barcode">Barcode / EAN</label>
+              <input type="text" id="barcode" name="barcode" class="form-control-modern" placeholder="e.g. 890123456789">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="category_id">Category <span class="required-dot">*</span></label>
+              <select id="category_id" name="category_id" class="form-control-modern" required>
+                <option value="">Select Category</option>
+                <% categories.forEach(category => { %>
+                  <option value="<%= category.id %>"><%= category.name %></option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="brand_id">Brand</label>
+              <select id="brand_id" name="brand_id" class="form-control-modern">
+                <option value="">Select Brand (Optional)</option>
+                <% brands.forEach(brand => { %>
+                  <option value="<%= brand.id %>"><%= brand.name %></option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="unit_id">Unit <span class="required-dot">*</span></label>
+              <select id="unit_id" name="unit_id" class="form-control-modern" required>
+                <option value="">Select Unit</option>
+                <% units.forEach(unit => { %>
+                  <option value="<%= unit.id %>"><%= unit.name %> (<%= unit.short_name || unit.name %>)</option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="tax_id">Tax / GST</label>
+              <select id="tax_id" name="tax_id" class="form-control-modern">
+                <option value="">No Tax / Exempt (0%)</option>
+                <% taxes.forEach(tax => { %>
+                  <option value="<%= tax.id %>"><%= tax.name %> (<%= tax.rate %>%)</option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="purchase_price">Purchase Cost (₹) <span class="required-dot">*</span></label>
+              <input type="number" step="0.01" min="0" id="purchase_price" name="purchase_price" class="form-control-modern" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="selling_price">Selling Price (₹) <span class="required-dot">*</span></label>
+              <input type="number" step="0.01" min="0" id="selling_price" name="selling_price" class="form-control-modern" placeholder="0.00" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="min_stock_level">Min Stock Alert Level</label>
+              <input type="number" id="min_stock_level" name="min_stock_level" class="form-control-modern" min="0" value="5">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="reorder_quantity">Reorder Quantity</label>
+              <input type="number" id="reorder_quantity" name="reorder_quantity" class="form-control-modern" min="0" value="20">
+            </div>
+          </div>
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="description">Product Description</label>
+            <textarea id="description" name="description" class="form-control-modern" rows="2" placeholder="Optional product description or notes..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal()">
+            <i class="ti ti-x"></i> Cancel
+          </button>
+          <button type="submit" class="btn-modern btn-primary-modern" id="modalSubmitBtn">
+            <i class="ti ti-device-floppy" id="modalSubmitIcon"></i>
+            <span id="modalSubmitText">Save Product</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function resetValidationErrors() {
+      resetFormValidation('#productForm');
+    }
+
+    function openModal() {
+      $('#productForm').trigger('reset');
+      $('#productId').val('');
+      resetValidationErrors();
+      
+      $('#modalTitle').html('<i class="ti ti-plus" style="color: var(--primary);"></i> <span>Add New Product</span>');
+      $('#modalSubmitIcon').attr('class', 'ti ti-device-floppy');
+      $('#modalSubmitText').text('Save Product');
+      $('#productModal').addClass('show');
+      setTimeout(() => $('#name').focus(), 100);
+    }
+
+    function closeModal() {
+      $('#productModal').removeClass('show');
+      resetValidationErrors();
+    }
+
+    function editProduct(button) {
+      resetValidationErrors();
+      const $btn = $(button);
+      
+      $('#modalTitle').html('<i class="ti ti-edit" style="color: var(--primary);"></i> <span>Edit Product</span>');
+      $('#modalSubmitIcon').attr('class', 'ti ti-check');
+      $('#modalSubmitText').text('Update Product');
+      
+      $('#productId').val($btn.data('id') || '');
+      $('#name').val($btn.data('name') || '');
+      $('#sku').val($btn.data('sku') || '');
+      $('#barcode').val($btn.data('barcode') || '');
+      $('#category_id').val($btn.data('category') || '');
+      $('#brand_id').val($btn.data('brand') || '');
+      $('#unit_id').val($btn.data('unit') || '');
+      $('#tax_id').val($btn.data('tax') || '');
+      $('#purchase_price').val($btn.data('purchase') || '');
+      $('#selling_price').val($btn.data('selling') || '');
+      $('#min_stock_level').val($btn.data('minstock') || '0');
+      $('#reorder_quantity').val($btn.data('reorder') || '0');
+      $('#description').val($btn.data('description') || '');
+      
+      $('#productModal').addClass('show');
+      setTimeout(() => $('#name').focus(), 100);
+    }
+
+    function searchProducts() {
+      const search = $('#searchInput').val().trim();
+      if (typeof showPageLoader === 'function') showPageLoader('Searching products...');
+      window.location.href = '/admin/master/products?search=' + encodeURIComponent(search);
+    }
+
+    // Initialize jQuery Validation on productForm
+    $(document).ready(function() {
+      initFormValidation('#productForm', {
+        rules: {
+          name: { required: true, minlength: 2 },
+          category_id: { required: true },
+          unit_id: { required: true },
+          purchase_price: { required: true, positiveNumber: true },
+          selling_price: { required: true, positiveNumber: true },
+          min_stock_level: { nonNegativeNumber: true },
+          reorder_quantity: { nonNegativeNumber: true }
+        },
+        messages: {
+          name: { required: 'Please enter product title', minlength: 'Product title must be at least 2 characters' },
+          category_id: { required: 'Please select a category' },
+          unit_id: { required: 'Please select a unit of measurement' },
+          purchase_price: { required: 'Please enter cost/purchase price', positiveNumber: 'Cost price must be greater than 0' },
+          selling_price: { required: 'Please enter selling price', positiveNumber: 'Selling price must be greater than 0' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#productId').val();
+          const purchaseVal = parseFloat($('#purchase_price').val()) || 0;
+          const sellingVal = parseFloat($('#selling_price').val()) || 0;
+          
+          if (sellingVal < purchaseVal) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Selling Price Alert',
+              text: 'Selling price is lower than purchase cost. Do you want to proceed?',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, proceed',
+              cancelButtonText: 'No, fix price'
+            }).then(res => {
+              if (res.isConfirmed) submitProductForm(id);
+            });
+            return;
+          }
+          submitProductForm(id);
+        }
+      });
+
+      function submitProductForm(id) {
+        const data = {
+          name: $('#name').val().trim(),
+          sku: $('#sku').val().trim(),
+          barcode: $('#barcode').val().trim(),
+          category_id: parseInt($('#category_id').val()),
+          brand_id: $('#brand_id').val() ? parseInt($('#brand_id').val()) : null,
+          unit_id: parseInt($('#unit_id').val()),
+          tax_id: $('#tax_id').val() ? parseInt($('#tax_id').val()) : null,
+          purchase_price: parseFloat($('#purchase_price').val()) || 0,
+          selling_price: parseFloat($('#selling_price').val()) || 0,
+          min_stock_level: parseInt($('#min_stock_level').val()) || 0,
+          reorder_quantity: parseInt($('#reorder_quantity').val()) || 0,
+          description: $('#description').val().trim()
+        };
+
+        const url = id ? '/admin/master/products/' + id : '/admin/master/products';
+        const method = id ? 'PUT' : 'POST';
+        const saveBtn = $('#modalSubmitBtn');
+        saveBtn.prop('disabled', true);
+        if (typeof showPageLoader === 'function') showPageLoader(id ? 'Updating Product...' : 'Saving New Product...');
+
+        fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(data)
+        })
+        .then(res => res.json().then(json => ({ ok: res.ok, status: res.status, json })))
+        .then(({ ok, json }) => {
+          saveBtn.prop('disabled', false);
+          if (typeof hidePageLoader === 'function') hidePageLoader();
+          if (ok && json.success) {
+            closeModal();
+            showToast('success', id ? 'Product updated successfully!' : 'Product added successfully!');
+            setTimeout(() => location.reload(), 1100);
+          } else {
+            const errMsg = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.error || 'Failed to save product');
+            showError('Save Failed', errMsg);
+          }
+        })
+        .catch(err => {
+          saveBtn.prop('disabled', false);
+          if (typeof hidePageLoader === 'function') hidePageLoader();
+          showError('Network Error', err.message || 'Could not connect to the server');
+        });
+      }
+
+      // Close on backdrop click
+      $('#productModal').on('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      // Escape key closes modal
+      $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      // Auto initialize DataTables
+      if ($('#productsTable tbody tr').length > 0 && !$('#productsTable tbody td.table-empty-state').length) {
+        initStandardDataTable('#productsTable', {
+          order: [[0, 'desc']]
+        });
+      }
+    });
+  </script>
+</body>
+</html>

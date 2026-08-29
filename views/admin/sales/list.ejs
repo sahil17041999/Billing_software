@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales &amp; Invoices - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'sales' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-receipt" style="color: var(--primary);"></i> Invoices &amp; Billing
+              </h1>
+              <p class="page-subheading">Track customer invoices, GST tax compliance, payments, and outstanding balances</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/sales/pos" class="btn-modern btn-primary-modern">
+                <i class="ti ti-plus"></i> New POS Bill
+              </a>
+            </div>
+          </div>
+
+          <!-- Zoho Style Invoice Metric Strip -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="stat-card-modern" style="padding: 16px 20px;">
+              <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Invoices</div>
+              <div style="font-size: 22px; font-weight: 800; color: var(--text-main); margin: 4px 0;"><%= sales ? sales.length : 0 %></div>
+              <div style="font-size: 11px; color: var(--success); font-weight: 600;"><i class="ti ti-check"></i> 100% Recorded</div>
+            </div>
+            <div class="stat-card-modern" style="padding: 16px 20px;">
+              <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Sales Volume</div>
+              <div style="font-size: 22px; font-weight: 800; color: var(--primary); margin: 4px 0;">
+                ₹<%= (sales ? sales.reduce((acc, s) => acc + Number(s.grand_total || 0), 0) : 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">Grand Revenue Total</div>
+            </div>
+            <div class="stat-card-modern" style="padding: 16px 20px;">
+              <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">GST Tax Collected</div>
+              <div style="font-size: 22px; font-weight: 800; color: #f59e0b; margin: 4px 0;">
+                ₹<%= (sales ? sales.reduce((acc, s) => acc + Number(s.tax_amount || 0), 0) : 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">CGST + SGST + IGST</div>
+            </div>
+            <div class="stat-card-modern" style="padding: 16px 20px;">
+              <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Payment Settlement</div>
+              <div style="font-size: 22px; font-weight: 800; color: var(--success); margin: 4px 0;">
+                <%= sales && sales.length > 0 ? (sales.filter(s => (s.payment_status || '').toLowerCase() === 'paid' || (s.sales_status || '').toLowerCase() === 'completed').length / sales.length * 100).toFixed(0) : 100 %>%
+              </div>
+              <div style="font-size: 11px; color: var(--success); font-weight: 600;"><i class="ti ti-circle-check"></i> Verified Settlements</div>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern" id="salesTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 130px;">Invoice #</th>
+                      <th>Customer Name</th>
+                      <th>Date &amp; Time</th>
+                      <th style="text-align: right;">Subtotal</th>
+                      <th style="text-align: right;">GST Tax</th>
+                      <th style="text-align: right;">Grand Total</th>
+                      <th style="text-align: center;">Sales Status</th>
+                      <th style="text-align: center;">Payment</th>
+                      <th style="text-align: center; width: 140px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (!sales || sales.length === 0) { %>
+                      <tr>
+                        <td colspan="9" class="table-empty-state">
+                          <i class="ti ti-receipt-off icon"></i>
+                          <p>No sales invoices found.</p>
+                          <a href="/admin/sales/pos" class="btn-modern btn-primary-modern btn-sm-modern" style="margin-top: 8px;">
+                            <i class="ti ti-device-laptop"></i> New POS Billing
+                          </a>
+                        </td>
+                      </tr>
+                    <% } else { %>
+                      <% sales.forEach(sale => { %>
+                        <tr>
+                          <td>
+                            <a href="/admin/sales/invoice/<%= sale.id %>" style="font-family: var(--font-mono); font-weight: 700; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="View Invoice">
+                              #<%= sale.invoice_number %> <i class="ti ti-external-link" style="font-size: 11px; opacity: 0.7;"></i>
+                            </a>
+                          </td>
+                          <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px;">
+                                <%= (sale.customer ? sale.customer.name : 'W').charAt(0).toUpperCase() %>
+                              </div>
+                              <div>
+                                <strong><%= sale.customer ? sale.customer.name : 'Walk-in Customer' %></strong>
+                                <% if (sale.customer && sale.customer.phone) { %>
+                                  <div style="font-size: 11px; color: var(--text-muted);"><%= sale.customer.phone %></div>
+                                <% } %>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span style="color: var(--text-main); font-weight: 500;">
+                              <%= new Date(sale.invoice_date || sale.sale_date || sale.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                            </span>
+                          </td>
+                          <td style="text-align: right;" class="amount-cell">₹<%= Number(sale.total_amount || sale.subtotal || 0).toFixed(2) %></td>
+                          <td style="text-align: right;" class="amount-cell">₹<%= Number(sale.tax_amount || 0).toFixed(2) %></td>
+                          <td style="text-align: right; font-weight: 700; color: var(--primary);" class="amount-cell">₹<%= Number(sale.grand_total || 0).toFixed(2) %></td>
+                          <td style="text-align: center;">
+                            <% if (sale.sales_status === 'completed' || sale.status === 'completed') { %>
+                              <span class="badge-modern success"><i class="ti ti-check"></i> Completed</span>
+                            <% } else if (sale.sales_status === 'cancelled' || sale.status === 'cancelled') { %>
+                              <span class="badge-modern danger"><i class="ti ti-x"></i> Cancelled</span>
+                            <% } else { %>
+                              <span class="badge-modern warning"><i class="ti ti-clock"></i> Pending</span>
+                            <% } %>
+                          </td>
+                          <td style="text-align: center;">
+                            <% if (sale.payment_status === 'paid') { %>
+                              <span class="badge-modern success"><i class="ti ti-cash"></i> Paid</span>
+                            <% } else if (sale.payment_status === 'partial') { %>
+                              <span class="badge-modern warning"><i class="ti ti-coin"></i> Partial</span>
+                            <% } else { %>
+                              <span class="badge-modern danger"><i class="ti ti-alert-circle"></i> Pending</span>
+                            <% } %>
+                          </td>
+                          <td style="text-align: center;">
+                            <div style="display: inline-flex; align-items: center; gap: 6px;">
+                              <a href="/admin/sales/invoice/<%= sale.id %>" class="btn-modern btn-primary-modern btn-sm-modern" style="padding: 5px 10px; font-size: 12px; gap: 4px;" title="View & Print GST Invoice">
+                                <i class="ti ti-file-invoice"></i> Invoice
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      <% }); %>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      if ($('#salesTable tbody tr').length > 0 && !$('#salesTable tbody td.table-empty-state').length) {
+        initStandardDataTable('#salesTable', {
+          order: [[2, 'desc']]
+        });
+      }
+    });
+  </script>
+</body>
+</html>

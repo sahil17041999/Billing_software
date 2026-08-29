@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Invoice #<%= sale.invoice_number %> - <%= company ? company.name : 'Billing ERP' %></title>
+  <meta name="description" content="Standard Tax Invoice for <%= sale.invoice_number %>">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Lightweight standalone QRCode generator -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #1e3a8a;
+      --primary-dark: #0f172a;
+      --accent: #2563eb;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+      --border-dark: #334155;
+      --bg: #f1f5f9;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      font-size: 12px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Screen Action Toolbar */
+    .print-toolbar {
+      background: #0f172a;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.08);
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-back:hover {
+      background: rgba(255,255,255,0.16);
+      color: #ffffff;
+    }
+    .toolbar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(37,99,235,0.25);
+      border: 1px solid rgba(59,130,246,0.4);
+      color: #93c5fd;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+    }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .view-toggle-group {
+      display: inline-flex;
+      background: rgba(255,255,255,0.08);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .toggle-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.4);
+    }
+    .copy-select {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+    .btn-email {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.12);
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-email:hover {
+      background: rgba(255,255,255,0.22);
+    }
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+      transition: all 0.2s;
+    }
+    .btn-print:hover {
+      background: #059669;
+    }
+
+    /* Container for Views */
+    .invoice-wrapper {
+      padding: 24px 12px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ============================================================ */
+    /* VIEW 1: STANDARD A4 TAX INVOICE */
+    /* ============================================================ */
+    .standard-a4-view {
+      width: 100%;
+      max-width: 860px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #334155;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      font-size: 11px;
+    }
+
+    /* Top banner */
+    .inv-top-bar {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #0f172a;
+    }
+    .inv-title-main {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .inv-copy-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 2px 10px;
+      border-radius: 4px;
+    }
+
+    /* Company & Invoice Header Block */
+    .inv-header-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      border-bottom: 1.5px solid #334155;
+    }
+    .inv-company-block {
+      padding: 14px 16px;
+      border-right: 1.5px solid #334155;
+    }
+    .company-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .company-details {
+      font-size: 11px;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .company-tags {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 10.5px;
+    }
+    .company-tags span {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid #cbd5e1;
+      font-weight: 600;
+    }
+
+    .inv-meta-block {
+      padding: 12px 16px;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 11px;
+    }
+    .meta-row:last-child {
+      border-bottom: none;
+    }
+    .meta-lbl {
+      color: #64748b;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+    .meta-val {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* Customer & Dispatcher Two-Box Grid */
+    .inv-parties-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1.5px solid #334155;
+      background: #ffffff;
+    }
+    .party-box {
+      padding: 12px 16px;
+    }
+    .party-box:first-child {
+      border-right: 1.5px solid #334155;
+    }
+    .box-header {
+      font-size: 10px;
+      font-weight: 800;
+      color: #1e3a8a;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .party-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    .party-info {
+      font-size: 10.5px;
+      color: #334155;
+      line-height: 1.45;
+    }
+
+    /* Items Table */
+    .inv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+    }
+    .inv-table thead th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 9.5px;
+      letter-spacing: 0.5px;
+      padding: 6px 8px;
+      border-bottom: 1.5px solid #334155;
+      border-right: 1px solid #cbd5e1;
+    }
+    .inv-table thead th:last-child {
+      border-right: none;
+    }
+    .inv-table tbody td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      vertical-align: top;
+      color: #1e293b;
+    }
+    .inv-table tbody td:last-child {
+      border-right: none;
+    }
+    .inv-table tbody tr:last-child td {
+      border-bottom: 1.5px solid #334155;
+    }
+    .inv-table tfoot td {
+      background: #f8fafc;
+      padding: 6px 8px;
+      font-weight: 800;
+      border-bottom: 1.5px solid #334155;
+      border-right: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+    .inv-table tfoot td:last-child {
+      border-right: none;
+    }
+    .text-center { text-align: center; }
+    .text-right  { text-align: right; }
+    .text-left   { text-align: left; }
+    .item-desc-name {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .item-desc-sub {
+      font-size: 9.5px;
+      color: #64748b;
+      margin-top: 1px;
+    }
+
+    /* GST Tax Breakup Table */
+    .tax-breakup-section {
+      border-bottom: 1.5px solid #334155;
+      background: #fafafa;
+    }
+    .tax-breakup-header {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px 16px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+      color: #334155;
+    }
+    .tax-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+    .tax-table th {
+      padding: 4px 8px;
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+      border-right: 1px solid #e2e8f0;
+      font-weight: 700;
+      color: #475569;
+      text-align: right;
+    }
+    .tax-table th:first-child { text-align: left; }
+    .tax-table th:last-child  { border-right: none; }
+    .tax-table td {
+      padding: 4px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      border-right: 1px solid #f1f5f9;
+      text-align: right;
+      color: #1e293b;
+    }
+    .tax-table td:first-child { text-align: left; font-weight: 600; }
+    .tax-table td:last-child  { border-right: none; }
+    .tax-table tfoot td {
+      font-weight: 800;
+      background: #f1f5f9;
+      border-top: 1px solid #cbd5e1;
+    }
+
+    /* Bottom Summary & Calculation Grid */
+    .inv-bottom-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      border-bottom: 1.5px solid #334155;
+    }
+    .inv-bottom-left {
+      padding: 12px 16px;
+      border-right: 1.5px solid #334155;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .words-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      border-radius: 4px;
+    }
+    .words-lbl {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .words-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .settlement-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      background: #ffffff;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+    .qr-container {
+      width: 72px;
+      height: 72px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e2e8f0;
+      padding: 2px;
+    }
+    .qr-container canvas, .qr-container img {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .bank-info {
+      font-size: 10px;
+      line-height: 1.4;
+      color: #334155;
+    }
+    .bank-info strong { color: #0f172a; }
+
+    .inv-bottom-right {
+      padding: 12px 16px;
+      background: #fafafa;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      font-size: 11px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .summary-row.discount { color: #dc2626; }
+    .summary-row.grand {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 4px;
+      font-weight: 900;
+      font-size: 14px;
+      border-bottom: none;
+    }
+    .summary-row.grand .val {
+      font-size: 15px;
+      color: #38bdf8;
+    }
+
+    /* Terms, Declaration & Signatures */
+    .inv-legal-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      background: #ffffff;
+    }
+    .terms-box {
+      padding: 12px 16px;
+      border-right: 1.5px solid #334155;
+    }
+    .terms-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .terms-list {
+      padding-left: 14px;
+      font-size: 9.5px;
+      color: #64748b;
+      line-height: 1.45;
+    }
+    .declaration-text {
+      margin-top: 6px;
+      font-size: 9.5px;
+      color: #475569;
+      font-style: italic;
+    }
+
+    .sign-box {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      background: #ffffff;
+    }
+    .sign-company {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .sign-space {
+      height: 48px;
+    }
+    .sign-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #475569;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Footer Note */
+    .inv-doc-footer {
+      background: #f1f5f9;
+      padding: 6px 16px;
+      border-top: 1.5px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      color: #64748b;
+    }
+
+    /* ============================================================ */
+    /* VIEW 2: THERMAL POS 80MM RECEIPT */
+    /* ============================================================ */
+    .thermal-receipt-view {
+      display: none; /* toggled via JS */
+      width: 320px;
+      background: #ffffff;
+      padding: 16px 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      border: 1px solid #cbd5e1;
+      font-family: 'Courier New', Courier, monospace;
+      color: #000000;
+      font-size: 11.5px;
+      line-height: 1.35;
+    }
+    .pos-center { text-align: center; }
+    .pos-bold   { font-weight: 900; }
+    .pos-title  { font-size: 16px; font-weight: 900; margin-bottom: 2px; text-transform: uppercase; }
+    .pos-sub    { font-size: 11px; margin-bottom: 2px; }
+    .pos-divider {
+      border-top: 1px dashed #000000;
+      margin: 8px 0;
+    }
+    .pos-double-divider {
+      border-top: 2px dashed #000000;
+      margin: 8px 0;
+    }
+    .pos-flex {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .pos-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 4px 0;
+    }
+    .pos-table th {
+      border-top: 1px dashed #000;
+      border-bottom: 1px dashed #000;
+      padding: 4px 0;
+      text-align: right;
+    }
+    .pos-table th:first-child { text-align: left; }
+    .pos-table td {
+      padding: 3px 0;
+      vertical-align: top;
+      text-align: right;
+    }
+    .pos-table td:first-child { text-align: left; }
+    .pos-grand-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 900;
+      padding: 4px 0;
+      border-top: 1px dashed #000;
+      border-bottom: 1px dashed #000;
+      margin: 4px 0;
+    }
+    .pos-savings {
+      background: #f1f5f9;
+      border: 1px solid #000;
+      padding: 4px 6px;
+      text-align: center;
+      font-weight: 800;
+      margin: 6px 0;
+      font-size: 11px;
+    }
+    .pos-qr-box {
+      display: flex;
+      justify-content: center;
+      margin: 8px 0;
+    }
+    .pos-qr-box canvas {
+      width: 90px !important;
+      height: 90px !important;
+    }
+
+    /* ============================================================ */
+    /* MOBILE RESPONSIVE STYLES */
+    /* ============================================================ */
+    .table-responsive-touch {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+    .mobile-scroll-hint {
+      display: none;
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      border-bottom: 1px solid #bfdbfe;
+    }
+
+    @media screen and (max-width: 768px) {
+      .mobile-scroll-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      /* Toolbar on mobile */
+      .print-toolbar {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .toolbar-left {
+        justify-content: space-between;
+        width: 100%;
+      }
+      .toolbar-right {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+      }
+      .view-toggle-group {
+        grid-column: span 2;
+        display: flex;
+        width: 100%;
+      }
+      .toggle-btn {
+        flex: 1;
+        justify-content: center;
+      }
+      .copy-select {
+        width: 100%;
+      }
+      .btn-email {
+        justify-content: center;
+        width: 100%;
+      }
+      .btn-print {
+        grid-column: span 2;
+        justify-content: center;
+        width: 100%;
+        padding: 10px;
+      }
+
+      /* Invoice Container */
+      .invoice-wrapper {
+        padding: 10px 4px 36px;
+      }
+      .standard-a4-view {
+        max-width: 100%;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        border: 1px solid #cbd5e1;
+      }
+
+      /* Grids Stack on Mobile */
+      .inv-header-grid {
+        grid-template-columns: 1fr;
+      }
+      .inv-company-block {
+        border-right: none;
+        border-bottom: 1.5px solid #334155;
+      }
+      .inv-parties-grid {
+        grid-template-columns: 1fr;
+      }
+      .party-box:first-child {
+        border-right: none;
+        border-bottom: 1.5px solid #334155;
+      }
+      .inv-bottom-grid {
+        grid-template-columns: 1fr;
+      }
+      .inv-bottom-left {
+        border-right: none;
+        border-bottom: 1.5px solid #334155;
+      }
+      .inv-legal-grid {
+        grid-template-columns: 1fr;
+      }
+      .terms-box {
+        border-right: none;
+        border-bottom: 1.5px solid #334155;
+      }
+
+      /* Tables on Mobile */
+      .inv-table {
+        min-width: 620px;
+      }
+      .tax-table {
+        min-width: 500px;
+      }
+
+      /* Thermal receipt view centered on mobile */
+      .thermal-receipt-view {
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .company-title {
+        font-size: 16px;
+      }
+      .inv-top-bar {
+        padding: 6px 12px;
+      }
+      .inv-title-main {
+        font-size: 14px;
+        letter-spacing: 1px;
+      }
+      .inv-copy-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+      .inv-company-block, .inv-meta-block, .party-box, .inv-bottom-left, .inv-bottom-right, .terms-box, .sign-box {
+        padding: 10px 12px;
+      }
+      .summary-row.grand {
+        font-size: 13px;
+      }
+      .summary-row.grand .val {
+        font-size: 14px;
+      }
+    }
+
+    /* ============================================================ */
+    /* PRINT STYLES */
+    /* ============================================================ */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .print-toolbar {
+        display: none !important;
+      }
+      .invoice-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+      }
+
+      /* When printing standard A4 */
+      body.mode-a4 .thermal-receipt-view { display: none !important; }
+      body.mode-a4 .standard-a4-view {
+        display: block !important;
+        max-width: 100% !important;
+        border: 1.5px solid #000000 !important;
+        box-shadow: none !important;
+      }
+      body.mode-a4 .inv-top-bar {
+        background: #000000 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body.mode-a4 .inv-table thead th,
+      body.mode-a4 .tax-table th,
+      body.mode-a4 .tax-breakup-header,
+      body.mode-a4 .summary-row.grand {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* When printing thermal POS slip */
+      body.mode-thermal .standard-a4-view { display: none !important; }
+      body.mode-thermal .thermal-receipt-view {
+        display: block !important;
+        width: 100% !important;
+        max-width: 80mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      @page {
+        margin: 8mm;
+      }
+      body.mode-thermal {
+        @page {
+          size: 80mm auto;
+          margin: 2mm;
+        }
+      }
+    }
+  </style>
+</head>
+<body class="mode-a4">
+
+  <%
+    // Compute calculation variables
+    const subtotal = Number(sale.total_amount || 0);
+    const taxAmount = Number(sale.tax_amount || 0);
+    const discountAmount = Number(sale.discount_amount || 0);
+    const grandTotal = Number(sale.grand_total || 0);
+    const items = sale.salesDetails || [];
+
+    let totalQty = 0;
+    let totalTaxableVal = 0;
+    let totalLineDiscount = 0;
+    const taxMap = {};
+
+    items.forEach(function(item) {
+      const q = Number(item.quantity || 0);
+      totalQty += q;
+      const unitPrice = Number(item.unit_price || 0);
+      const disc = Number(item.discount_amount || 0);
+      totalLineDiscount += disc;
+
+      const taxObj = item.product && (item.product.tax || item.product.Tax);
+      const taxRate = taxObj ? Number(taxObj.rate || 0) : 0;
+      const taxAmt = Number(item.tax_amount || 0);
+      const lineTot = Number(item.line_total || (unitPrice * q - disc + taxAmt));
+      const taxable = (unitPrice * q) - disc;
+      totalTaxableVal += taxable;
+
+      const key = taxRate.toFixed(2);
+      if (!taxMap[key]) {
+        taxMap[key] = { rate: taxRate, taxable: 0, taxAmt: 0 };
+      }
+      taxMap[key].taxable += taxable;
+      taxMap[key].taxAmt += taxAmt;
+    });
+
+    const isPaid = (sale.payment_status === 'paid');
+    const paymentName = (payment && payment.paymentMode) ? payment.paymentMode.name : 'Cash / POS';
+    const customerName = sale.customer ? sale.customer.name : 'Walk-in / Cash Customer';
+    const customerPhone = sale.customer ? (sale.customer.phone || '') : '';
+    const customerAddress = sale.customer ? (sale.customer.address || '') : '';
+    const customerGstin = sale.customer ? (sale.customer.gstin || '') : '';
+    
+    // Safely resolve cashier display name
+    let cashierName = 'Cashier';
+    if (sale.cashier) {
+      const parts = [sale.cashier.first_name, sale.cashier.last_name].filter(Boolean);
+      cashierName = parts.length > 0 ? parts.join(' ') : (sale.cashier.username || 'Cashier');
+    } else if (typeof user !== 'undefined' && user) {
+      const parts = [user.first_name, user.last_name].filter(Boolean);
+      cashierName = parts.length > 0 ? parts.join(' ') : (user.username || user.name || 'Cashier');
+    }
+  %>
+
+  <!-- Screen Action Toolbar -->
+  <div class="print-toolbar" id="printToolbar">
+    <div class="toolbar-left">
+      <a href="/admin/sales/" class="btn-back">&#8592; Back to Sales</a>
+      <span class="toolbar-badge">
+        <i class="ti ti-receipt"></i> #<%= sale.invoice_number %>
+      </span>
+      <span style="color: #94a3b8; font-size: 12px;">
+        <%= new Date(sale.invoice_date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+      </span>
+    </div>
+
+    <div class="toolbar-right">
+      <!-- Layout Mode Selector -->
+      <div class="view-toggle-group">
+        <button type="button" class="toggle-btn active" id="btnModeA4" onclick="switchViewMode('a4')">
+          <i class="ti ti-file-text"></i> Standard A4
+        </button>
+        <button type="button" class="toggle-btn" id="btnModeThermal" onclick="switchViewMode('thermal')">
+          <i class="ti ti-printer"></i> 80mm POS Slip
+        </button>
+      </div>
+
+      <!-- Copy Indicator Selector -->
+      <select class="copy-select" id="copySelector" onchange="updateCopyTag(this.value)">
+        <option value="ORIGINAL FOR RECIPIENT">Original (Buyer)</option>
+        <option value="DUPLICATE FOR TRANSPORTER">Duplicate (Transporter)</option>
+        <option value="TRIPLICATE FOR SUPPLIER">Triplicate (Supplier)</option>
+        <option value="OFFICE COPY">Office Copy</option>
+      </select>
+
+      <!-- Email Invoice Button -->
+      <button type="button" class="btn-email" onclick="promptEmailInvoice()">
+        <i class="ti ti-mail"></i> Email
+      </button>
+
+      <!-- Print / PDF Button -->
+      <button type="button" class="btn-print" onclick="window.print()">
+        <i class="ti ti-printer"></i> Print Invoice
+      </button>
+    </div>
+  </div>
+
+  <div class="invoice-wrapper">
+
+    <!-- ============================================================ -->
+    <!-- VIEW 1: STANDARD A4 TAX INVOICE -->
+    <!-- ============================================================ -->
+    <div class="standard-a4-view" id="standardA4Doc">
+      
+      <!-- Top Title Header -->
+      <div class="inv-top-bar">
+        <div class="inv-title-main">TAX INVOICE</div>
+        <div class="inv-copy-badge" id="displayCopyTag">ORIGINAL FOR RECIPIENT</div>
+      </div>
+
+      <!-- Seller Info & Invoice Metadata Grid -->
+      <div class="inv-header-grid">
+        <div class="inv-company-block">
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap;">
+            <% if (company && company.logo_path) { %>
+              <img src="<%= company.logo_path %>" alt="<%= company.name %>" style="max-height: 52px; max-width: 160px; object-fit: contain; border-radius: 4px;">
+            <% } else { %>
+              <div style="width: 44px; height: 44px; border-radius: 8px; background: #0f172a; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900;">
+                <%= company && company.name ? company.name.charAt(0).toUpperCase() : 'P' %>
+              </div>
+            <% } %>
+            <div>
+              <div class="company-title"><%= company ? company.name : 'GROCERY BILLING STORE' %></div>
+            </div>
+          </div>
+          <div class="company-details">
+            <% if (company) { %>
+              <%= company.address || 'Main Market Road' %><% if (company.city) { %>, <%= company.city %><% } %><% if (company.state) { %>, <%= company.state %><% } %><% if (company.postal_code) { %> - <%= company.postal_code %><% } %><br>
+              <% if (company.phone) { %><strong>Phone:</strong> <%= company.phone %> &nbsp;|&nbsp; <% } %>
+              <% if (company.email) { %><strong>Email:</strong> <%= company.email %><% } %>
+            <% } else { %>
+              Commercial Hub, Market Street<br>
+              Phone: +91 98765 43210 &nbsp;|&nbsp; Email: billing@store.com
+            <% } %>
+          </div>
+          <div class="company-tags">
+            <% if (company && company.gstin) { %>
+              <span><strong>GSTIN:</strong> <%= company.gstin %></span>
+            <% } %>
+            <% if (company && company.pan) { %>
+              <span><strong>PAN:</strong> <%= company.pan %></span>
+            <% } %>
+            <span><strong>State:</strong> <%= (company && company.state) ? company.state : 'West Bengal' %></span>
+          </div>
+        </div>
+
+        <div class="inv-meta-block">
+          <div class="meta-row">
+            <span class="meta-lbl">Invoice No:</span>
+            <span class="meta-val" style="font-family: monospace; font-size: 13px; color: #1e3a8a;"><%= sale.invoice_number %></span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-lbl">Invoice Date:</span>
+            <span class="meta-val"><%= new Date(sale.invoice_date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %></span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-lbl">Invoice Time:</span>
+            <span class="meta-val"><%= new Date(sale.invoice_date).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12: true }) %></span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-lbl">Payment Mode:</span>
+            <span class="meta-val"><%= paymentName %></span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-lbl">Payment Status:</span>
+            <span class="meta-val" style="color:<%= isPaid ? '#059669' : '#dc2626' %>;">
+              <%= (sale.payment_status || 'PAID').toUpperCase() %>
+            </span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-lbl">Billed By (Cashier):</span>
+            <span class="meta-val"><%= cashierName %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buyer (Bill To) & Consignee (Ship To) Grid -->
+      <div class="inv-parties-grid">
+        <div class="party-box">
+          <div class="box-header">&#128100; Details of Receiver / Billed To:</div>
+          <div class="party-name"><%= customerName %></div>
+          <div class="party-info">
+            <% if (sale.customer) { %>
+              <% if (customerAddress) { %><%= customerAddress %><br><% } %>
+              <% if (sale.customer.city || sale.customer.state) { %>
+                <%= [sale.customer.city, sale.customer.state, sale.customer.postal_code].filter(Boolean).join(', ') %><br>
+              <% } %>
+              <% if (customerPhone) { %><strong>Mobile:</strong> <%= customerPhone %> &nbsp;<% } %>
+              <% if (sale.customer.email) { %><strong>Email:</strong> <%= sale.customer.email %><br><% } %>
+              <% if (customerGstin) { %><strong>GSTIN/UIN:</strong> <%= customerGstin %><% } %>
+            <% } else { %>
+              Walk-in Retail Customer<br>
+              Counter Sale / Cash Transaction
+            <% } %>
+          </div>
+        </div>
+
+        <div class="party-box">
+          <div class="box-header">&#128230; Dispatch & Supply Details:</div>
+          <div class="party-info">
+            <strong>Place of Supply:</strong> <%= (sale.customer && sale.customer.state) ? sale.customer.state : ((company && company.state) ? company.state : 'State Supply') %><br>
+            <strong>Reverse Charge:</strong> No<br>
+            <strong>Transportation Mode:</strong> Over the counter / Hand delivery<br>
+            <strong>Sale Type:</strong> <%= (sale.customer && sale.customer.customer_type === 'wholesale') ? 'B2B Wholesale' : 'B2C Retail' %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item Details Table -->
+      <div class="mobile-scroll-hint">
+        <i class="ti ti-arrows-left-right"></i> Scroll sideways to view full invoice table
+      </div>
+      <div class="table-responsive-touch">
+        <table class="inv-table">
+        <thead>
+          <tr>
+            <th style="width: 30px;" class="text-center">#</th>
+            <th class="text-left">Description of Goods</th>
+            <th style="width: 70px;" class="text-center">HSN/SAC</th>
+            <th style="width: 50px;" class="text-center">Qty</th>
+            <th style="width: 45px;" class="text-center">Unit</th>
+            <th style="width: 75px;" class="text-right">Rate (&#8377;)</th>
+            <th style="width: 65px;" class="text-right">Disc (&#8377;)</th>
+            <th style="width: 80px;" class="text-right">Taxable (&#8377;)</th>
+            <th style="width: 55px;" class="text-right">GST %</th>
+            <th style="width: 70px;" class="text-right">Tax (&#8377;)</th>
+            <th style="width: 85px;" class="text-right">Amount (&#8377;)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (items.length > 0) { %>
+            <% items.forEach(function(item, idx) { 
+                const pName = item.product ? item.product.name : ('Product #' + item.product_id);
+                const pSku = item.product ? item.product.sku : '';
+                const pUnit = (item.product && (item.product.unit || item.product.Unit)) ? (item.product.unit || item.product.Unit).name : 'Pcs';
+                const taxObj = item.product && (item.product.tax || item.product.Tax);
+                const tRate = taxObj ? Number(taxObj.rate || 0) : 0;
+                const uPrice = Number(item.unit_price || 0);
+                const q = Number(item.quantity || 0);
+                const dAmt = Number(item.discount_amount || 0);
+                const taxable = (uPrice * q) - dAmt;
+                const tAmt = Number(item.tax_amount || 0);
+                const lTotal = Number(item.line_total || (taxable + tAmt));
+                const hsn = (item.product && item.product.barcode) ? item.product.barcode.substring(0,6) : '0000';
+            %>
+            <tr>
+              <td class="text-center" style="color: #64748b;"><%= idx + 1 %></td>
+              <td>
+                <div class="item-desc-name"><%= pName %></div>
+                <div class="item-desc-sub">
+                  <% if (pSku) { %><span>SKU: <%= pSku %></span><% } %>
+                  <% if (item.batch_number) { %> &bull; <span>Batch: <%= item.batch_number %></span><% } %>
+                </div>
+              </td>
+              <td class="text-center" style="color: #475569; font-family: monospace;"><%= hsn %></td>
+              <td class="text-center pos-bold"><%= q %></td>
+              <td class="text-center" style="color: #475569;"><%= pUnit %></td>
+              <td class="text-right">&#8377;<%= uPrice.toFixed(2) %></td>
+              <td class="text-right" style="color: <%= dAmt > 0 ? '#dc2626' : '#94a3b8' %>;">
+                <%= dAmt > 0 ? ('&#8377;' + dAmt.toFixed(2)) : '0.00' %>
+              </td>
+              <td class="text-right">&#8377;<%= taxable.toFixed(2) %></td>
+              <td class="text-right" style="color: #475569;"><%= tRate %>%</td>
+              <td class="text-right">&#8377;<%= tAmt.toFixed(2) %></td>
+              <td class="text-right pos-bold">&#8377;<%= lTotal.toFixed(2) %></td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="11" class="text-center" style="padding: 20px; color: #94a3b8;">No invoice items found</td>
+            </tr>
+          <% } %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="text-left">TOTAL (<%= items.length %> Items)</td>
+            <td class="text-center"><%= totalQty %></td>
+            <td></td>
+            <td></td>
+            <td class="text-right">&#8377;<%= totalLineDiscount.toFixed(2) %></td>
+            <td class="text-right">&#8377;<%= totalTaxableVal.toFixed(2) %></td>
+            <td></td>
+            <td class="text-right">&#8377;<%= taxAmount.toFixed(2) %></td>
+            <td class="text-right" style="color: #1e3a8a;">&#8377;<%= grandTotal.toFixed(2) %></td>
+          </tr>
+        </tfoot>
+      </table>
+      </div>
+
+      <!-- GST Tax Breakup Summary Matrix -->
+      <div class="tax-breakup-section">
+        <div class="tax-breakup-header">GST Tax Breakup Matrix (Statutory)</div>
+        <div class="table-responsive-touch">
+        <table class="tax-table">
+          <thead>
+            <tr>
+              <th>GST Tax Bracket</th>
+              <th>Taxable Value (&#8377;)</th>
+              <th>CGST Rate</th>
+              <th>CGST Amount (&#8377;)</th>
+              <th>SGST Rate</th>
+              <th>SGST Amount (&#8377;)</th>
+              <th>Total Tax (&#8377;)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% 
+              let sumTaxable = 0;
+              let sumCgst = 0;
+              let sumSgst = 0;
+              let sumTotalTax = 0;
+              const taxKeys = Object.keys(taxMap);
+              if (taxKeys.length > 0) {
+                taxKeys.forEach(function(k) {
+                  const entry = taxMap[k];
+                  const halfRate = (entry.rate / 2).toFixed(1);
+                  const halfTax = entry.taxAmt / 2;
+                  sumTaxable += entry.taxable;
+                  sumCgst += halfTax;
+                  sumSgst += halfTax;
+                  sumTotalTax += entry.taxAmt;
+            %>
+            <tr>
+              <td>GST @ <%= entry.rate %>%</td>
+              <td>&#8377;<%= entry.taxable.toFixed(2) %></td>
+              <td><%= halfRate %>%</td>
+              <td>&#8377;<%= halfTax.toFixed(2) %></td>
+              <td><%= halfRate %>%</td>
+              <td>&#8377;<%= halfTax.toFixed(2) %></td>
+              <td><strong>&#8377;<%= entry.taxAmt.toFixed(2) %></strong></td>
+            </tr>
+            <% 
+                });
+              } else {
+            %>
+            <tr>
+              <td>GST Exempt / Nil Rated</td>
+              <td>&#8377;<%= totalTaxableVal.toFixed(2) %></td>
+              <td>0%</td>
+              <td>&#8377;0.00</td>
+              <td>0%</td>
+              <td>&#8377;0.00</td>
+              <td>&#8377;0.00</td>
+            </tr>
+            <% } %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>&#8377;<%= sumTaxable.toFixed(2) %></td>
+              <td>-</td>
+              <td>&#8377;<%= sumCgst.toFixed(2) %></td>
+              <td>-</td>
+              <td>&#8377;<%= sumSgst.toFixed(2) %></td>
+              <td>&#8377;<%= sumTotalTax.toFixed(2) %></td>
+            </tr>
+          </tfoot>
+        </table>
+        </div>
+      </div>
+
+      <!-- Bottom Financial Summary & Settlement -->
+      <div class="inv-bottom-grid">
+        <div class="inv-bottom-left">
+          
+          <!-- Amount in words -->
+          <div class="words-box">
+            <div class="words-lbl">Invoice Amount in Words:</div>
+            <div class="words-val" id="amountWordsDisplay">Calculating...</div>
+          </div>
+
+          <!-- Dynamic UPI & Bank Details -->
+          <div class="settlement-grid">
+            <div class="qr-container" id="standardQrContainer" title="Scan to Pay / Verify Invoice">
+              <!-- QRCode rendered via JS -->
+            </div>
+            <div class="bank-info">
+              <div><strong>Payment Mode:</strong> <%= paymentName %> (<%= isPaid ? 'Settled' : 'Unpaid' %>)</div>
+              <div><strong>Account Name:</strong> <%= company ? company.name : 'Grocery Billing Store' %></div>
+              <div><strong>Bank & Branch:</strong> State Bank of India, Main Branch</div>
+              <div><strong>Scan & Pay:</strong> Instant UPI Verification</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="inv-bottom-right">
+          <div class="summary-row">
+            <span style="color: #64748b;">Sub Total (Gross):</span>
+            <span style="font-weight: 700;">&#8377;<%= subtotal.toFixed(2) %></span>
+          </div>
+          <% if (discountAmount > 0) { %>
+          <div class="summary-row discount">
+            <span>Special / Bill Discount:</span>
+            <span style="font-weight: 700;">- &#8377;<%= discountAmount.toFixed(2) %></span>
+          </div>
+          <% } %>
+          <div class="summary-row">
+            <span style="color: #64748b;">Taxable Value:</span>
+            <span style="font-weight: 700;">&#8377;<%= totalTaxableVal.toFixed(2) %></span>
+          </div>
+          <div class="summary-row">
+            <span style="color: #64748b;">Total GST Tax:</span>
+            <span style="font-weight: 700;">+ &#8377;<%= taxAmount.toFixed(2) %></span>
+          </div>
+          <div class="summary-row grand">
+            <span>NET AMOUNT PAYABLE</span>
+            <span class="val">&#8377;<%= grandTotal.toFixed(2) %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Terms & Authorized Signatory Block -->
+      <div class="inv-legal-grid">
+        <div class="terms-box">
+          <div class="terms-title">Terms & Conditions:</div>
+          <ol class="terms-list">
+            <li>Goods once sold will not be taken back or exchanged without original cash memo/bill.</li>
+            <li>Exchange applicable within 7 days from date of purchase in undamaged condition.</li>
+            <li>Subject to local municipal and state jurisdiction.</li>
+          </ol>
+          <div class="declaration-text">
+            "Certified that the particulars given above are true and correct and the amount indicated represents the price actually charged."
+          </div>
+        </div>
+
+        <div class="sign-box">
+          <div class="sign-company">For <%= company ? company.name : 'Grocery Store' %></div>
+          <div class="sign-space"></div>
+          <div class="sign-label">Authorized Signatory</div>
+        </div>
+      </div>
+
+      <!-- Document Footer -->
+      <div class="inv-doc-footer">
+        <span>Generated: <%= new Date().toLocaleString('en-IN') %></span>
+        <span>E. & O.E. &bull; Computer Generated Tax Invoice</span>
+        <span>Powered by Billing ERP</span>
+      </div>
+
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- VIEW 2: THERMAL POS 80MM RECEIPT -->
+    <!-- ============================================================ -->
+    <div class="thermal-receipt-view" id="thermalPosDoc">
+      <div class="pos-center">
+        <% if (company && company.logo_path) { %>
+          <div style="margin-bottom: 8px;">
+            <img src="<%= company.logo_path %>" alt="Logo" style="max-height: 40px; max-width: 140px; object-fit: contain; filter: grayscale(100%);">
+          </div>
+        <% } %>
+        <div class="pos-title"><%= company ? company.name : 'GROCERY STORE' %></div>
+        <div class="pos-sub"><%= company ? (company.address || '') : '' %></div>
+        <% if (company && company.phone) { %><div class="pos-sub">Tel: <%= company.phone %></div><% } %>
+        <% if (company && company.gstin) { %><div class="pos-sub">GSTIN: <%= company.gstin %></div><% } %>
+        <div class="pos-divider"></div>
+        <div class="pos-bold" style="font-size: 13px;">TAX INVOICE / CASH MEMO</div>
+      </div>
+
+      <div class="pos-divider"></div>
+
+      <div class="pos-flex">
+        <span>Bill No: <strong><%= sale.invoice_number %></strong></span>
+        <span><%= new Date(sale.invoice_date).toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' }) %></span>
+      </div>
+      <div class="pos-flex">
+        <span>Cashier: <%= cashierName %></span>
+        <span><%= new Date(sale.invoice_date).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) %></span>
+      </div>
+      <div class="pos-flex">
+        <span>Cust: <%= customerName %></span>
+        <span><%= customerPhone ? ('Ph: ' + customerPhone) : '' %></span>
+      </div>
+
+      <table class="pos-table">
+        <thead>
+          <tr>
+            <th style="width: 50%;">ITEM</th>
+            <th style="width: 15%; text-align: center;">QTY</th>
+            <th style="width: 15%;">RATE</th>
+            <th style="width: 20%;">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% items.forEach(function(item) { 
+              const pName = item.product ? item.product.name : ('Item #' + item.product_id);
+              const q = Number(item.quantity || 0);
+              const rate = Number(item.unit_price || 0);
+              const tot = Number(item.line_total || (q * rate));
+          %>
+          <tr>
+            <td style="font-weight: 700;"><%= pName %></td>
+            <td style="text-align: center;"><%= q %></td>
+            <td><%= rate.toFixed(2) %></td>
+            <td style="font-weight: 700;"><%= tot.toFixed(2) %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <div class="pos-divider"></div>
+
+      <div class="pos-flex">
+        <span>Total Items / Qty:</span>
+        <span><%= items.length %> / <%= totalQty %></span>
+      </div>
+      <div class="pos-flex">
+        <span>Subtotal:</span>
+        <span>&#8377;<%= subtotal.toFixed(2) %></span>
+      </div>
+      <% if (discountAmount > 0) { %>
+      <div class="pos-flex" style="color: #dc2626;">
+        <span>Discount:</span>
+        <span>-&#8377;<%= discountAmount.toFixed(2) %></span>
+      </div>
+      <% } %>
+      <div class="pos-flex">
+        <span>Tax (GST):</span>
+        <span>+&#8377;<%= taxAmount.toFixed(2) %></span>
+      </div>
+
+      <div class="pos-grand-row">
+        <span>GRAND TOTAL:</span>
+        <span>&#8377;<%= grandTotal.toFixed(2) %></span>
+      </div>
+
+      <div class="pos-flex">
+        <span>Payment Mode:</span>
+        <span><strong><%= paymentName %></strong></span>
+      </div>
+      <div class="pos-flex">
+        <span>Payment Status:</span>
+        <span><strong><%= isPaid ? 'PAID' : 'PENDING' %></strong></span>
+      </div>
+
+      <% if (discountAmount > 0 || totalLineDiscount > 0) { %>
+      <div class="pos-savings">
+        *** YOU SAVED &#8377;<%= (discountAmount + totalLineDiscount).toFixed(2) %> ON THIS BILL ***
+      </div>
+      <% } %>
+
+      <div class="pos-qr-box" id="thermalQrContainer">
+        <!-- Thermal QR rendered via JS -->
+      </div>
+
+      <div class="pos-center" style="font-size: 10px; margin-top: 4px;">
+        Thank You! Visit Again!<br>
+        Goods once sold cannot be returned without bill.<br>
+        *** <%= company ? company.name : 'Billing ERP' %> ***
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Indian Number to Words Converter
+    function numberToWordsINR(num) {
+      if (num === null || num === undefined || isNaN(num)) return 'Zero Rupees Only';
+      
+      const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+      const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+      function inWords(n) {
+        if ((n = n.toString()).length > 9) return 'Overflow';
+        const nArr = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+        if (!nArr) return '';
+        let str = '';
+        str += (Number(nArr[1]) !== 0) ? (a[Number(nArr[1])] || b[nArr[1][0]] + ' ' + a[nArr[1][1]]) + 'Crore ' : '';
+        str += (Number(nArr[2]) !== 0) ? (a[Number(nArr[2])] || b[nArr[2][0]] + ' ' + a[nArr[2][1]]) + 'Lakh ' : '';
+        str += (Number(nArr[3]) !== 0) ? (a[Number(nArr[3])] || b[nArr[3][0]] + ' ' + a[nArr[3][1]]) + 'Thousand ' : '';
+        str += (Number(nArr[4]) !== 0) ? (a[Number(nArr[4])] || b[nArr[4][0]] + ' ' + a[nArr[4][1]]) + 'Hundred ' : '';
+        str += (Number(nArr[5]) !== 0) ? ((str !== '') ? 'and ' : '') + (a[Number(nArr[5])] || b[nArr[5][0]] + ' ' + a[nArr[5][1]]) : '';
+        return str.trim();
+      }
+
+      const totalVal = Math.abs(Number(num));
+      const whole = Math.floor(totalVal);
+      const fraction = Math.round((totalVal - whole) * 100);
+
+      let words = 'Indian Rupees ' + inWords(whole);
+      if (fraction > 0) {
+        words += ' and ' + inWords(fraction) + ' Paise';
+      }
+      words += ' Only';
+      return words;
+    }
+
+    // Initialize Amount in Words
+    const totalAmountValue = <%= grandTotal %>;
+    document.getElementById('amountWordsDisplay').innerText = numberToWordsINR(totalAmountValue);
+
+    // Switch View Mode (Standard A4 vs Thermal 80mm)
+    function switchViewMode(mode) {
+      const a4Doc = document.getElementById('standardA4Doc');
+      const thermalDoc = document.getElementById('thermalPosDoc');
+      const btnA4 = document.getElementById('btnModeA4');
+      const btnThermal = document.getElementById('btnModeThermal');
+
+      if (mode === 'thermal') {
+        document.body.classList.remove('mode-a4');
+        document.body.classList.add('mode-thermal');
+        a4Doc.style.display = 'none';
+        thermalDoc.style.display = 'block';
+        btnA4.classList.remove('active');
+        btnThermal.classList.add('active');
+      } else {
+        document.body.classList.remove('mode-thermal');
+        document.body.classList.add('mode-a4');
+        a4Doc.style.display = 'block';
+        thermalDoc.style.display = 'none';
+        btnThermal.classList.remove('active');
+        btnA4.classList.add('active');
+      }
+    }
+
+    // Switch Copy Tag
+    function updateCopyTag(val) {
+      document.getElementById('displayCopyTag').innerText = val;
+    }
+
+    // Render Dynamic UPI QR Code
+    function generateInvoiceQRs() {
+      const upiString = "upi://pay?pa=<%= (company && company.email) ? company.email : 'billing@upi' %>&pn=<%= encodeURIComponent(company ? company.name : 'Grocery Store') %>&am=<%= grandTotal %>&cu=INR&tn=Invoice-<%= sale.invoice_number %>";
+      
+      const standardContainer = document.getElementById('standardQrContainer');
+      const thermalContainer = document.getElementById('thermalQrContainer');
+
+      if (typeof QRCode !== 'undefined') {
+        // Standard A4 QR
+        const a4Canvas = document.createElement('canvas');
+        QRCode.toCanvas(a4Canvas, upiString, { width: 70, margin: 1, color: { dark: '#0f172a', light: '#ffffff' } }, function (err) {
+          if (!err) {
+            standardContainer.innerHTML = '';
+            standardContainer.appendChild(a4Canvas);
+          }
+        });
+
+        // Thermal QR
+        const thermalCanvas = document.createElement('canvas');
+        QRCode.toCanvas(thermalCanvas, upiString, { width: 85, margin: 1, color: { dark: '#000000', light: '#ffffff' } }, function (err) {
+          if (!err) {
+            thermalContainer.innerHTML = '';
+            thermalContainer.appendChild(thermalCanvas);
+          }
+        });
+      }
+    }
+
+    // Prompt Email Invoice with SweetAlert2
+    function promptEmailInvoice() {
+      const defaultEmail = '<%= (sale.customer && sale.customer.email) ? sale.customer.email : "" %>';
+      
+      Swal.fire({
+        title: 'Email Tax Invoice',
+        html: `
+          <div style="text-align: left; margin-top: 10px;">
+            <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Customer Email Address</label>
+            <input type="email" id="swalEmailInput" class="swal2-input" placeholder="e.g. customer@example.com" value="${defaultEmail}" style="width: 100%; margin: 0; box-sizing: border-box; font-size: 14px;">
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Send Email',
+        confirmButtonColor: '#2563eb',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+          const email = document.getElementById('swalEmailInput').value.trim();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            Swal.showValidationMessage('Please enter a valid email address');
+            return false;
+          }
+          return fetch('/admin/sales/invoice/<%= sale.id %>/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ email: email })
+          })
+          .then(res => res.json().then(data => ({ ok: res.ok, data })))
+          .then(({ ok, data }) => {
+            if (!ok || !data.success) {
+              throw new Error(data.error || 'Failed to send invoice email');
+            }
+            return data;
+          })
+          .catch(err => {
+            Swal.showValidationMessage(`Error: ${err.message}`);
+          });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Invoice Sent!',
+            text: result.value?.message || 'Tax invoice has been successfully dispatched to customer.',
+            confirmButtonColor: '#2563eb'
+          });
+        }
+      });
+    }
+
+    // Auto-generate QR codes on load
+    window.addEventListener('DOMContentLoaded', generateInvoiceQRs);
+  </script>
+</body>
+</html>

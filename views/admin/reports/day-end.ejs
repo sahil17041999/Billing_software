@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day End Closing History Report - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'reports' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-calendar-stats" style="color: var(--primary);"></i> Day End Register Closing Report
+              </h1>
+              <p class="page-subheading">Historical register reconciliation records, counted physical cash, and discrepancy tracking</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/day-end" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-lock"></i> Register Closings
+              </a>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar Card -->
+          <div class="card-modern" style="padding: 18px 24px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="fromDate">From Date</label>
+                <input type="date" id="fromDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="toDate">To Date</label>
+                <input type="date" id="toDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <button type="button" class="btn-modern btn-primary-modern" onclick="loadReport()" style="height: 42px;">
+                <i class="ti ti-chart-pie"></i> Generate Report
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Closing Date</th>
+                      <th>Closed By</th>
+                      <th style="text-align: right;">Opening Float (₹)</th>
+                      <th style="text-align: right;">Total Sales (₹)</th>
+                      <th style="text-align: right;">Expected Cash (₹)</th>
+                      <th style="text-align: right;">Actual Counted (₹)</th>
+                      <th style="text-align: right;">Variance (₹)</th>
+                      <th style="text-align: center;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportBody">
+                    <tr>
+                      <td colspan="8" class="table-empty-state">
+                        <i class="ti ti-clock-off icon"></i>
+                        <p>Click "Generate Report" to retrieve day end logs.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadReport() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      
+      let url = '/admin/reports/day-end?';
+      const params = [];
+      if (fromDate) params.push('fromDate=' + fromDate);
+      if (toDate) params.push('toDate=' + toDate);
+      url += params.join('&');
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const report = data.data;
+            const tbody = document.getElementById('reportBody');
+            
+            if (report.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="8" class="table-empty-state"><i class="ti ti-clock-off icon"></i><p>No day-end records found in selected range.</p></td></tr>';
+            } else {
+              tbody.innerHTML = report.map(row => {
+                const diff = parseFloat(row.cash_difference || 0);
+                const diffColor = diff > 0 ? '#10b981' : (diff < 0 ? '#ef4444' : 'var(--text-body)');
+                return `
+                  <tr>
+                    <td><strong>${new Date(row.closing_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}</strong></td>
+                    <td>${row.closed_by_user ? row.closed_by_user.username : '-'}</td>
+                    <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.opening_cash || 0).toFixed(2)}</td>
+                    <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.total_sales || 0).toFixed(2)}</td>
+                    <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.expected_cash || 0).toFixed(2)}</td>
+                    <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.actual_cash || 0).toFixed(2)}</td>
+                    <td style="text-align: right; color: ${diffColor}; font-weight: 700;" class="amount-cell">
+                      ${diff > 0 ? '+' : ''}₹${diff.toFixed(2)}
+                    </td>
+                    <td style="text-align: center;">
+                      <span class="badge-modern ${row.status === 'verified' ? 'success' : (row.status === 'closed' ? 'info' : 'warning')}">
+                        ${row.status}
+                      </span>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReport);
+  </script>
+</body>
+</html>

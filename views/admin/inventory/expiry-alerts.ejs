@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expiry Alerts - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'inventory' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-calendar-time" style="color: #ef4444;"></i> Perishable Expiry Alerts
+              </h1>
+              <p class="page-subheading">Track grocery items expiring in the next 30 days to minimize waste</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/inventory/stock" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Stock Summary
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>SKU Code</th>
+                      <th>Batch #</th>
+                      <th>Expiry Date</th>
+                      <th style="text-align: right;">Quantity Remaining</th>
+                      <th style="text-align: center;">Alert Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (products.length === 0) { %>
+                      <tr>
+                        <td colspan="6" class="table-empty-state">
+                          <i class="ti ti-shield-check icon" style="color: #10b981;"></i>
+                          <p>No products are expiring within the next 30 days.</p>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% products.forEach(item => { %>
+                      <tr>
+                        <td>
+                          <strong><%= item.product ? item.product.name : '-' %></strong>
+                        </td>
+                        <td><span style="font-family: var(--font-mono);"><%= item.product ? item.product.sku : '-' %></span></td>
+                        <td><span class="badge-modern secondary"><%= item.batch_number || 'Default' %></span></td>
+                        <td>
+                          <span style="font-weight: 600; color: #dc2626;">
+                            <%= item.expiry_date ? new Date(item.expiry_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : '-' %>
+                          </span>
+                        </td>
+                        <td style="text-align: right; font-weight: 700;" class="amount-cell">
+                          <%= item.quantity || item.transaction_quantity || 0 %>
+                        </td>
+                        <td style="text-align: center;">
+                          <span class="badge-modern warning"><i class="ti ti-clock"></i> Expiring Soon</span>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

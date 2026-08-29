@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expenses - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'expenses' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-cash" style="color: #ef4444;"></i> Store Expenses
+              </h1>
+              <p class="page-subheading">Track grocery operating expenses, utilities, rent, and overheads</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/expenses/form" class="btn-modern btn-primary-modern">
+                <i class="ti ti-plus"></i> Record New Expense
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th style="text-align: right;">Amount</th>
+                      <th>Date</th>
+                      <th>Payment Mode</th>
+                      <th style="text-align: center;">Status</th>
+                      <th>Created By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (expenses.length === 0) { %>
+                      <tr>
+                        <td colspan="8" class="table-empty-state">
+                          <i class="ti ti-coin-off icon"></i>
+                          <p>No expenses recorded.</p>
+                          <a href="/admin/expenses/form" class="btn-modern btn-primary-modern btn-sm-modern" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Add Expense
+                          </a>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% expenses.forEach(expense => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= expense.id %></span></td>
+                        <td><span class="badge-modern info"><%= expense.category %></span></td>
+                        <td><%= expense.description || '-' %></td>
+                        <td style="text-align: right; color: #ef4444;" class="amount-cell">₹<%= Number(expense.amount).toFixed(2) %></td>
+                        <td><%= new Date(expense.expense_date).toLocaleDateString() %></td>
+                        <td><span class="badge-modern secondary"><%= expense.payment_mode || 'Cash' %></span></td>
+                        <td style="text-align: center;">
+                          <% if (expense.status === 'paid') { %>
+                            <span class="badge-modern success"><i class="ti ti-check"></i> Paid</span>
+                          <% } else if (expense.status === 'approved') { %>
+                            <span class="badge-modern info">Approved</span>
+                          <% } else if (expense.status === 'pending') { %>
+                            <span class="badge-modern warning"><i class="ti ti-clock"></i> Pending</span>
+                          <% } else { %>
+                            <span class="badge-modern danger"><%= expense.status %></span>
+                          <% } %>
+                        </td>
+                        <td><%= expense.creator ? expense.creator.username : 'Admin' %></td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, totalPages) %></strong>
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/expenses?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page < totalPages) { %>
+                    <a href="/admin/expenses?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

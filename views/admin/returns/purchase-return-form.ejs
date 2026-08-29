@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Return Form - Grocery Billing ERP</title>
+  <meta name="description" content="Create a purchase return against a supplier purchase order">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'returns' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-arrow-down-left" style="color:#f87171;"></i> Purchase Return
+              </h1>
+              <p class="page-subheading">Return goods to supplier &amp; reverse stock entries</p>
+            </div>
+            <div class="page-title-actions">
+              <a href="/admin/returns/purchases" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Back to Returns
+              </a>
+            </div>
+          </div>
+
+          <!-- Alert -->
+          <div id="alertBar" class="alert-bar" style="display:none;"></div>
+
+          <div class="return-layout">
+            <!-- Left: Form -->
+            <div>
+              <!-- Purchase Selection -->
+              <div class="form-section" style="margin-bottom:20px;">
+                <div class="section-head"><i class="ti ti-file-invoice"></i> Select Purchase Order</div>
+                <div class="section-body">
+                  <div class="field-group">
+                    <label class="field-label">Purchase Order <span class="req">*</span></label>
+                    <select class="field-input" id="purchaseSelect" onchange="loadPurchase(this.value)">
+                      <option value="">— Select a Purchase Order —</option>
+                      <% if (typeof recentPurchases !== 'undefined') { %>
+                        <% recentPurchases.forEach(function(p) { %>
+                          <option value="<%= p.id %>"
+                            <%= (typeof purchase !== 'undefined' && purchase && purchase.id === p.id) ? 'selected' : '' %>>
+                            #<%= p.purchase_number || p.id %> — <%= p.supplier ? p.supplier.name : 'Unknown Supplier' %>
+                            (<%= new Date(p.purchase_date || p.created_at).toLocaleDateString('en-IN') %>)
+                          </option>
+                        <% }) %>
+                      <% } %>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Purchase Details (shown after selection) -->
+              <div class="form-section" id="purchaseDetailsCard" style="margin-bottom:20px; display:<%= (typeof purchase !== 'undefined' && purchase) ? 'block' : 'none' %>;">
+                <div class="section-head"><i class="ti ti-package"></i> Purchase Items — Select Items to Return</div>
+                <div class="section-body">
+
+                  <!-- Supplier Info -->
+                  <div style="display:flex;gap:16px;padding:12px;background:var(--bg-subtle);border-radius:10px;margin-bottom:18px;" id="supplierInfo">
+                    <% if (typeof purchase !== 'undefined' && purchase) { %>
+                      <div>
+                        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Supplier</div>
+                        <div style="font-weight:700;font-size:14px;"><%= purchase.supplier ? purchase.supplier.name : '—' %></div>
+                      </div>
+                      <div>
+                        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Purchase No.</div>
+                        <div style="font-weight:700;font-size:14px;">#<%= purchase.purchase_number || purchase.id %></div>
+                      </div>
+                      <div>
+                        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Date</div>
+                        <div style="font-weight:700;font-size:14px;"><%= new Date(purchase.purchase_date || purchase.created_at).toLocaleDateString('en-IN') %></div>
+                      </div>
+                    <% } %>
+                  </div>
+
+                  <!-- Items to Return -->
+                  <div class="items-head">
+                    <span>Product</span>
+                    <span>Purchased Qty</span>
+                    <span>Unit Cost</span>
+                    <span>Return Qty</span>
+                    <span></span>
+                  </div>
+                  <div id="returnItemsList">
+                    <% 
+                      const pDetails = (typeof purchase !== 'undefined' && purchase) ? (purchase.purchaseDetails || purchase.PurchaseDetails || []) : [];
+                      if (pDetails.length > 0) { 
+                    %>
+                      <% pDetails.forEach(function(detail) { %>
+                        <div class="return-item-row"
+                          data-detail-id="<%= detail.id %>"
+                          data-product-id="<%= detail.product_id %>"
+                          data-unit-cost="<%= detail.unit_cost %>">
+                          <div>
+                            <div class="item-product-name"><%= detail.product ? detail.product.name : 'Product #' + detail.product_id %></div>
+                            <div class="item-product-sub">
+                              <% if (detail.batch_number) { %>Batch: <%= detail.batch_number %><% } %>
+                              Cost: ₹<%= Number(detail.unit_cost).toFixed(2) %>
+                            </div>
+                          </div>
+                          <div style="text-align:right;font-weight:600;color:var(--text-light);"><%= detail.quantity %></div>
+                          <div style="text-align:right;font-size:13px;">₹<%= Number(detail.unit_cost).toFixed(2) %></div>
+                          <div>
+                            <input type="number" class="item-qty-input return-qty"
+                              min="0" max="<%= detail.quantity %>"
+                              value="0" placeholder="0"
+                              onchange="recalcTotals()"
+                              data-max="<%= detail.quantity %>"
+                              data-cost="<%= detail.unit_cost %>">
+                          </div>
+                          <div></div>
+                        </div>
+                      <% }) %>
+                    <% } else { %>
+                      <div style="text-align:center;padding:32px;color:var(--text-muted);">
+                        <i class="ti ti-package-off" style="font-size:32px;margin-bottom:8px;display:block;"></i>
+                        Select a purchase order to view items
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reason -->
+              <div class="form-section">
+                <div class="section-head"><i class="ti ti-notes"></i> Return Details</div>
+                <div class="section-body">
+                  <div class="field-group">
+                    <label class="field-label">Reason for Return</label>
+                    <select class="field-input" id="returnReason">
+                      <option value="">— Select Reason —</option>
+                      <option value="Damaged goods">Damaged goods</option>
+                      <option value="Wrong items delivered">Wrong items delivered</option>
+                      <option value="Expired products">Expired products</option>
+                      <option value="Quality issues">Quality issues</option>
+                      <option value="Excess quantity">Excess quantity</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Additional Notes</label>
+                    <textarea class="field-input" id="returnNotes" rows="3" placeholder="Any additional details about the return..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Summary -->
+            <div>
+              <div class="summary-card">
+                <div class="summary-title"><i class="ti ti-receipt-refund" style="color:var(--primary);margin-right:6px;"></i> Return Summary</div>
+
+                <div class="summary-row">
+                  <span class="lbl">Items Selected</span>
+                  <span class="val" id="summaryItems">0</span>
+                </div>
+                <div class="summary-row">
+                  <span class="lbl">Total Qty</span>
+                  <span class="val" id="summaryQty">0</span>
+                </div>
+                <div class="summary-row">
+                  <span class="lbl">Return Amount</span>
+                  <span class="val" id="summaryAmount">₹0.00</span>
+                </div>
+
+                <div class="summary-grand">
+                  <span class="lbl">Net Return Value</span>
+                  <span class="val" id="summaryGrand">₹0.00</span>
+                </div>
+
+                <button type="button" class="btn-modern btn-danger-modern"
+                  style="width:100%;margin-top:20px;"
+                  id="submitReturnBtn" onclick="submitReturn()">
+                  <i class="ti ti-arrow-back-up"></i> Create Purchase Return
+                </button>
+
+                <a href="/admin/returns/purchases" class="btn-modern btn-secondary-modern"
+                  style="width:100%;margin-top:10px;text-align:center;text-decoration:none;display:block;">
+                  Cancel
+                </a>
+
+                <div style="margin-top:20px;padding:12px;background:rgba(245,158,11,0.08);border-radius:10px;font-size:12px;color:var(--text-muted);line-height:1.6;">
+                  <i class="ti ti-info-circle" style="color:#fbbf24;margin-right:4px;"></i>
+                  <strong style="color:var(--text-light);">Note:</strong> Return quantities will reverse the stock entries. The return will be created in "Pending" status for approval.
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+<script>
+let currentPurchaseId = null;
+<% if (typeof purchase !== 'undefined' && purchase) { %>
+  currentPurchaseId = <%= purchase.id %>;
+<% } %>
+
+// ── Load Purchase ───────────────────────────────────────────
+async function loadPurchase(purchaseId) {
+  if (!purchaseId) {
+    document.getElementById('purchaseDetailsCard').style.display = 'none';
+    currentPurchaseId = null;
+    return;
+  }
+
+  showPageLoader('Loading purchase details...');
+  try {
+    window.location.href = `/admin/returns/purchases/form?purchaseId=${purchaseId}`;
+  } catch(e) {
+    hidePageLoader();
+  }
+}
+
+// ── Validation ──────────────────────────────────────────────
+function getReturnItems() {
+  const rows = document.querySelectorAll('.return-item-row');
+  const items = [];
+  rows.forEach(row => {
+    const qtyInput = row.querySelector('.return-qty');
+    const qty = parseInt(qtyInput ? qtyInput.value : 0, 10);
+    if (qty > 0) {
+      items.push({
+        purchase_detail_id: parseInt(row.getAttribute('data-detail-id')),
+        product_id:         parseInt(row.getAttribute('data-product-id')),
+        return_quantity:    qty,
+        unit_cost:          parseFloat(row.getAttribute('data-unit-cost'))
+      });
+    }
+  });
+  return items;
+}
+
+// ── Recalculate Totals ──────────────────────────────────────
+function recalcTotals() {
+  let itemCount = 0, totalQty = 0, totalAmount = 0;
+
+  document.querySelectorAll('.return-item-row').forEach(row => {
+    const qtyInput = row.querySelector('.return-qty');
+    if (!qtyInput) return;
+    const qty  = Math.max(0, Math.min(parseInt(qtyInput.value || 0), parseInt(qtyInput.getAttribute('data-max') || 999)));
+    const cost = parseFloat(qtyInput.getAttribute('data-cost') || 0);
+    qtyInput.value = qty;
+
+    if (qty > 0) {
+      itemCount++;
+      totalQty    += qty;
+      totalAmount += qty * cost;
+    }
+  });
+
+  document.getElementById('summaryItems').textContent  = itemCount;
+  document.getElementById('summaryQty').textContent    = totalQty;
+  document.getElementById('summaryAmount').textContent = '₹' + totalAmount.toFixed(2);
+  document.getElementById('summaryGrand').textContent  = '₹' + totalAmount.toFixed(2);
+}
+
+// ── Submit Return ───────────────────────────────────────────
+async function submitReturn() {
+  if (!currentPurchaseId) {
+    showError('No Purchase Selected', 'Please select a purchase order first.');
+    return;
+  }
+
+  const items = getReturnItems();
+  if (items.length === 0) {
+    showError('No Items', 'Please enter a return quantity for at least one item.');
+    return;
+  }
+
+  const reason = document.getElementById('returnReason').value;
+  const notes  = document.getElementById('returnNotes').value.trim();
+
+  const confirm = await showConfirm(
+    'Create Purchase Return?',
+    `You are returning ${items.length} item(s). This will create a pending return for supplier review.`,
+    'Yes, Create Return'
+  );
+  if (!confirm.isConfirmed) return;
+
+  const btn = document.getElementById('submitReturnBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite"></i> Processing...';
+  showPageLoader('Creating return...');
+
+  try {
+    const res = await fetch('/admin/returns/purchases', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        purchase_id:    currentPurchaseId,
+        return_details: items,
+        reason:         reason || notes,
+        notes:          notes
+      })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError('Return Failed', data.error || 'Failed to create return');
+      return;
+    }
+
+    showSuccess('Return Created!', `Purchase return #${data.data ? data.data.return_number : ''} created successfully.`);
+    setTimeout(() => { window.location.href = '/admin/returns/purchases'; }, 1800);
+  } catch(e) {
+    showError('Network Error', 'Could not connect to the server. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-arrow-back-up"></i> Create Purchase Return';
+    hidePageLoader();
+  }
+}
+
+function showAlert(msg, type) {
+  const el = document.getElementById('alertBar');
+  el.className = 'alert-bar alert-' + type;
+  el.innerHTML = `<i class="ti ti-${type === 'success' ? 'circle-check' : 'alert-circle'}"></i> ${msg}`;
+  el.style.display = 'flex';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// Init recalc on load
+recalcTotals();
+</script>
+</body>
+</html>

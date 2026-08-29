@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchase Orders - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'purchase' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-truck-loading" style="color: var(--primary);"></i> Purchase Orders
+              </h1>
+              <p class="page-subheading">Track supplier purchases, incoming grocery shipments, and invoice totals</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/purchases/new" class="btn-modern btn-primary-modern">
+                <i class="ti ti-plus"></i> Create Purchase Order
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>PO #</th>
+                      <th>Supplier Name</th>
+                      <th>Date</th>
+                      <th>Supplier Invoice #</th>
+                      <th style="text-align: right;">Subtotal</th>
+                      <th style="text-align: right;">Tax (GST)</th>
+                      <th style="text-align: right;">Grand Total</th>
+                      <th style="text-align: center;">Order Status</th>
+                      <th style="text-align: center;">Payment Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (purchases.length === 0) { %>
+                      <tr>
+                        <td colspan="9" class="table-empty-state">
+                          <i class="ti ti-truck-off icon"></i>
+                          <p>No purchase orders found.</p>
+                          <a href="/admin/purchases/new" class="btn-modern btn-primary-modern btn-sm-modern" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> New Purchase Order
+                          </a>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% purchases.forEach(purchase => { %>
+                      <tr>
+                        <td>
+                          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
+                            #<%= purchase.purchase_number %>
+                          </span>
+                        </td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px;">
+                              <%= (purchase.supplier ? purchase.supplier.name : 'S').charAt(0).toUpperCase() %>
+                            </div>
+                            <strong><%= purchase.supplier ? purchase.supplier.name : '-' %></strong>
+                          </div>
+                        </td>
+                        <td>
+                          <span style="color: var(--text-muted);">
+                            <%= new Date(purchase.purchase_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                          </span>
+                        </td>
+                        <td><span class="badge-modern secondary"><%= purchase.invoice_number || '-' %></span></td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= Number(purchase.total_amount).toFixed(2) %></td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= Number(purchase.tax_amount).toFixed(2) %></td>
+                        <td style="text-align: right; color: var(--primary);" class="amount-cell">₹<%= Number(purchase.grand_total).toFixed(2) %></td>
+                        <td style="text-align: center;">
+                          <% if (purchase.purchase_status === 'received') { %>
+                            <span class="badge-modern success"><i class="ti ti-package"></i> Received</span>
+                          <% } else if (purchase.purchase_status === 'confirmed') { %>
+                            <span class="badge-modern info">Confirmed</span>
+                          <% } else { %>
+                            <span class="badge-modern warning"><%= purchase.purchase_status %></span>
+                          <% } %>
+                        </td>
+                        <td style="text-align: center;">
+                          <% if (purchase.payment_status === 'paid') { %>
+                            <span class="badge-modern success"><i class="ti ti-cash"></i> Paid</span>
+                          <% } else if (purchase.payment_status === 'partial') { %>
+                            <span class="badge-modern warning"><i class="ti ti-coin"></i> Partial</span>
+                          <% } else { %>
+                            <span class="badge-modern danger"><i class="ti ti-alert-circle"></i> Pending</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, Math.ceil(total / limit)) %></strong> (<%= total %> total orders)
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/purchases?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page * limit < total) { %>
+                    <a href="/admin/purchases?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

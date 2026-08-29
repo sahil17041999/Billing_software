@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Register - Day End Closing - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'dayend' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-player-play" style="color: var(--primary);"></i> Open Daily Register Session
+              </h1>
+              <p class="page-subheading">Initialize register cash drawer float and start tracking daily POS operations</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/day-end/" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> View All Closings
+              </a>
+            </div>
+          </div>
+
+          <div style="max-width: 800px; margin: 0 auto;">
+            <!-- Register Status Card -->
+            <% if (existingClosing) { %>
+              <div class="card-modern" style="border-left: 4px solid var(--primary); margin-bottom: 24px;">
+                <div class="card-body-modern" style="padding: 24px;">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span class="badge-modern <%= existingClosing.status === 'closed' ? 'info' : 'success' %>" style="font-size: 13px; padding: 4px 10px;">
+                          <i class="ti ti-activity"></i> Register Session: <%= existingClosing.status.toUpperCase() %>
+                        </span>
+                        <span style="font-size: 13px; color: var(--text-muted);">
+                          Started on <%= new Date(existingClosing.closing_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                        </span>
+                      </div>
+                      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+                        Today's Register is currently open
+                      </h3>
+                      <p style="color: var(--text-muted); font-size: 13.5px; margin: 0;">
+                        Opening Float: <strong style="color: var(--primary);">₹<%= Number(existingClosing.opening_cash || 0).toFixed(2) %></strong>
+                      </p>
+                    </div>
+
+                    <div>
+                      <a href="/admin/day-end/form" class="btn-modern btn-primary-modern" style="padding: 10px 20px;">
+                        <i class="ti ti-lock-access"></i> Go to Reconciliation Form
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Start Register Form Card -->
+            <div class="card-modern">
+              <div class="card-body-modern" style="padding: 28px;">
+                <h3 class="card-title-modern" style="margin-bottom: 20px; font-size: 17px;">
+                  <i class="ti ti-cash"></i> Today's Register Overview
+                </h3>
+
+                <!-- Metric Cards Grid -->
+                <div class="grid-3" style="gap: 16px; margin-bottom: 24px;">
+                  <div style="background: var(--bg-subtle); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Today's Invoices</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-top: 6px;">
+                      <%= summary.transaction_count || 0 %>
+                    </div>
+                  </div>
+
+                  <div style="background: var(--bg-subtle); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Recorded Sales Total</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--primary); margin-top: 6px;">
+                      ₹<%= Number(summary.total_sales || 0).toFixed(2) %>
+                    </div>
+                  </div>
+
+                  <div style="background: var(--bg-subtle); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Recorded Store Expenses</div>
+                    <div style="font-size: 22px; font-weight: 800; color: #ef4444; margin-top: 6px;">
+                      ₹<%= Number(expenses || 0).toFixed(2) %>
+                    </div>
+                  </div>
+                </div>
+
+                <% if (!existingClosing) { %>
+                  <div style="background: rgba(79, 70, 229, 0.05); border: 1px dashed var(--primary); border-radius: var(--radius-md); padding: 20px; text-align: center; margin-bottom: 24px;">
+                    <i class="ti ti-cash" style="font-size: 36px; color: var(--primary); margin-bottom: 8px;"></i>
+                    <h4 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Ready to start today's cashier session?</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+                      Opening the register will initialize your cashier session and bring forward yesterday's closing cash balance.
+                    </p>
+                  </div>
+
+                  <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <a href="/admin/day-end" class="btn-modern btn-secondary-modern">Back</a>
+                    <button type="button" class="btn-modern btn-primary-modern" id="startRegisterBtn" onclick="handleStartRegister()" style="padding: 10px 24px; font-size: 14px;">
+                      <i class="ti ti-player-play"></i> Open Register Now
+                    </button>
+                  </div>
+                <% } else { %>
+                  <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <a href="/admin/day-end" class="btn-modern btn-secondary-modern">All Sessions</a>
+                    <a href="/admin/day-end/form" class="btn-modern btn-primary-modern">
+                      <i class="ti ti-lock"></i> Finalize Register Closing
+                    </a>
+                  </div>
+                <% } %>
+
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleStartRegister() {
+      const btn = document.getElementById('startRegisterBtn');
+      if (btn) btn.disabled = true;
+      if (typeof showPageLoader === 'function') showPageLoader('Starting Register Session...');
+
+      fetch('/admin/day-end/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+        if (data.success) {
+          if (typeof showToast === 'function') showToast('success', 'Register session opened successfully!');
+          setTimeout(() => {
+            window.location.href = '/admin/day-end/form';
+          }, 1000);
+        } else {
+          if (btn) btn.disabled = false;
+          if (typeof showError === 'function') {
+            showError('Start Failed', data.error || 'Could not start closing session.');
+          } else {
+            alert(data.error || 'Failed');
+          }
+        }
+      })
+      .catch(err => {
+        if (btn) btn.disabled = false;
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+        if (typeof showError === 'function') showError('Network Error', err.message);
+      });
+    }
+  </script>
+</body>
+</html>

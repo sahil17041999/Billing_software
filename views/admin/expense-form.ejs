@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Expense - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'expenses' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-receipt-tax" style="color: var(--primary);"></i> Record Expense
+              </h1>
+              <p class="page-subheading">Log store operational expenditures, bills, and payments</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/expenses/" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Back to Expenses
+              </a>
+            </div>
+          </div>
+
+          <!-- Form Card -->
+          <div class="card-modern" style="max-width: 800px;">
+            <div class="card-header-modern">
+              <h3 class="card-title-modern">
+                <i class="ti ti-file-text"></i> Expense Details
+              </h3>
+            </div>
+            <div class="card-body-modern">
+              <form id="expenseForm">
+                
+                <div class="form-grid-2">
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="category">Category <span class="required-dot">*</span></label>
+                    <select id="category" name="category" class="form-control-modern" required>
+                      <option value="">Select Expense Category</option>
+                      <% categories.forEach(cat => { %>
+                        <option value="<%= cat %>"><%= cat.charAt(0).toUpperCase() + cat.slice(1) %></option>
+                      <% }); %>
+                    </select>
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="amount">Amount (₹) <span class="required-dot">*</span></label>
+                    <input type="number" step="0.01" id="amount" name="amount" class="form-control-modern" placeholder="0.00" required>
+                  </div>
+                </div>
+
+                <div class="form-group-modern">
+                  <label class="form-label-modern" for="description">Expense Description</label>
+                  <input type="text" id="description" name="description" class="form-control-modern" placeholder="e.g. Electricity bill for March">
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="payment_mode">Payment Mode</label>
+                    <select id="payment_mode" name="payment_mode" class="form-control-modern">
+                      <% paymentModes.forEach(mode => { %>
+                        <option value="<%= mode %>"><%= mode.charAt(0).toUpperCase() + mode.slice(1).replace('_', ' ') %></option>
+                      <% }); %>
+                    </select>
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="payment_date">Payment Date</label>
+                    <input type="date" id="payment_date" name="payment_date" class="form-control-modern" value="<%= new Date().toISOString().split('T')[0] %>">
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="reference_number">Reference / Transaction ID</label>
+                    <input type="text" id="reference_number" name="reference_number" class="form-control-modern" placeholder="e.g. UPI / Check Ref #">
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="invoice_number">Invoice / Bill Number</label>
+                    <input type="text" id="invoice_number" name="invoice_number" class="form-control-modern" placeholder="e.g. BILL-9923">
+                  </div>
+                </div>
+
+                <div class="form-group-modern">
+                  <label class="form-label-modern" for="notes">Additional Notes</label>
+                  <textarea id="notes" name="notes" class="form-control-modern" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                  <a href="/admin/expenses/" class="btn-modern btn-secondary-modern">Cancel</a>
+                  <button type="submit" class="btn-modern btn-primary-modern">
+                    <i class="ti ti-device-floppy"></i> Save Expense
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function() {
+      initFormValidation('#expenseForm', {
+        rules: {
+          category: { required: true },
+          amount: { required: true, positiveNumber: true },
+          payment_date: { required: true, validDate: true },
+          payment_mode: { required: true }
+        },
+        messages: {
+          category: { required: 'Please select an expense category' },
+          amount: { required: 'Please enter expense amount', positiveNumber: 'Amount must be greater than 0' },
+          payment_date: { required: 'Please select payment date' },
+          payment_mode: { required: 'Please select a payment mode' }
+        },
+        onSubmit: function(form, $form) {
+          const saveBtn = $form.find('[type="submit"]');
+          saveBtn.prop('disabled', true);
+          if (typeof showPageLoader === 'function') showPageLoader('Saving expense record...');
+
+          const data = {
+            category: $('#category').val(),
+            description: $('#description').val().trim(),
+            amount: parseFloat($('#amount').val()) || 0,
+            payment_mode: $('#payment_mode').val(),
+            reference_number: $('#reference_number').val().trim(),
+            invoice_number: $('#invoice_number').val().trim(),
+            payment_date: $('#payment_date').val(),
+            notes: $('#notes').val().trim()
+          };
+          
+          fetch('/admin/expenses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json().then(resData => ({ ok: res.ok, resData })))
+          .then(({ ok, resData }) => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            saveBtn.prop('disabled', false);
+            if (ok && resData.success) {
+              showToast('success', 'The expense has been recorded successfully!');
+              setTimeout(() => { window.location.href = '/admin/expenses'; }, 1100);
+            } else {
+              const errMsg = resData.errors ? Object.values(resData.errors).flat().join('<br>') : (resData.error || 'Failed to save expense');
+              showError('Save Failed', errMsg);
+            }
+          })
+          .catch(err => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            saveBtn.prop('disabled', false);
+            showError('Network Error', err.message || 'Could not connect to the server.');
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

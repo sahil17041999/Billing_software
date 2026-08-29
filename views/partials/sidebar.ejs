@@ -1,0 +1,371 @@
+<!-- Modern Admin Sidebar Navigation with Dynamic RBAC Privileges -->
+<% const can = (p) => (typeof hasPermission === 'function' ? hasPermission(p) : true); %>
+<% const canFeature = (f) => (typeof canAccessFeature === 'function' ? canAccessFeature(f) : true); %>
+<aside class="sidebar" id="adminSidebar">
+  <!-- Brand Logo Header -->
+  <div class="sidebar-header">
+    <a href="/admin/dashboard" class="sidebar-brand">
+      <% if (typeof company !== 'undefined' && company && company.logo_path) { %>
+        <div class="brand-logo-custom" style="max-height: 38px; display: flex; align-items: center;">
+          <img src="<%= company.logo_path %>" alt="<%= company.name || 'Store' %>" style="max-height: 34px; max-width: 140px; object-fit: contain;">
+        </div>
+      <% } else { %>
+        <div class="brand-icon-box" style="background: linear-gradient(135deg, #1366d9 0%, #3874ff 100%); box-shadow: 0 4px 12px rgba(19, 102, 217, 0.28);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3H5.5L7.2 14.5C7.3 15.2 7.9 15.7 8.6 15.7H17.8C18.5 15.7 19.1 15.2 19.2 14.5L20.5 7.5H6.2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="19.5" r="1.5" fill="white"/>
+            <circle cx="17" cy="19.5" r="1.5" fill="white"/>
+            <path d="M12 7V13M9 10H15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title"><%= (typeof company !== 'undefined' && company && company.name) ? company.name : 'Grocery POS' %></span>
+          <span class="brand-subtitle">Cloud Point of Sale</span>
+        </div>
+      <% } %>
+    </a>
+    <button class="sidebar-toggle-btn" id="sidebarCloseBtn" type="button" aria-label="Close sidebar" onclick="closeMobileSidebar()">
+      <i class="ti ti-x"></i>
+    </button>
+  </div>
+
+  <!-- Navigation Menu Links -->
+  <div class="sidebar-nav-container">
+    
+    <!-- MAIN SECTION -->
+    <div class="nav-group-title">Main</div>
+    
+    <% if (can('dashboard.view')) { %>
+    <a href="/admin/dashboard" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'dashboard') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-layout-dashboard"></i></span>
+      <span class="label-text">Dashboard</span>
+    </a>
+    <% } %>
+
+    <% if (can('pos.access')) { %>
+    <a href="/admin/sales/pos" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'pos') ? 'active' : '' %>">
+      <span class="icon-box" style="color: var(--primary);"><i class="ti ti-device-laptop"></i></span>
+      <span class="label-text">POS Terminal</span>
+      <span class="badge-modern primary" style="margin-left: auto; font-size: 10px; padding: 2px 6px; background: var(--primary-light); color: var(--primary); font-weight: 700;">Live</span>
+    </a>
+    <% } %>
+
+    <% if (can('sales.view')) { %>
+    <a href="/admin/sales/" class="nav-item-link <%= (typeof currentPage !== 'undefined' && (currentPage === 'sales' || currentPage === 'invoices')) ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-file-invoice"></i></span>
+      <span class="label-text">Invoices &amp; Bills</span>
+    </a>
+    <% } %>
+
+    <!-- MASTER SETUP -->
+    <% if (can('master.products') || can('master.categories_brands') || can('master.customers') || can('suppliers.manage') || can('master.taxes_units')) { %>
+    <div class="nav-group-title">Master Data</div>
+    
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="masterMenu" type="button">
+        <span class="icon-box"><i class="ti ti-database"></i></span>
+        <span class="label-text">Master Setup</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="masterMenu">
+        <% if (can('master.products')) { %><a href="/admin/master/products" class="nav-sub-link"><i class="ti ti-package fs-3"></i> Products Catalog</a><% } %>
+        <% if (can('master.categories_brands')) { %><a href="/admin/master/categories" class="nav-sub-link"><i class="ti ti-category fs-3"></i> Categories &amp; Brands</a><% } %>
+        <% if (can('master.customers')) { %><a href="/admin/master/customers" class="nav-sub-link"><i class="ti ti-users fs-3"></i> Customers</a><% } %>
+        <% if (can('suppliers.manage')) { %><a href="/admin/master/suppliers" class="nav-sub-link"><i class="ti ti-truck-delivery fs-3"></i> Suppliers</a><% } %>
+        <% if (can('master.taxes_units')) { %>
+          <a href="/admin/master/taxes" class="nav-sub-link"><i class="ti ti-percentage fs-3"></i> GST Taxes</a>
+          <a href="/admin/master/units" class="nav-sub-link"><i class="ti ti-ruler fs-3"></i> Units of Measure</a>
+          <a href="/admin/master/payment-modes" class="nav-sub-link"><i class="ti ti-credit-card fs-3"></i> Payment Modes</a>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- INVENTORY & PURCHASES -->
+    <% if (can('inventory.view') || can('purchase.view') || can('returns.sales') || can('returns.purchases')) { %>
+    <div class="nav-group-title">Inventory &amp; Orders</div>
+
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="inventoryMenu" type="button">
+        <span class="icon-box"><i class="ti ti-boxes"></i></span>
+        <span class="label-text">Inventory &amp; Stock</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="inventoryMenu">
+        <a href="/admin/inventory/stock" class="nav-sub-link"><i class="ti ti-stack fs-3"></i> Stock Summary</a>
+        <a href="/admin/inventory/stock/low" class="nav-sub-link"><i class="ti ti-alert-triangle fs-3"></i> Low Stock Alerts</a>
+        <a href="/admin/inventory/stock/expiry" class="nav-sub-link"><i class="ti ti-calendar-time fs-3"></i> Expiry Tracking</a>
+        <% if (can('inventory.adjust')) { %><a href="/admin/inventory/ledger" class="nav-sub-link"><i class="ti ti-book fs-3"></i> Stock Ledger</a><% } %>
+      </div>
+    </div>
+
+    <% if (can('purchase.view') || can('purchase.create')) { %>
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="purchaseMenu" type="button">
+        <span class="icon-box"><i class="ti ti-truck-loading"></i></span>
+        <span class="label-text">Purchases</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="purchaseMenu">
+        <% if (can('purchase.view')) { %><a href="/admin/purchases/" class="nav-sub-link"><i class="ti ti-list-check fs-3"></i> Purchase Inward Orders</a><% } %>
+        <% if (can('purchase.create')) { %><a href="/admin/purchases/new" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> Create Inward Purchase</a><% } %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (can('returns.sales') || can('returns.purchases')) { %>
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="returnsMenu" type="button">
+        <span class="icon-box"><i class="ti ti-arrow-back-up"></i></span>
+        <span class="label-text">Returns</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="returnsMenu">
+        <% if (can('returns.sales')) { %>
+          <a href="/admin/returns/sales" class="nav-sub-link"><i class="ti ti-arrow-up-right fs-3"></i> Sales Returns</a>
+          <a href="/admin/returns/sales/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> New Sales Return</a>
+        <% } %>
+        <% if (can('returns.purchases')) { %>
+          <a href="/admin/returns/purchases" class="nav-sub-link"><i class="ti ti-arrow-down-left fs-3"></i> Purchase Returns</a>
+          <a href="/admin/returns/purchases/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> New Purchase Return</a>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+    <% } %>
+
+    <!-- FINANCE & REPORTS -->
+    <% if (can('expenses.view') || can('ledger.view') || can('dayend.view') || can('reports.sales') || can('reports.financial')) { %>
+    <div class="nav-group-title">Finance &amp; Reports</div>
+
+    <% if (can('expenses.view') || can('expenses.create')) { %>
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="expensesMenu" type="button">
+        <span class="icon-box"><i class="ti ti-receipt-tax"></i></span>
+        <span class="label-text">Expenses</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="expensesMenu">
+        <% if (can('expenses.view')) { %><a href="/admin/expenses/" class="nav-sub-link"><i class="ti ti-list fs-3"></i> Expense List</a><% } %>
+        <% if (can('expenses.create')) { %><a href="/admin/expenses/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> Add Expense</a><% } %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (can('ledger.view') && canFeature('ledger')) { %>
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="ledgerMenu" type="button">
+        <span class="icon-box"><i class="ti ti-wallet"></i></span>
+        <span class="label-text">Accounts &amp; Ledger</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="ledgerMenu">
+        <a href="/admin/ledger/customer" class="nav-sub-link"><i class="ti ti-user fs-3"></i> Customer Ledger</a>
+        <a href="/admin/ledger/supplier" class="nav-sub-link"><i class="ti ti-building fs-3"></i> Supplier Ledger</a>
+      </div>
+    </div>
+    <% } %>
+
+    <% if ((can('dayend.view') || can('dayend.perform')) && canFeature('dayend')) { %>
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="dayendMenu" type="button">
+        <span class="icon-box"><i class="ti ti-lock-access"></i></span>
+        <span class="label-text">Day End Closing</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="dayendMenu">
+        <a href="/admin/day-end/" class="nav-sub-link"><i class="ti ti-list-details fs-3"></i> Closings List</a>
+        <% if (can('dayend.perform')) { %>
+          <a href="/admin/day-end/form" class="nav-sub-link"><i class="ti ti-check fs-3"></i> Close Register</a>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (canFeature('reports')) { %>
+    <div class="nav-dropdown-group">
+      <button class="nav-dropdown-trigger" data-toggle="reportsMenu" type="button">
+        <span class="icon-box"><i class="ti ti-chart-pie"></i></span>
+        <span class="label-text">Reports &amp; Insights</span>
+        <i class="ti ti-chevron-right arrow-icon"></i>
+      </button>
+      <div class="nav-sub-menu" id="reportsMenu">
+        <a href="/admin/reports/sales" class="nav-sub-link"><i class="ti ti-chart-bar fs-3"></i> Sales Analytics</a>
+        <a href="/admin/reports/profit-loss" class="nav-sub-link"><i class="ti ti-trending-up fs-3"></i> Profit &amp; Loss</a>
+        <a href="/admin/reports/stock" class="nav-sub-link"><i class="ti ti-box fs-3"></i> Stock Valuation</a>
+        <a href="/admin/reports/purchase" class="nav-sub-link"><i class="ti ti-truck fs-3"></i> Purchase Inward</a>
+        <a href="/admin/reports/expense" class="nav-sub-link"><i class="ti ti-coin fs-3"></i> Expense Report</a>
+        <a href="/admin/reports/cashier" class="nav-sub-link"><i class="ti ti-user-check fs-3"></i> Cashier Audits</a>
+        <a href="/admin/reports/day-end" class="nav-sub-link"><i class="ti ti-calendar-stats fs-3"></i> Day End Reports</a>
+      </div>
+    </div>
+    <% } %>
+    <% } %>
+
+    <!-- ADMIN & SETTINGS -->
+    <div class="nav-group-title">Administration</div>
+
+    <% if (((typeof user !== 'undefined' && user && user.role && user.role.name === 'admin') || can('users.manage') || can('roles.manage')) && canFeature('users')) { %>
+    <a href="/admin/users" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'users') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-users-group"></i></span>
+      <span class="label-text">Staff &amp; Roles</span>
+    </a>
+    <% } %>
+
+    <a href="/admin/users/profile" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'profile') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-user-circle"></i></span>
+      <span class="label-text">My Profile</span>
+    </a>
+
+    <% if (canFeature('smtp')) { %>
+    <a href="/admin/settings/smtp" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'settings') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-settings"></i></span>
+      <span class="label-text">SMTP Settings</span>
+    </a>
+    <% } %>
+
+    <a href="/admin/subscription" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscription') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-credit-card"></i></span>
+      <span class="label-text">Subscriptions</span>
+      <span class="badge" style="background: linear-gradient(135deg, #4f46e5 0%, #1366d9 100%); color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; margin-left:auto;">PRO</span>
+    </a>
+
+  </div>
+
+  <!-- Sidebar Footer: Logged in User Card -->
+  <div class="sidebar-footer">
+    <div class="user-quick-profile">
+      <img src="<%= (typeof user !== 'undefined' && user && user.avatar) ? user.avatar : '/assets/images/profile/user-1.jpg' %>" alt="User avatar" class="user-avatar-small">
+      <div class="user-profile-meta">
+        <div class="name">
+          <% if (typeof user !== 'undefined' && user) { %>
+            <%= user.first_name || user.username || 'User' %>
+          <% } else { %>
+            User
+          <% } %>
+        </div>
+        <div class="role-pill">
+          <% if (typeof user !== 'undefined' && user && user.role) { %>
+            <%= user.role.name ? (user.role.name.charAt(0).toUpperCase() + user.role.name.slice(1)) : 'Staff' %>
+          <% } else { %>
+            Staff
+          <% } %>
+        </div>
+      </div>
+      <a href="/admin/logout" class="sidebar-logout-btn" title="Logout"
+         onclick="event.preventDefault(); handleLogout();">
+        <i class="ti ti-power"></i>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Mobile Overlay Backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); z-index:1040; backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('adminSidebar');
+    const mobileToggle = document.getElementById('mobileMenuToggle');
+    const sidebarClose = document.getElementById('sidebarCloseBtn');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const currentPath = window.location.pathname;
+
+    // Mobile Sidebar Toggles
+    function openMobileSidebar() {
+      if (sidebar) sidebar.classList.add('mobile-open');
+      if (backdrop) backdrop.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileSidebar() {
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      if (backdrop) backdrop.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function toggleMobileSidebar(e) {
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
+      if (sidebar && sidebar.classList.contains('mobile-open')) {
+        closeMobileSidebar();
+      } else {
+        openMobileSidebar();
+      }
+    }
+
+    window.openMobileSidebar = openMobileSidebar;
+    window.closeMobileSidebar = closeMobileSidebar;
+    window.toggleMobileSidebar = toggleMobileSidebar;
+
+    if (mobileToggle) mobileToggle.onclick = toggleMobileSidebar;
+    if (sidebarClose) sidebarClose.onclick = closeMobileSidebar;
+    if (backdrop) backdrop.onclick = closeMobileSidebar;
+
+    // Auto-close sidebar on mobile when navigating
+    document.querySelectorAll('.nav-item-link, .nav-sub-link').forEach(link => {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 1024) {
+          closeMobileSidebar();
+        }
+      });
+    });
+
+    // Accordion Dropdowns
+    const dropdownTriggers = document.querySelectorAll('.nav-dropdown-trigger');
+    dropdownTriggers.forEach(trigger => {
+      trigger.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-toggle');
+        const targetMenu = document.getElementById(targetId);
+        
+        if (targetMenu) {
+          const isOpen = targetMenu.classList.contains('open');
+
+          if (!isOpen) {
+            targetMenu.classList.add('open');
+            this.classList.add('expanded');
+          } else {
+            targetMenu.classList.remove('open');
+            this.classList.remove('expanded');
+          }
+        }
+      });
+    });
+
+    // Auto-detect and activate current route
+    document.querySelectorAll('.nav-sub-link').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && (currentPath === href || (href !== '/admin/' && currentPath.startsWith(href) && href.length > 7))) {
+        link.classList.add('active');
+        const parentMenu = link.closest('.nav-sub-menu');
+        if (parentMenu) {
+          parentMenu.classList.add('open');
+          const trigger = parentMenu.previousElementSibling;
+          if (trigger && trigger.classList.contains('nav-dropdown-trigger')) {
+            trigger.classList.add('expanded');
+          }
+        }
+      }
+    });
+
+    // Handle single active links
+    document.querySelectorAll('.nav-item-link').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && currentPath === href) {
+        link.classList.add('active');
+      }
+    });
+
+    // Page loader on nav link clicks
+    document.querySelectorAll('.nav-sub-link, .nav-item-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href && href !== '#' && !href.startsWith('javascript') && !this.getAttribute('onclick')) {
+          if (typeof showPageLoader === 'function') showPageLoader('Loading...');
+        }
+      });
+    });
+  });
+</script>

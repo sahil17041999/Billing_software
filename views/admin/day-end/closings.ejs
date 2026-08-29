@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day End Closings - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'dayend' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-lock-access" style="color: var(--primary);"></i> Day End Register Closings
+              </h1>
+              <p class="page-subheading">Audit daily cashier register sessions, cash counts, and variance checks</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/day-end/start" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-player-play"></i> Open Register
+              </a>
+              <a href="/admin/day-end/form" class="btn-modern btn-primary-modern">
+                <i class="ti ti-check"></i> Close Register
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Closing Date</th>
+                      <th>Cashier</th>
+                      <th style="text-align: right;">Opening Float</th>
+                      <th style="text-align: right;">Total Sales</th>
+                      <th style="text-align: right;">Expected Cash</th>
+                      <th style="text-align: right;">Counted Cash</th>
+                      <th style="text-align: right;">Cash Variance</th>
+                      <th style="text-align: center;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (closings.length === 0) { %>
+                      <tr>
+                        <td colspan="9" class="table-empty-state">
+                          <i class="ti ti-lock-off icon"></i>
+                          <p>No day end closing logs found.</p>
+                          <a href="/admin/day-end/start" class="btn-modern btn-primary-modern btn-sm-modern" style="margin-top: 8px;">
+                            <i class="ti ti-player-play"></i> Start Today's Register
+                          </a>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% closings.forEach(closing => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= closing.id %></span></td>
+                        <td>
+                          <strong><%= new Date(closing.closing_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %></strong>
+                        </td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <i class="ti ti-user fs-4 text-muted"></i>
+                            <span><%= closing.cashier ? closing.cashier.username : '-' %></span>
+                          </div>
+                        </td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= Number(closing.opening_cash || 0).toFixed(2) %></td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= (parseFloat(closing.cash_sales || 0) + parseFloat(closing.upi_sales || 0) + parseFloat(closing.card_sales || 0)).toFixed(2) %></td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= Number(closing.expected_cash || 0).toFixed(2) %></td>
+                        <td style="text-align: right;" class="amount-cell">₹<%= Number(closing.actual_cash || 0).toFixed(2) %></td>
+                        <td style="text-align: right;" class="amount-cell">
+                          <span style="color: <%= Number(closing.cash_difference) < 0 ? '#ef4444' : (Number(closing.cash_difference) > 0 ? '#10b981' : 'var(--text-body)') %>;">
+                            <%= Number(closing.cash_difference) > 0 ? '+' : '' %>₹<%= Number(closing.cash_difference || 0).toFixed(2) %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <% if (closing.status === 'verified') { %>
+                            <span class="badge-modern success"><i class="ti ti-circle-check"></i> Verified</span>
+                          <% } else if (closing.status === 'closed') { %>
+                            <span class="badge-modern info">Closed</span>
+                          <% } else if (closing.status === 'in_progress') { %>
+                            <span class="badge-modern warning"><i class="ti ti-clock"></i> In Progress</span>
+                          <% } else { %>
+                            <span class="badge-modern danger"><%= closing.status %></span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, totalPages) %></strong>
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/day-end?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page < totalPages) { %>
+                    <a href="/admin/day-end?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff &amp; Role Privilege Management - Grocery Billing ERP</title>
+  <meta name="description" content="Manage staff accounts, roles, and granular module privileges for your billing software">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <style>
+    /* Tab Switcher */
+    .view-tabs-nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+    .view-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .view-tab-btn:hover {
+      color: var(--text-main);
+      border-color: var(--primary-light);
+    }
+    .view-tab-btn.active {
+      color: #fff;
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    }
+
+    /* Role Cards Grid */
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
+    }
+    .role-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .role-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .role-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .role-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .role-icon-box.admin { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+    .role-icon-box.manager { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .role-icon-box.cashier { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .role-icon-box.accountant { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .role-icon-box.warehouse { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+    .role-icon-box.custom { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+
+    .role-card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      text-transform: capitalize;
+    }
+    .role-card-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      min-height: 38px;
+    }
+    .role-card-stats {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .role-card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Permissions Modal Matrix */
+    .perm-modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .perm-module-card {
+      background: var(--bg-card-hover, rgba(15, 23, 42, 0.03));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .perm-module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .perm-module-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .perm-item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+    .perm-item-row:last-child {
+      border-bottom: none;
+    }
+    .perm-item-checkbox {
+      margin-top: 3px;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+    .perm-item-text {
+      flex: 1;
+      cursor: pointer;
+    }
+    .perm-item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: block;
+    }
+    .perm-item-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* Preset Buttons Bar */
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg-card-hover, rgba(15, 23, 42, 0.05));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+    }
+    .preset-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar.ejs', { currentPage: 'users' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-users-group" style="color: var(--primary);"></i> Staff &amp; Role Privilege Management
+              </h1>
+              <p class="page-subheading">Manage team members, roles (Admin · Manager · Cashier), and configure granular module permissions</p>
+            </div>
+            <div class="page-title-actions">
+              <button type="button" class="btn-modern btn-secondary-modern" onclick="openCreateRoleModal()">
+                <i class="ti ti-shield-plus"></i> + Add Custom Role
+              </button>
+              <button type="button" class="btn-modern btn-primary-modern" id="addUserBtn" onclick="openCreateModal()">
+                <i class="ti ti-user-plus"></i> Add New User
+              </button>
+            </div>
+          </div>
+
+          <!-- Alert Banner -->
+          <div id="pageAlert" class="alert-banner" style="display:none;"></div>
+
+          <!-- View Tabs Switcher -->
+          <div class="view-tabs-nav">
+            <button type="button" class="view-tab-btn active" id="tabBtnUsers" onclick="switchTab('users')">
+              <i class="ti ti-users"></i> Staff Users (<span id="tabUsersCount"><%= users.length %></span>)
+            </button>
+            <button type="button" class="view-tab-btn" id="tabBtnRoles" onclick="switchTab('roles')">
+              <i class="ti ti-shield-lock"></i> Role Privileges &amp; Permissions (<%= roles.length %>)
+            </button>
+          </div>
+
+          <!-- ====================================================
+               VIEW TAB 1: USERS LIST
+               ==================================================== -->
+          <div id="viewUsersTab">
+            <!-- Stats Row -->
+            <div class="users-stats-grid">
+              <div class="stat-card-mini">
+                <div class="stat-icon-circle blue"><i class="ti ti-users"></i></div>
+                <div>
+                  <div class="stat-num" id="statTotal"><%= users.length %></div>
+                  <div class="stat-lbl">Total Users</div>
+                </div>
+              </div>
+              <div class="stat-card-mini">
+                <div class="stat-icon-circle green"><i class="ti ti-user-check"></i></div>
+                <div>
+                  <div class="stat-num" id="statActive"><%= users.filter(u => u.is_active).length %></div>
+                  <div class="stat-lbl">Active</div>
+                </div>
+              </div>
+              <div class="stat-card-mini">
+                <div class="stat-icon-circle amber"><i class="ti ti-shield"></i></div>
+                <div>
+                  <div class="stat-num" id="statAdmins"><%= users.filter(u => u.role && u.role.name === 'admin').length %></div>
+                  <div class="stat-lbl">Admins</div>
+                </div>
+              </div>
+              <div class="stat-card-mini">
+                <div class="stat-icon-circle red"><i class="ti ti-user-off"></i></div>
+                <div>
+                  <div class="stat-num" id="statInactive"><%= users.filter(u => !u.is_active).length %></div>
+                  <div class="stat-lbl">Inactive</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Table Card -->
+            <div class="card-modern">
+              <div class="card-body-modern">
+
+                <!-- Table Toolbar -->
+                <div class="table-toolbar">
+                  <div class="toolbar-search">
+                    <i class="ti ti-search"></i>
+                    <input type="text" id="userSearch" placeholder="Search by name, username or email...">
+                  </div>
+                  <select class="filter-select" id="roleFilter">
+                    <option value="">All Roles</option>
+                    <% roles.forEach(r => { %>
+                      <option value="<%= r.name %>"><%= r.name.charAt(0).toUpperCase() + r.name.slice(1) %></option>
+                    <% }) %>
+                  </select>
+                  <select class="filter-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                  </select>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive-wrapper">
+                  <table class="table-modern" id="usersTable">
+                    <thead>
+                      <tr>
+                        <th style="width:60px">ID</th>
+                        <th>User Profile</th>
+                        <th>Contact</th>
+                        <th style="text-align:center">Role</th>
+                        <th style="text-align:center">Status</th>
+                        <th style="text-align:center">Last Login</th>
+                        <th style="text-align:center;width:140px">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                      <% if (users.length === 0) { %>
+                      <tr>
+                        <td colspan="7" class="table-empty-state">
+                          <i class="ti ti-users-off icon"></i>
+                          <p>No user accounts found. Create the first user to get started.</p>
+                        </td>
+                      </tr>
+                      <% } %>
+                      <% users.forEach(function(u) { %>
+                      <tr data-id="<%= u.id %>"
+                          data-username="<%= (u.username||'').toLowerCase() %>"
+                          data-name="<%= ((u.first_name||'') + ' ' + (u.last_name||'')).toLowerCase().trim() %>"
+                          data-email="<%= (u.email||'').toLowerCase() %>"
+                          data-role="<%= u.role ? u.role.name : '' %>"
+                          data-active="<%= u.is_active ? '1' : '0' %>">
+                        <td><span style="font-family:var(--font-mono);color:var(--text-light);font-weight:600;">#<%= u.id %></span></td>
+                        <td>
+                          <div style="display:flex;align-items:center;gap:12px;">
+                            <div class="user-avatar">
+                              <%= (u.first_name || u.username || 'U').charAt(0).toUpperCase() %>
+                            </div>
+                            <div>
+                              <strong style="display:block;color:var(--text-main);font-size:14px;">
+                                <%= u.first_name ? (u.first_name + ' ' + (u.last_name || '')) : u.username %>
+                              </strong>
+                              <span style="font-size:12px;color:var(--text-muted);">@<%= u.username %></span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div style="font-size:13px;color:var(--text-main);"><%= u.email || '—' %></div>
+                          <div style="font-size:12px;color:var(--text-muted);"><%= u.phone || '' %></div>
+                        </td>
+                        <td style="text-align:center;">
+                          <% const roleName = u.role ? u.role.name : 'staff'; %>
+                          <span class="role-badge role-<%= roleName %>">
+                            <i class="ti <%= roleName === 'admin' ? 'ti-shield-check' : roleName === 'manager' ? 'ti-chart-tree-map' : roleName === 'cashier' ? 'ti-device-laptop' : 'ti-user' %>"></i>
+                            <%= roleName %>
+                          </span>
+                        </td>
+                        <td style="text-align:center;">
+                          <button type="button"
+                            class="badge-modern <%= u.is_active ? 'success' : 'danger' %>"
+                            style="border:none;cursor:pointer;transition:opacity 0.2s;"
+                            onclick="toggleStatus(<%= u.id %>, this)"
+                            title="<%= u.is_active ? 'Click to deactivate' : 'Click to activate' %>"
+                            <% if (u.id === user.id) { %>disabled title="Cannot change own status"<% } %>>
+                            <i class="ti <%= u.is_active ? 'ti-check' : 'ti-x' %>"></i>
+                            <%= u.is_active ? 'Active' : 'Inactive' %>
+                          </button>
+                        </td>
+                        <td style="text-align:center;font-size:12px;color:var(--text-muted);">
+                          <% if (u.last_login) { %>
+                            <%= new Date(u.last_login).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+                          <% } else { %>
+                            <span style="color:var(--text-muted);">Never</span>
+                          <% } %>
+                        </td>
+                        <td style="text-align:center;">
+                          <div style="display:flex;justify-content:center;gap:6px;">
+                            <button type="button" class="btn-modern btn-secondary-modern btn-icon-only"
+                              title="Edit user" onclick="openEditModal(<%= u.id %>)">
+                              <i class="ti ti-edit"></i>
+                            </button>
+                            <% if (u.id !== user.id) { %>
+                            <button type="button" class="btn-modern btn-danger-modern btn-icon-only"
+                              title="Delete user" onclick="deleteUser(<%= u.id %>, '<%= u.username %>')">
+                              <i class="ti ti-trash"></i>
+                            </button>
+                            <% } %>
+                          </div>
+                        </td>
+                      </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- ====================================================
+               VIEW TAB 2: ROLES & PRIVILEGES GRID
+               ==================================================== -->
+          <div id="viewRolesTab" style="display:none;">
+            <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h2 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">
+                  <i class="ti ti-shield-check" style="color: var(--primary);"></i> Defined System Roles &amp; Access Privileges
+                </h2>
+                <p style="font-size: 13px; color: var(--text-muted);">Click on any role to configure which sections, features, and actions staff in that role can perform</p>
+              </div>
+              <button type="button" class="btn-modern btn-primary-modern" onclick="openCreateRoleModal()">
+                <i class="ti ti-plus"></i> Create New Role
+              </button>
+            </div>
+
+            <div class="roles-grid" id="rolesGridContainer">
+              <% roles.forEach(function(r) { 
+                const rName = r.name.toLowerCase();
+                const uCount = (typeof roleCounts !== 'undefined' && roleCounts[rName]) ? roleCounts[rName] : 0;
+                const perms = Array.isArray(r.permissions) ? r.permissions : (r.permissions ? [r.permissions] : []);
+                const isAll = perms.includes('*') || perms.includes('all');
+                const permCountText = isAll ? 'Full Access (All Privileges)' : `${perms.length} Privileges Granted`;
+                const isSystemRole = ['admin', 'manager', 'cashier', 'accountant', 'warehouse'].includes(rName);
+              %>
+              <div class="role-card" id="roleCard_<%= r.id %>">
+                <div>
+                  <div class="role-card-header">
+                    <div class="role-icon-box <%= rName %>">
+                      <i class="ti <%= rName === 'admin' ? 'ti-shield-check' : rName === 'manager' ? 'ti-chart-tree-map' : rName === 'cashier' ? 'ti-device-laptop' : rName === 'accountant' ? 'ti-wallet' : rName === 'warehouse' ? 'ti-boxes' : 'ti-user-check' %>"></i>
+                    </div>
+                    <% if (isSystemRole) { %>
+                      <span class="badge-modern info" style="font-size: 11px;">Built-in Role</span>
+                    <% } else { %>
+                      <span class="badge-modern success" style="font-size: 11px;">Custom Role</span>
+                    <% } %>
+                  </div>
+
+                  <h3 class="role-card-title"><%= r.name %></h3>
+                  <p class="role-card-desc"><%= r.description || (rName === 'admin' ? 'Full unrestricted access to all software modules and configuration.' : rName === 'cashier' ? 'Access to POS billing checkout, invoicing, and day-end closing.' : rName === 'manager' ? 'Store operations, purchases, inventory, master records, and reports.' : 'Staff role with configured module privileges.') %></p>
+                </div>
+
+                <div>
+                  <div class="role-card-stats">
+                    <span><i class="ti ti-users" style="color: var(--text-muted);"></i> <strong><%= uCount %></strong> Users</span>
+                    <span><i class="ti ti-key" style="color: var(--primary);"></i> <strong><%= permCountText %></strong></span>
+                  </div>
+
+                  <div class="role-card-actions">
+                    <button type="button" class="btn-modern btn-primary-modern" style="flex: 1;" onclick="openRolePermissionsModal(<%= r.id %>, '<%= r.name %>')">
+                      <i class="ti ti-lock-cog"></i> Configure Privileges
+                    </button>
+                    <% if (!isSystemRole) { %>
+                    <button type="button" class="btn-modern btn-danger-modern btn-icon-only" title="Delete custom role" onclick="deleteRole(<%= r.id %>, '<%= r.name %>')">
+                      <i class="ti ti-trash"></i>
+                    </button>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+
+        </main>
+
+        <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL 1: CONFIGURE ROLE PRIVILEGES (PERMISSION MATRIX)
+  ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="rolePermissionsModal">
+    <div class="modal-box" style="max-width: 860px; width: 95%;">
+      <button class="modal-close-btn" onclick="closeModal('rolePermissionsModal')"><i class="ti ti-x"></i></button>
+      
+      <div class="modal-title">
+        <i class="ti ti-shield-lock" style="color:var(--primary)"></i> 
+        Configure Role Privileges: <span id="modalRoleNameHeading" style="text-transform: capitalize; color: var(--primary);"></span>
+      </div>
+      <div class="modal-subtitle" id="modalRoleSubtitle">Select which features, buttons, and sections this role is allowed to access</div>
+      <input type="hidden" id="perm_role_id">
+
+      <!-- Quick Preset & Selection Bar -->
+      <div class="preset-bar">
+        <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Quick Presets:</span>
+        <button type="button" class="preset-btn" onclick="applyPreset('admin')"><i class="ti ti-shield-check"></i> Admin (All)</button>
+        <button type="button" class="preset-btn" onclick="applyPreset('manager')"><i class="ti ti-chart-tree-map"></i> Store Manager</button>
+        <button type="button" class="preset-btn" onclick="applyPreset('cashier')"><i class="ti ti-device-laptop"></i> POS Cashier</button>
+        <button type="button" class="preset-btn" onclick="applyPreset('accountant')"><i class="ti ti-wallet"></i> Accountant</button>
+        <button type="button" class="preset-btn" onclick="applyPreset('warehouse')"><i class="ti ti-boxes"></i> Warehouse</button>
+        <span style="margin: 0 4px; color: var(--border-color);">|</span>
+        <button type="button" class="preset-btn" onclick="toggleAllPerms(true)"><i class="ti ti-check"></i> Select All</button>
+        <button type="button" class="preset-btn" onclick="toggleAllPerms(false)"><i class="ti ti-x"></i> Clear All</button>
+      </div>
+
+      <!-- Permission Modules Matrix -->
+      <form id="rolePermsForm" onsubmit="submitRolePermissions(event)">
+        <div class="perm-modules-grid" id="permModulesContainer">
+          <% if (typeof permissionModules !== 'undefined' && permissionModules.length > 0) { %>
+            <% permissionModules.forEach(function(mod) { %>
+              <div class="perm-module-card">
+                <div class="perm-module-header">
+                  <div class="perm-module-title">
+                    <i class="ti <%= mod.icon %>" style="color: var(--primary);"></i> <%= mod.name %>
+                  </div>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 2px 8px; font-size: 11px;" onclick="toggleModulePerms('<%= mod.module %>')">
+                    Toggle
+                  </button>
+                </div>
+                <div>
+                  <% mod.permissions.forEach(function(p) { %>
+                    <div class="perm-item-row">
+                      <input type="checkbox" class="perm-item-checkbox perm-mod-<%= mod.module %>" id="chk_<%= p.key.replace('.', '_') %>" value="<%= p.key %>">
+                      <label class="perm-item-text" for="chk_<%= p.key.replace('.', '_') %>">
+                        <span class="perm-item-name"><%= p.name %></span>
+                        <span class="perm-item-desc"><%= p.description %></span>
+                      </label>
+                    </div>
+                  <% }) %>
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top: 1px solid var(--border-color);">
+          <div id="selectedPermCount" style="font-size: 13px; color: var(--text-muted); font-weight: 600;">
+            0 privileges selected
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal('rolePermissionsModal')">Cancel</button>
+            <button type="submit" class="btn-modern btn-primary-modern" id="saveRolePermsBtn">
+              <i class="ti ti-device-floppy"></i> Save Privileges
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL 2: CREATE CUSTOM ROLE
+  ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="createRoleModal">
+    <div class="modal-box" style="max-width: 480px;">
+      <button class="modal-close-btn" onclick="closeModal('createRoleModal')"><i class="ti ti-x"></i></button>
+      <div class="modal-title"><i class="ti ti-shield-plus" style="color:var(--primary)"></i> Create New Role</div>
+      <div class="modal-subtitle">Add a custom role with tailored module privileges</div>
+
+      <form id="createRoleForm" onsubmit="submitCreateRole(event)">
+        <div class="form-group-m">
+          <label class="form-label-m">Role Name <span class="req">*</span></label>
+          <input class="form-input-m" type="text" id="crole_name" placeholder="e.g. Supervisor, Billing Clerk" required>
+        </div>
+
+        <div class="form-group-m">
+          <label class="form-label-m">Description</label>
+          <textarea class="form-input-m" id="crole_desc" rows="2" placeholder="Brief description of role responsibilities..."></textarea>
+        </div>
+
+        <div class="form-group-m">
+          <label class="form-label-m">Initial Privilege Template</label>
+          <select class="form-input-m" id="crole_template">
+            <option value="cashier">POS Cashier (Billing &amp; Invoicing)</option>
+            <option value="manager">Store Manager (Operations &amp; Master Setup)</option>
+            <option value="accountant">Accountant (Ledger &amp; Reports)</option>
+            <option value="warehouse">Warehouse (Inventory &amp; Purchases)</option>
+            <option value="admin">Full Admin Access</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:14px;">
+          <button type="button" class="btn-modern btn-secondary-modern" style="flex:1" onclick="closeModal('createRoleModal')">Cancel</button>
+          <button type="submit" class="btn-modern btn-primary-modern" style="flex:2" id="createRoleSubmitBtn">
+            <i class="ti ti-check"></i> Create Role
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL 3: CREATE USER MODAL
+  <!-- ══════════════════════════════════════════════════════
+       MODAL 3: ADD NEW USER MODAL (NO PASSWORD REQUIRED)
+  ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="createUserModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeModal('createUserModal')"><i class="ti ti-x"></i></button>
+      <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--primary)"></i> Add New User</div>
+      <div class="modal-subtitle">Register user with 10-digit Indian mobile number &amp; role</div>
+
+      <form id="createUserForm" onsubmit="submitCreateUser(event)">
+        <div class="form-row">
+          <div class="form-group-m">
+            <label class="form-label-m">First Name</label>
+            <input class="form-input-m" type="text" id="cu_first_name" name="first_name" placeholder="John">
+          </div>
+          <div class="form-group-m">
+            <label class="form-label-m">Last Name</label>
+            <input class="form-input-m" type="text" id="cu_last_name" name="last_name" placeholder="Doe">
+          </div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Indian Mobile Number <span class="req">*</span></label>
+          <div style="position:relative;display:flex;align-items:center;">
+            <span style="position:absolute;left:12px;color:var(--primary);font-weight:700;font-size:13px;pointer-events:none;">+91</span>
+            <input class="form-input-m" style="padding-left:46px;letter-spacing:1px;font-weight:600;" type="tel" id="cu_phone" name="phone" placeholder="9876543210" maxlength="10" inputmode="numeric" required>
+          </div>
+          <div class="form-error-msg" id="cu_phone_err"></div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Role <span class="req">*</span></label>
+          <select class="form-input-m" id="cu_role_id" name="role_id" required>
+            <option value="">— Select Role —</option>
+            <% roles.forEach(r => { %>
+              <option value="<%= r.id %>"><%= r.name.charAt(0).toUpperCase() + r.name.slice(1) %></option>
+            <% }) %>
+          </select>
+          <div class="form-error-msg" id="cu_role_err"></div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Username <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">(Optional &bull; Defaults to Mobile Number)</span></label>
+          <input class="form-input-m" type="text" id="cu_username" name="username" placeholder="e.g. cashier1 or leave blank" autocomplete="off">
+          <div class="form-error-msg" id="cu_username_err"></div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Email Address <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">(Optional)</span></label>
+          <input class="form-input-m" type="email" id="cu_email" name="email" placeholder="user@example.com">
+          <div class="form-error-msg" id="cu_email_err"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="button" class="btn-modern btn-secondary-modern" style="flex:1" onclick="closeModal('createUserModal')">Cancel</button>
+          <button type="submit" class="btn-modern btn-primary-modern" style="flex:2" id="createUserSubmitBtn">
+            <i class="ti ti-user-plus"></i> Register User
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL 4: EDIT USER MODAL
+  ══════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="editUserModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeModal('editUserModal')"><i class="ti ti-x"></i></button>
+      <div class="modal-title"><i class="ti ti-edit" style="color:var(--primary)"></i> Edit User</div>
+      <div class="modal-subtitle" id="editModalSubtitle">Update user details and role</div>
+      
+      <form id="editUserForm">
+        <input type="hidden" id="eu_id" name="id">
+
+        <div class="form-row">
+          <div class="form-group-m">
+            <label class="form-label-m">First Name</label>
+            <input class="form-input-m" type="text" id="eu_first_name" name="first_name" placeholder="John">
+          </div>
+          <div class="form-group-m">
+            <label class="form-label-m">Last Name</label>
+            <input class="form-input-m" type="text" id="eu_last_name" name="last_name" placeholder="Doe">
+          </div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Indian Mobile Number <span class="req">*</span></label>
+          <div style="position:relative;display:flex;align-items:center;">
+            <span style="position:absolute;left:12px;color:var(--primary);font-weight:700;font-size:13px;pointer-events:none;">+91</span>
+            <input class="form-input-m" style="padding-left:46px;letter-spacing:1px;font-weight:600;" type="tel" id="eu_phone" name="phone" placeholder="9876543210" maxlength="10" inputmode="numeric" required>
+          </div>
+          <div class="form-error-msg" id="eu_phone_err"></div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Email Address <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">(Optional)</span></label>
+          <input class="form-input-m" type="email" id="eu_email" name="email" placeholder="user@example.com">
+          <div class="form-error-msg" id="eu_email_err"></div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Role <span class="req">*</span></label>
+          <select class="form-input-m" id="eu_role_id" name="role_id" required>
+            <option value="">— Select Role —</option>
+            <% roles.forEach(r => { %>
+              <option value="<%= r.id %>"><%= r.name.charAt(0).toUpperCase() + r.name.slice(1) %></option>
+            <% }) %>
+          </select>
+          <div class="form-error-msg" id="eu_role_err"></div>
+        </div>
+        <div class="form-group-m">
+          <label class="form-label-m">Account Status</label>
+          <select class="form-input-m" id="eu_is_active" name="is_active">
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="button" class="btn-modern btn-secondary-modern" style="flex:1" onclick="closeModal('editUserModal')">Cancel</button>
+          <button type="submit" class="btn-modern btn-primary-modern" style="flex:2" id="editUserSubmitBtn">
+            <i class="ti ti-device-floppy"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// TAB SWITCHING (Users vs Roles)
+// ══════════════════════════════════════════════════════════════
+function switchTab(tabName) {
+  const usersTab = document.getElementById('viewUsersTab');
+  const rolesTab = document.getElementById('viewRolesTab');
+  const btnUsers = document.getElementById('tabBtnUsers');
+  const btnRoles = document.getElementById('tabBtnRoles');
+
+  if (tabName === 'roles') {
+    usersTab.style.display = 'none';
+    rolesTab.style.display = 'block';
+    btnUsers.classList.remove('active');
+    btnRoles.classList.add('active');
+  } else {
+    usersTab.style.display = 'block';
+    rolesTab.style.display = 'none';
+    btnUsers.classList.add('active');
+    btnRoles.classList.remove('active');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILITIES & MODAL HANDLING
+// ══════════════════════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  document.body.style.overflow = '';
+}
+function showAlert(msg, type = 'success') {
+  const el = document.getElementById('pageAlert');
+  el.className = 'alert-banner alert-' + type;
+  el.innerHTML = `<i class="ti ti-${type === 'success' ? 'circle-check' : 'alert-circle'}"></i> ${msg}`;
+  el.style.display = 'flex';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+function setFieldError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  if (msg) el.classList.add('show'); else el.classList.remove('show');
+}
+function clearErrors(ids) {
+  ids.forEach(id => setFieldError(id, ''));
+}
+
+// ══════════════════════════════════════════════════════════════
+// ROLE PRIVILEGES CONFIGURATION
+// ══════════════════════════════════════════════════════════════
+let currentRolePresets = {};
+
+async function openRolePermissionsModal(roleId, roleName) {
+  showPageLoader('Loading role privileges...');
+  try {
+    const res = await fetch(`/admin/users/roles/${roleId}/permissions`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert(data.error || 'Failed to load permissions', 'error');
+      return;
+    }
+
+    currentRolePresets = data.defaultPresets || {};
+    document.getElementById('perm_role_id').value = roleId;
+    document.getElementById('modalRoleNameHeading').textContent = data.role.name;
+    document.getElementById('modalRoleSubtitle').textContent = `Configure module access and action permissions for "${data.role.name}"`;
+
+    const userPerms = data.role.permissions || [];
+    const isAll = userPerms.includes('*') || userPerms.includes('all');
+
+    // Uncheck all first
+    document.querySelectorAll('.perm-item-checkbox').forEach(chk => {
+      chk.checked = false;
+    });
+
+    // Check relevant boxes
+    document.querySelectorAll('.perm-item-checkbox').forEach(chk => {
+      if (isAll || userPerms.includes(chk.value)) {
+        chk.checked = true;
+      }
+    });
+
+    updateSelectedPermCount();
+    openModal('rolePermissionsModal');
+  } catch (err) {
+    showAlert('Network error while loading permissions', 'error');
+  } finally {
+    hidePageLoader();
+  }
+}
+
+function updateSelectedPermCount() {
+  const total = document.querySelectorAll('.perm-item-checkbox').length;
+  const checked = document.querySelectorAll('.perm-item-checkbox:checked').length;
+  const label = document.getElementById('selectedPermCount');
+  if (label) {
+    if (checked === total) {
+      label.innerHTML = `<span style="color: var(--success);"><i class="ti ti-check"></i> All ${total} Privileges Granted</span>`;
+    } else {
+      label.textContent = `${checked} of ${total} privileges selected`;
+    }
+  }
+}
+
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.classList.contains('perm-item-checkbox')) {
+    updateSelectedPermCount();
+  }
+});
+
+function toggleAllPerms(select) {
+  document.querySelectorAll('.perm-item-checkbox').forEach(chk => {
+    chk.checked = select;
+  });
+  updateSelectedPermCount();
+}
+
+function toggleModulePerms(mod) {
+  const checkboxes = document.querySelectorAll(`.perm-mod-${mod}`);
+  const allChecked = Array.from(checkboxes).every(c => c.checked);
+  checkboxes.forEach(c => c.checked = !allChecked);
+  updateSelectedPermCount();
+}
+
+function applyPreset(presetKey) {
+  const perms = currentRolePresets[presetKey] || [];
+  if (perms.includes('*')) {
+    toggleAllPerms(true);
+    return;
+  }
+  document.querySelectorAll('.perm-item-checkbox').forEach(chk => {
+    chk.checked = perms.includes(chk.value);
+  });
+  updateSelectedPermCount();
+}
+
+async function submitRolePermissions(e) {
+  e.preventDefault();
+  const roleId = document.getElementById('perm_role_id').value;
+  const checkedBoxes = document.querySelectorAll('.perm-item-checkbox:checked');
+  const allBoxes = document.querySelectorAll('.perm-item-checkbox');
+
+  let permissions = [];
+  if (checkedBoxes.length === allBoxes.length && allBoxes.length > 0) {
+    permissions = ['*'];
+  } else {
+    checkedBoxes.forEach(chk => permissions.push(chk.value));
+  }
+
+  const btn = document.getElementById('saveRolePermsBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite"></i> Saving...';
+
+  try {
+    showPageLoader('Saving role privileges...');
+    const res = await fetch(`/admin/users/roles/${roleId}/permissions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ permissions })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showAlert(data.error || 'Failed to save privileges', 'error');
+      return;
+    }
+
+    closeModal('rolePermissionsModal');
+    showAlert(data.message || 'Privileges updated successfully!', 'success');
+    setTimeout(() => location.reload(), 1000);
+  } catch (err) {
+    showAlert('Network error while saving permissions', 'error');
+  } finally {
+    hidePageLoader();
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Privileges';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CREATE ROLE
+// ══════════════════════════════════════════════════════════════
+function openCreateRoleModal() {
+  document.getElementById('createRoleForm').reset();
+  openModal('createRoleModal');
+}
+
+async function submitCreateRole(e) {
+  e.preventDefault();
+  const name = document.getElementById('crole_name').value.trim();
+  const description = document.getElementById('crole_desc').value.trim();
+  const template = document.getElementById('crole_template').value;
+
+  if (!name) {
+    showAlert('Role name is required', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('createRoleSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite"></i> Creating...';
+
+  try {
+    const defaultPerms = currentRolePresets[template] || ['dashboard.view'];
+    const res = await fetch('/admin/users/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, description, permissions: defaultPerms })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showAlert(data.error || 'Failed to create role', 'error');
+      return;
+    }
+
+    closeModal('createRoleModal');
+    showAlert(data.message, 'success');
+    setTimeout(() => location.reload(), 1200);
+  } catch (err) {
+    showAlert('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Create Role';
+  }
+}
+
+async function deleteRole(roleId, roleName) {
+  const confirm = await showConfirm(
+    'Delete Role?',
+    `Are you sure you want to delete role "${roleName}"?`,
+    'Yes, Delete'
+  );
+  if (!confirm.isConfirmed) return;
+
+  try {
+    showPageLoader('Deleting role...');
+    const res = await fetch(`/admin/users/roles/${roleId}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showAlert(data.error || 'Failed to delete role', 'error');
+      return;
+    }
+
+    showAlert(data.message, 'success');
+    setTimeout(() => location.reload(), 1000);
+  } catch (err) {
+    showAlert('Network error', 'error');
+  } finally {
+    hidePageLoader();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CREATE USER
+// ══════════════════════════════════════════════════════════════
+function openCreateModal() {
+  document.getElementById('createUserForm').reset();
+  clearErrors(['cu_username_err','cu_email_err','cu_phone_err','cu_role_err']);
+  openModal('createUserModal');
+}
+
+// ══════════════════════════════════════════════════════════════
+// EDIT USER
+// ══════════════════════════════════════════════════════════════
+async function openEditModal(userId) {
+  showPageLoader('Loading user details...');
+  try {
+    const res = await fetch(`/admin/users/${userId}`, { headers: { 'Accept': 'application/json' } });
+    const u = await res.json();
+    if (!res.ok) { showAlert(u.error || 'Failed to load user', 'error'); return; }
+
+    document.getElementById('eu_id').value         = u.id;
+    document.getElementById('eu_first_name').value = u.first_name || '';
+    document.getElementById('eu_last_name').value  = u.last_name  || '';
+    document.getElementById('eu_email').value      = u.email      || '';
+    document.getElementById('eu_phone').value      = u.phone      || '';
+    document.getElementById('eu_role_id').value    = u.role_id    || '';
+    document.getElementById('eu_is_active').value  = u.is_active  ? '1' : '0';
+    document.getElementById('editModalSubtitle').textContent = `Editing @${u.username}`;
+
+    clearErrors(['eu_email_err','eu_phone_err','eu_role_err']);
+    openModal('editUserModal');
+  } catch (err) {
+    showAlert('Network error', 'error');
+  } finally {
+    hidePageLoader();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// TOGGLE STATUS
+// ══════════════════════════════════════════════════════════════
+async function toggleStatus(userId, btn) {
+  const isActive = btn.classList.contains('success');
+  const action = isActive ? 'Deactivate' : 'Activate';
+
+  const confirm = await showConfirm(`${action} User?`,
+    isActive ? 'This user will no longer be able to log in.' : 'This user will be able to log in again.',
+    `Yes, ${action}`);
+  if (!confirm.isConfirmed) return;
+
+  try {
+    showPageLoader('Updating account status...');
+    const res = await fetch(`/admin/users/${userId}/toggle-status`, {
+      method: 'PATCH',
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+
+    if (!res.ok) { showAlert(data.error || 'Failed to update status', 'error'); return; }
+
+    if (data.is_active) {
+      btn.className = 'badge-modern success';
+      btn.innerHTML = '<i class="ti ti-check"></i> Active';
+      btn.title = 'Click to deactivate';
+      btn.closest('tr').setAttribute('data-active', '1');
+    } else {
+      btn.className = 'badge-modern danger';
+      btn.innerHTML = '<i class="ti ti-x"></i> Inactive';
+      btn.title = 'Click to activate';
+      btn.closest('tr').setAttribute('data-active', '0');
+    }
+    showAlert(data.message, 'success');
+  } catch(err) {
+    showAlert('Network error', 'error');
+  } finally {
+    hidePageLoader();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// JQUERY VALIDATIONS INITIALIZATION
+// ══════════════════════════════════════════════════════════════
+$(document).ready(function() {
+  // Auto-sanitize phone inputs
+  $('#cu_phone, #eu_phone').on('input', function() {
+    let val = $(this).val().replace(/[^0-9]/g, '');
+    if (val.length > 10) val = val.slice(0, 10);
+    $(this).val(val);
+  });
+
+  // 1. Create User Form Validation
+  initFormValidation('#createUserForm', {
+    rules: {
+      phone: { required: true, phoneIN: true },
+      role_id: { required: true }
+    },
+    messages: {
+      phone: { required: 'Please enter a 10-digit mobile number', phoneIN: 'Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)' },
+      role_id: { required: 'Please assign a role' }
+    },
+    onSubmit: async function(form, $form) {
+      clearErrors(['cu_phone_err','cu_username_err','cu_email_err','cu_role_err']);
+      const body = {
+        first_name:  $('#cu_first_name').val().trim(),
+        last_name:   $('#cu_last_name').val().trim(),
+        phone:       $('#cu_phone').val().trim(),
+        username:    $('#cu_username').val().trim(),
+        email:       $('#cu_email').val().trim(),
+        role_id:     $('#cu_role_id').val()
+      };
+
+      try {
+        showPageLoader('Registering user account...');
+        const res = await fetch('/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (data.errors) {
+            data.errors.forEach(msg => {
+              if (msg.includes('phone') || msg.includes('mobile') || msg.includes('Mobile')) setFieldError('cu_phone_err', msg);
+              else if (msg.includes('username')) setFieldError('cu_username_err', msg);
+              else if (msg.includes('email') || msg.includes('Email')) setFieldError('cu_email_err', msg);
+              else if (msg.includes('role') || msg.includes('Role')) setFieldError('cu_role_err', msg);
+            });
+          } else {
+            const err = data.error || 'Failed to create user';
+            if (err.includes('mobile') || err.includes('phone') || err.includes('Mobile')) {
+              setFieldError('cu_phone_err', err);
+            }
+            showAlert(err, 'error');
+          }
+          return;
+        }
+
+        closeModal('createUserModal');
+        showAlert(data.message, 'success');
+        setTimeout(() => location.reload(), 1100);
+      } catch(err) {
+        showAlert('Network error. Please try again.', 'error');
+      } finally {
+        hidePageLoader();
+      }
+    }
+  });
+
+  // 2. Edit User Form Validation
+  initFormValidation('#editUserForm', {
+    rules: {
+      phone: { required: true, phoneIN: true },
+      role_id: { required: true }
+    },
+    messages: {
+      phone: { required: 'Please enter a 10-digit mobile number', phoneIN: 'Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)' },
+      role_id: { required: 'Please select a role' }
+    },
+    onSubmit: async function(form, $form) {
+      const userId = $('#eu_id').val();
+      clearErrors(['eu_phone_err','eu_email_err','eu_role_err']);
+
+      const body = {
+        first_name: $('#eu_first_name').val().trim(),
+        last_name:  $('#eu_last_name').val().trim(),
+        phone:      $('#eu_phone').val().trim(),
+        email:      $('#eu_email').val().trim(),
+        role_id:    $('#eu_role_id').val(),
+        is_active:  $('#eu_is_active').val()
+      };
+
+      try {
+        showPageLoader('Updating user details...');
+        const res = await fetch(`/admin/users/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (data.errors) {
+            data.errors.forEach(msg => {
+              if (msg.includes('phone') || msg.includes('mobile') || msg.includes('Mobile')) setFieldError('eu_phone_err', msg);
+              else if (msg.includes('email') || msg.includes('Email')) setFieldError('eu_email_err', msg);
+              else if (msg.includes('role') || msg.includes('Role')) setFieldError('eu_role_err', msg);
+            });
+          } else {
+            const err = data.error || 'Failed to update user';
+            if (err.includes('mobile') || err.includes('phone') || err.includes('Mobile')) {
+              setFieldError('eu_phone_err', err);
+            }
+            showAlert(err, 'error');
+          }
+          return;
+        }
+
+        closeModal('editUserModal');
+        showAlert(data.message, 'success');
+        setTimeout(() => location.reload(), 1100);
+      } catch(err) {
+        showAlert('Network error', 'error');
+      } finally {
+        hidePageLoader();
+      }
+    }
+  });
+
+  // 4. Create Role Form Validation
+  initFormValidation('#createRoleForm', {
+    rules: {
+      crole_name: { required: true, minlength: 2 }
+    },
+    messages: {
+      crole_name: { required: 'Please enter role name', minlength: 'Role name must be at least 2 characters' }
+    },
+    onSubmit: async function(form, $form) {
+      const body = {
+        name: $('#crole_name').val().trim(),
+        description: $('#crole_desc').val().trim(),
+        template: $('#crole_template').val()
+      };
+
+      try {
+        showPageLoader('Creating new role...');
+        const res = await fetch('/admin/users/roles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) { showAlert(data.error || 'Failed to create role', 'error'); return; }
+
+        closeModal('createRoleModal');
+        showAlert(data.message, 'success');
+        setTimeout(() => location.reload(), 1100);
+      } catch(err) {
+        showAlert('Network error. Please try again.', 'error');
+      } finally {
+        hidePageLoader();
+      }
+    }
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// DELETE USER
+// ══════════════════════════════════════════════════════════════
+async function deleteUser(userId, username) {
+  const confirm = await showConfirm(
+    'Delete User?',
+    `This will permanently delete "@${username}". This cannot be undone.`,
+    'Yes, Delete'
+  );
+  if (!confirm.isConfirmed) return;
+
+  try {
+    showPageLoader('Deleting...');
+    const res = await fetch(`/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+    if (!res.ok) { showAlert(data.error || 'Failed to delete', 'error'); return; }
+
+    const row = document.querySelector(`tr[data-id="${userId}"]`);
+    if (row) { row.style.opacity = '0'; setTimeout(() => { row.remove(); }, 300); }
+    showAlert(data.message, 'success');
+  } catch(err) {
+    showAlert('Network error', 'error');
+  } finally {
+    hidePageLoader();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SEARCH & FILTER
+// ══════════════════════════════════════════════════════════════
+function filterTable() {
+  const search     = document.getElementById('userSearch').value.toLowerCase();
+  const roleFilter = document.getElementById('roleFilter').value;
+  const statusFilter = document.getElementById('statusFilter').value;
+  const rows       = document.querySelectorAll('#usersTableBody tr[data-id]');
+
+  rows.forEach(row => {
+    const name     = row.getAttribute('data-name') || '';
+    const username = row.getAttribute('data-username') || '';
+    const email    = row.getAttribute('data-email') || '';
+    const role     = row.getAttribute('data-role') || '';
+    const active   = row.getAttribute('data-active') || '';
+
+    const matchSearch = !search || name.includes(search) || username.includes(search) || email.includes(search);
+    const matchRole   = !roleFilter || role === roleFilter;
+    const matchStatus = !statusFilter || active === statusFilter;
+
+    row.style.display = (matchSearch && matchRole && matchStatus) ? '' : 'none';
+  });
+}
+
+document.getElementById('userSearch').addEventListener('input', filterTable);
+document.getElementById('roleFilter').addEventListener('change', filterTable);
+document.getElementById('statusFilter').addEventListener('change', filterTable);
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  });
+});
+</script>
+</body>
+</html>

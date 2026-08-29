@@ -1,0 +1,1161 @@
+<!-- Standard Website Font-Family: Plus Jakarta Sans & Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- jQuery, DataTables & UI Libraries -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/assets/js/validation.js"></script>
+
+<!-- DataTables Core & Extensions CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+
+<!-- DataTables Core & Extensions JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<!-- Ultra-Fast Turbo Progress Bar -->
+<div id="turboProgressBar"></div>
+
+<!-- Network Offline/Online Floating Toast -->
+<div id="networkStatusToast" class="network-status-toast"></div>
+
+<!-- Advanced Enterprise Page Loader Overlay -->
+<div id="pageLoaderOverlay" class="advanced-page-loader" style="display:none;">
+  <div class="loader-glass-card">
+    <div class="loader-animation-container">
+      <div class="loader-ring-outer"></div>
+      <div class="loader-ring-inner"></div>
+      <div class="loader-center-icon">
+        <i class="ti ti-shopping-cart-discount"></i>
+      </div>
+    </div>
+    <div class="loader-text-group">
+      <div class="loader-brand-title">GROCERY BILLING ERP</div>
+      <div class="loader-status-pill">
+        <span class="loader-pulse-dot"></span>
+        <span id="pageLoaderMsg">Loading...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Setup jQuery Validation global defaults
+  if (typeof jQuery !== 'undefined' && typeof jQuery.validator !== 'undefined') {
+    jQuery.validator.setDefaults({
+      errorElement: 'span',
+      errorClass: 'invalid-feedback-custom',
+      errorPlacement: function (error, element) {
+        error.addClass('field-error-text');
+        if (element.parent('.input-group').length || element.parent('.search-input-group').length) {
+          error.insertAfter(element.parent());
+        } else {
+          error.insertAfter(element);
+        }
+      },
+      highlight: function (element, errorClass, validClass) {
+        $(element).addClass('is-invalid').removeClass('is-valid');
+      },
+      unhighlight: function (element, errorClass, validClass) {
+        $(element).removeClass('is-invalid').addClass('is-valid');
+      }
+    });
+  }
+</script>
+
+<style>
+  /* Advanced Enterprise Page Loader */
+  .advanced-page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loader-glass-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 22px;
+    padding: 30px 42px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 35px rgba(79, 70, 229, 0.3);
+    animation: loaderPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes loaderPopIn {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .loader-animation-container {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loader-ring-outer {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3.5px solid transparent;
+    border-top-color: #4f46e5;
+    border-right-color: #06b6d4;
+    animation: spinOuter 1.1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.6));
+  }
+
+  .loader-ring-inner {
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-bottom-color: #10b981;
+    border-left-color: #8b5cf6;
+    animation: spinInner 0.9s linear infinite reverse;
+  }
+
+  .loader-center-icon {
+    font-size: 24px;
+    color: #ffffff;
+    animation: pulseIcon 1.5s ease-in-out infinite;
+  }
+
+  @keyframes spinOuter {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes spinInner {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulseIcon {
+
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+
+    50% {
+      transform: scale(1.15);
+      opacity: 1;
+      color: #38bdf8;
+    }
+  }
+
+  .loader-text-group {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .loader-brand-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+
+  .loader-status-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 6px 16px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .loader-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+    animation: dotPulse 1.2s infinite;
+  }
+
+  @keyframes dotPulse {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.4;
+      transform: scale(0.75);
+    }
+  }
+
+  /* Custom Date Input Styling */
+  input[type="date"].form-control-modern,
+  input[type="date"] {
+    cursor: pointer;
+    padding-right: 38px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3Csvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+  }
+
+  input[type="date"].form-control-modern::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    width: 30px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    cursor: pointer;
+  }
+
+  .date-input-wrapper {
+    position: relative;
+  }
+
+  /* SweetAlert2 Modern Theme */
+  .swal2-popup {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.16) !important;
+    font-family: var(--font-main, sans-serif) !important;
+  }
+
+  .swal2-title {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+  }
+
+  .swal2-html-container {
+    color: #475569 !important;
+    font-size: 14px !important;
+  }
+
+  .swal2-confirm {
+    background: #4f46e5 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 10px 22px !important;
+  }
+
+  .swal2-cancel {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 10px 20px !important;
+  }
+
+  .swal2-icon.swal2-success {
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+  }
+
+  .swal2-icon.swal2-error {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+  }
+
+  .swal2-icon.swal2-warning {
+    border-color: #f59e0b !important;
+    color: #f59e0b !important;
+  }
+
+  .swal2-icon.swal2-success [class^="swal2-success-line"] {
+    background-color: #10b981 !important;
+  }
+
+  .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(16, 185, 129, 0.3) !important;
+  }
+
+  .swal2-icon.swal2-error [class^="swal2-x-mark-line"] {
+    background-color: #ef4444 !important;
+  }
+
+  /* Quick Command & Search Palette Dropdown */
+  .quick-search-palette {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 380px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.18);
+    z-index: 1050;
+    padding: 8px 6px;
+    animation: paletteFadeIn 0.15s ease-out;
+  }
+  @keyframes paletteFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .palette-group-title {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 12px 4px;
+  }
+  .palette-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #1e293b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .palette-item:hover, .palette-item.active {
+    background: #f1f5f9;
+    color: #2563eb;
+  }
+  .palette-item .palette-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #edf5ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+  }
+  .palette-item kbd {
+    margin-left: auto;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+</style>
+
+<script>
+  // =============================================
+  // TURBO PROGRESS BAR ENGINE (INSTANT FEEDBACK)
+  // =============================================
+  let turboTimer = null;
+  function startTurboProgress() {
+    const bar = document.getElementById('turboProgressBar');
+    if (!bar) return;
+    clearInterval(turboTimer);
+    bar.classList.add('active');
+    bar.style.width = '28%';
+    let current = 28;
+    turboTimer = setInterval(function () {
+      if (current < 85) {
+        current += Math.random() * 12;
+        bar.style.width = Math.min(85, current) + '%';
+      }
+    }, 180);
+  }
+
+  function finishTurboProgress() {
+    const bar = document.getElementById('turboProgressBar');
+    if (!bar) return;
+    clearInterval(turboTimer);
+    bar.style.width = '100%';
+    setTimeout(function () {
+      bar.classList.remove('active');
+      setTimeout(function () {
+        bar.style.width = '0%';
+      }, 250);
+    }, 150);
+  }
+
+  // Hook navigation links for instant perceived responsiveness
+  document.addEventListener('click', function (e) {
+    const anchor = e.target.closest('a');
+    if (anchor && anchor.href && !anchor.target && !anchor.hasAttribute('download')) {
+      const url = new URL(anchor.href, window.location.origin);
+      if (url.origin === window.location.origin && !anchor.href.includes('#') && !anchor.href.startsWith('javascript:')) {
+        startTurboProgress();
+      }
+    }
+  });
+
+  // =============================================
+  // WEB AUDIO ENGINE (RETAIL SCANNER SOUND EFFECTS)
+  // Zero external dependencies, pure Web Audio API
+  // =============================================
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // Cheerful retail barcode scanner beep (1850Hz for 65ms)
+  window.playPosBeep = function (freq = 1850, duration = 0.065) {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (e) { /* ignore audio permission errors */ }
+  };
+
+  // Cash Register Checkout Chime (3-tone harmonic chord)
+  window.playCheckoutChime = function () {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.08);
+        osc.stop(ctx.currentTime + idx * 0.08 + 0.35);
+      });
+    } catch (e) { }
+  };
+
+  // Warning/Error Boop Tone
+  window.playErrorTone = function () {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.18);
+    } catch (e) { }
+  };
+
+  // =============================================
+  // NETWORK STATUS MONITOR (OFFLINE / ONLINE RECOVERY)
+  // =============================================
+  function showNetworkToast(type, msg) {
+    const el = document.getElementById('networkStatusToast');
+    if (!el) return;
+    el.className = 'network-status-toast ' + type + ' show';
+    el.innerHTML = (type === 'offline' ? '<i class="ti ti-wifi-off fs-5"></i> ' : '<i class="ti ti-wifi fs-5"></i> ') + msg;
+    if (type === 'online') {
+      setTimeout(() => el.classList.remove('show'), 3500);
+    }
+  }
+
+  window.addEventListener('offline', function () {
+    showNetworkToast('offline', 'Network offline! In-memory POS features active.');
+  });
+  window.addEventListener('online', function () {
+    showNetworkToast('online', 'Connection restored! Cloud sync active.');
+  });
+
+  // =============================================
+  // GLOBAL PAGE LOADER UTILITIES
+  // =============================================
+  function showPageLoader(msg) {
+    startTurboProgress();
+    const overlay = document.getElementById('pageLoaderOverlay');
+    const msgEl = document.getElementById('pageLoaderMsg');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      if (msgEl) msgEl.textContent = msg || 'Loading...';
+    }
+  }
+
+  function hidePageLoader() {
+    finishTurboProgress();
+    const overlay = document.getElementById('pageLoaderOverlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  // Always hide loader when the page has fully loaded
+  window.addEventListener('load', function () { hidePageLoader(); finishTurboProgress(); });
+  window.addEventListener('pageshow', function (e) {
+    hidePageLoader();
+    finishTurboProgress();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') { hidePageLoader(); finishTurboProgress(); }
+  });
+
+  // =============================================
+  // GLOBAL SWEETALERT2 HELPERS
+  // =============================================
+  function showSuccess(title, text, then) {
+    if (!window.Swal) { alert(title + ': ' + (text || '')); return Promise.resolve(); }
+    return Swal.fire({
+      icon: 'success',
+      title: title || 'Success!',
+      html: text || '',
+      timer: text ? undefined : 1800,
+      showConfirmButton: !!text,
+      confirmButtonText: 'OK'
+    }).then(then || function () { });
+  }
+
+  function showError(title, text) {
+    if (!window.Swal) { alert('Error: ' + (text || title)); return; }
+    return Swal.fire({
+      icon: 'error',
+      title: title || 'Error',
+      html: text || 'Something went wrong.',
+      confirmButtonText: 'OK'
+    });
+  }
+
+  function showWarning(title, text) {
+    if (!window.Swal) { alert('Warning: ' + (text || title)); return; }
+    return Swal.fire({
+      icon: 'warning',
+      title: title || 'Warning',
+      html: text || '',
+      confirmButtonText: 'OK'
+    });
+  }
+
+  function showConfirm(title, text, confirmText) {
+    if (!window.Swal) {
+      const ok = confirm(title + '\n' + (text || ''));
+      return Promise.resolve({ isConfirmed: ok });
+    }
+    return Swal.fire({
+      icon: 'question',
+      title: title || 'Are you sure?',
+      html: text || '',
+      showCancelButton: true,
+      confirmButtonText: confirmText || 'Yes, proceed',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    });
+  }
+
+  function showToast(arg1, arg2) {
+    let icon = 'success';
+    let title = 'Done!';
+    const knownIcons = ['success', 'error', 'warning', 'info', 'question'];
+
+    if (knownIcons.includes(String(arg1).toLowerCase())) {
+      icon = String(arg1).toLowerCase();
+      title = arg2 || 'Done!';
+    } else if (knownIcons.includes(String(arg2).toLowerCase())) {
+      icon = String(arg2).toLowerCase();
+      title = arg1 || 'Done!';
+    } else if (arg1) {
+      title = arg1;
+      icon = 'info';
+    }
+
+    if (!window.Swal) {
+      return;
+    }
+
+    return Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: icon,
+      title: title,
+      showConfirmButton: false,
+      timer: 2800,
+      timerProgressBar: true
+    });
+  }
+
+  // =============================================
+  // UNIVERSAL DATATABLES AUTO-INITIALIZER
+  // =============================================
+  function initStandardDataTable(tableSelector, customOptions = {}) {
+    if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') return;
+    const $table = $(tableSelector);
+    if (!$table.length) return;
+
+    if ($.fn.DataTable.isDataTable(tableSelector)) {
+      $table.DataTable().destroy();
+    }
+
+    const defaultOptions = {
+      responsive: true,
+      pageLength: 15,
+      lengthMenu: [[10, 15, 25, 50, 100, -1], [10, 15, 25, 50, 100, "All"]],
+      language: {
+        search: "_INPUT_",
+        searchPlaceholder: "Search records...",
+        lengthMenu: "Show _MENU_",
+        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+        infoEmpty: "Showing 0 to 0 of 0 entries",
+        infoFiltered: "(filtered from _MAX_ total)",
+        paginate: {
+          first: '<i class="ti ti-chevrons-left"></i>',
+          previous: '<i class="ti ti-chevron-left"></i>',
+          next: '<i class="ti ti-chevron-right"></i>',
+          last: '<i class="ti ti-chevrons-right"></i>'
+        }
+      },
+      dom: '<"dt-header-toolbar"<"dt-left"lB><"dt-right"f>>rt<"dt-footer-toolbar"<"dt-info"i><"dt-pagination"p>>',
+      buttons: [
+        { extend: 'excelHtml5', className: 'btn-dt-export btn-dt-excel', text: '<i class="ti ti-file-spreadsheet"></i> Excel', titleAttr: 'Export Excel' },
+        { extend: 'csvHtml5', className: 'btn-dt-export btn-dt-csv', text: '<i class="ti ti-file-text"></i> CSV', titleAttr: 'Export CSV' },
+        { extend: 'pdfHtml5', className: 'btn-dt-export btn-dt-pdf', text: '<i class="ti ti-file-type-pdf"></i> PDF', titleAttr: 'Export PDF' },
+        { extend: 'print', className: 'btn-dt-export btn-dt-print', text: '<i class="ti ti-printer"></i> Print', titleAttr: 'Print' }
+      ]
+    };
+
+    return $table.DataTable($.extend(true, {}, defaultOptions, customOptions));
+  }
+</script>
+
+<!-- Modern Admin Top Header -->
+<header class="app-header">
+  <div class="header-left">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Toggle navigation" onclick="if(window.toggleMobileSidebar) window.toggleMobileSidebar(event);">
+      <i class="ti ti-menu-2"></i>
+    </button>
+
+    <!-- Universal Smart Back Button -->
+    <button type="button" class="header-back-btn" id="globalHeaderBackBtn" onclick="handleGoBack()" title="Go Back (Alt + Left)">
+      <i class="ti ti-arrow-left"></i>
+      <span>Back</span>
+    </button>
+
+    <div class="header-search-bar" style="position: relative;">
+      <i class="ti ti-search search-icon"></i>
+      <input type="text" id="globalHeaderSearch" placeholder="Search products, invoices, customers... (Ctrl + K)" autocomplete="off">
+
+      <!-- Quick Command & Search Dropdown Palette -->
+      <div id="quickSearchPalette" class="quick-search-palette" style="display: none;">
+        <div class="palette-group-title">Quick Actions &amp; Navigation</div>
+        <a href="/admin/sales/pos" class="palette-item"><span class="palette-icon"><i class="ti ti-device-laptop"></i></span><span>Open POS Terminal</span><kbd>F2</kbd></a>
+        <a href="/admin/master/products" class="palette-item"><span class="palette-icon"><i class="ti ti-package"></i></span><span>Products Catalog</span><kbd>F4</kbd></a>
+        <a href="/admin/sales/" class="palette-item"><span class="palette-icon"><i class="ti ti-file-invoice"></i></span><span>Invoices &amp; Bills</span><kbd>Sales</kbd></a>
+        <a href="/admin/master/customers" class="palette-item"><span class="palette-icon"><i class="ti ti-users"></i></span><span>Customers Directory</span><kbd>F8</kbd></a>
+        <a href="/admin/reports/sales" class="palette-item"><span class="palette-icon"><i class="ti ti-chart-bar"></i></span><span>Sales Analytics</span><kbd>Reports</kbd></a>
+        <a href="/admin/subscription" class="palette-item"><span class="palette-icon"><i class="ti ti-sparkles"></i></span><span>Subscriptions &amp; Plans</span><kbd>Pro</kbd></a>
+        <a href="/admin/day-end/form" class="palette-item"><span class="palette-icon"><i class="ti ti-calendar-time"></i></span><span>Day End Register</span><kbd>F9</kbd></a>
+        <a href="/admin/settings/smtp" class="palette-item"><span class="palette-icon"><i class="ti ti-mail-cog"></i></span><span>SMTP Settings &amp; Logo</span><kbd>Settings</kbd></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <!-- Subscription Status Badge -->
+    <a href="/admin/subscription" class="header-subscription-badge" title="Manage Subscription & License">
+      <i class="ti ti-sparkles"></i>
+      <span class="sub-plan-text">PRO PLAN</span>
+    </a>
+
+    <!-- Notification Bell -->
+    <div class="header-icon-btn" id="notificationDropdownBtn" title="Notifications">
+      <i class="ti ti-bell fs-5"></i>
+      <span class="notification-dot"></span>
+    </div>
+
+    <!-- User Profile Dropdown -->
+    <div class="user-profile-dropdown" id="userProfileContainer">
+      <button class="user-dropdown-btn" id="userDropdownTrigger" type="button">
+        <img src="<%= (typeof user !== 'undefined' && user && user.avatar) ? user.avatar : '/assets/images/profile/user-1.jpg' %>" alt="Profile avatar" class="header-user-avatar-img">
+        <div class="user-dropdown-meta header-user-text">
+          <div class="name">
+            <% if (typeof user !=='undefined' && user) { %>
+              <%= user.first_name || user.username || 'Administrator' %>
+                <% } else { %>
+                  Administrator
+                  <% } %>
+          </div>
+          <div class="role">
+            <% if (typeof user !=='undefined' && user && user.role) { %>
+              <%= user.role.name || 'Admin' %>
+                <% } else { %>
+                  Super Admin
+                  <% } %>
+          </div>
+        </div>
+        <i class="ti ti-chevron-down fs-3 text-muted ms-1 header-user-chevron"></i>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div class="dropdown-menu-custom" id="userDropdownMenu">
+        <div class="dropdown-user-header">
+          <div class="full-name">
+            <% if (typeof user !=='undefined' && user) { %>
+              <%= user.first_name %>
+                <%= user.last_name || '' %>
+                  <% } else { %>
+                    Admin User
+                    <% } %>
+          </div>
+          <div class="email">
+            <% if (typeof user !=='undefined' && user) { %>
+              <%= user.email || 'admin@grocerybilling.com' %>
+                <% } else { %>
+                  admin@grocerybilling.com
+                  <% } %>
+          </div>
+        </div>
+
+        <a href="/admin/users/profile" class="dropdown-item-custom" onclick="showPageLoader('Loading Profile...')">
+          <i class="ti ti-user-circle fs-5"></i>
+          <span>My Profile</span>
+        </a>
+        <a href="/admin/subscription" class="dropdown-item-custom" onclick="showPageLoader('Loading Subscriptions...')">
+          <i class="ti ti-credit-card fs-5"></i>
+          <span>Subscriptions &amp; Plans</span>
+        </a>
+        <a href="/admin/dashboard" class="dropdown-item-custom" onclick="showPageLoader('Loading Dashboard...')">
+          <i class="ti ti-dashboard fs-5"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/master/products" class="dropdown-item-custom" onclick="showPageLoader('Loading Products...')">
+          <i class="ti ti-package fs-5"></i>
+          <span>Manage Products</span>
+        </a>
+        <a href="/admin/reports/sales" class="dropdown-item-custom" onclick="showPageLoader('Loading Reports...')">
+          <i class="ti ti-chart-bar fs-5"></i>
+          <span>Sales Analytics</span>
+        </a>
+        <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
+        <a href="/admin/logout" class="dropdown-item-custom danger" id="headerLogoutBtn" onclick="handleLogout(event);">
+          <i class="ti ti-logout fs-5"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Robust Logout Handler with SweetAlert2 confirmation & fallback
+  function handleLogout(e) {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+
+    // Close user dropdown if open
+    const menu = document.getElementById('userDropdownMenu');
+    if (menu) menu.classList.remove('show');
+
+    if (typeof Swal !== 'undefined' && typeof showConfirm === 'function') {
+      showConfirm('Sign Out?', 'Are you sure you want to end your current session?', 'Yes, Sign Out')
+        .then(function (result) {
+          if (result && result.isConfirmed) {
+            if (typeof showPageLoader === 'function') showPageLoader('Signing out...');
+            window.location.href = '/admin/logout';
+          }
+        })
+        .catch(function () {
+          // If Swal fails or is dismissed
+        });
+    } else {
+      if (confirm('Are you sure you want to sign out?')) {
+        if (typeof showPageLoader === 'function') showPageLoader('Signing out...');
+        window.location.href = '/admin/logout';
+      }
+    }
+  }
+
+  // =============================================
+  // UNIVERSAL BACK BUTTON HANDLER
+  // =============================================
+  function handleGoBack() {
+    if (window.location.pathname === '/admin/dashboard') {
+      // Already on home dashboard, show toast or do nothing
+      return;
+    }
+    if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+      if (typeof startTurboProgress === 'function') startTurboProgress();
+      window.history.back();
+    } else {
+      if (typeof startTurboProgress === 'function') startTurboProgress();
+      window.location.href = '/admin/dashboard';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // User profile dropdown toggle
+    const trigger = document.getElementById('userDropdownTrigger');
+    const menu = document.getElementById('userDropdownMenu');
+
+    if (trigger && menu) {
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        menu.classList.toggle('show');
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+          menu.classList.remove('show');
+        }
+      });
+    }
+
+    // =============================================
+    // GLOBAL KEYBOARD SHORTCUTS ENGINE
+    // =============================================
+    document.addEventListener('keydown', function (e) {
+      // Alt + LeftArrow -> Universal Back
+      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Left')) {
+        e.preventDefault();
+        handleGoBack();
+        return;
+      }
+
+      // Ignore when typing inside input/textarea/select unless it's a Function key or Esc or Ctrl+K
+      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+
+      // F1 or Shift + ? -> Open Shortcuts Help
+      if (e.key === 'F1' || (e.key === '?' && !isInput)) {
+        e.preventDefault();
+        openShortcutsModal();
+        return;
+      }
+
+      // F2 -> Instant POS Terminal
+      if (e.key === 'F2') {
+        e.preventDefault();
+        if (window.location.pathname !== '/admin/sales/pos') {
+          if (typeof showPageLoader === 'function') showPageLoader('Opening POS Terminal (F2)...');
+          window.location.href = '/admin/sales/pos';
+        }
+        return;
+      }
+
+      // F3 or Ctrl+K -> Focus Search
+      if (e.key === 'F3' || ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K'))) {
+        e.preventDefault();
+        const searchInput = document.getElementById('globalHeaderSearch');
+        if (searchInput) searchInput.focus();
+        return;
+      }
+
+      // F4 -> Quick Products
+      if (e.key === 'F4') {
+        e.preventDefault();
+        if (window.location.pathname !== '/admin/master/products') {
+          if (typeof showPageLoader === 'function') showPageLoader('Opening Products Catalog (F4)...');
+          window.location.href = '/admin/master/products';
+        }
+        return;
+      }
+
+      // F8 -> Quick Customers
+      if (e.key === 'F8') {
+        e.preventDefault();
+        if (window.location.pathname !== '/admin/master/customers') {
+          if (typeof showPageLoader === 'function') showPageLoader('Opening Customers Directory (F8)...');
+          window.location.href = '/admin/master/customers';
+        }
+        return;
+      }
+
+      // F9 -> Day End Closing
+      if (e.key === 'F9') {
+        e.preventDefault();
+        if (!window.location.pathname.startsWith('/admin/day-end')) {
+          if (typeof showPageLoader === 'function') showPageLoader('Opening Day End Closing (F9)...');
+          window.location.href = '/admin/day-end/form';
+        }
+        return;
+      }
+
+      // Esc -> Close Shortcuts Modal or active modals
+      if (e.key === 'Escape') {
+        closeShortcutsModal();
+      }
+    });
+
+    const searchInput = document.getElementById('globalHeaderSearch');
+    const searchPalette = document.getElementById('quickSearchPalette');
+
+    if (searchInput && searchPalette) {
+      // Show palette on focus
+      searchInput.addEventListener('focus', function () {
+        searchPalette.style.display = 'block';
+      });
+
+      // Filter palette items on input
+      searchInput.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        searchPalette.style.display = 'block';
+        const items = searchPalette.querySelectorAll('.palette-item');
+        items.forEach(function (item) {
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(query) ? 'flex' : 'none';
+        });
+      });
+
+      // Enter key submits search
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+          searchPalette.style.display = 'none';
+          if (typeof startTurboProgress === 'function') startTurboProgress();
+          window.location.href = '/admin/master/products?search=' + encodeURIComponent(this.value.trim());
+        } else if (e.key === 'Escape') {
+          searchPalette.style.display = 'none';
+          this.blur();
+        }
+      });
+
+      // Click outside to dismiss palette
+      document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !searchPalette.contains(e.target)) {
+          searchPalette.style.display = 'none';
+        }
+      });
+    }
+
+    // Dismiss loader when page is restored or ready
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+  });
+
+  // Modal helpers for Shortcuts Cheatsheet
+  function openShortcutsModal() {
+    const m = document.getElementById('keyboardShortcutsModal');
+    if (m) {
+      m.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeShortcutsModal() {
+    const m = document.getElementById('keyboardShortcutsModal');
+    if (m) {
+      m.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
+</script>
+
+<!-- Global Keyboard Shortcuts Cheatsheet Modal -->
+<div id="keyboardShortcutsModal" class="modal-backdrop-modern" onclick="if(event.target===this)closeShortcutsModal()">
+  <div class="modal-dialog-modern" style="max-width: 620px;">
+    <div class="modal-header-modern">
+      <h2 class="modal-title-modern">
+        <i class="ti ti-keyboard" style="color: var(--primary);"></i> Fast Keyboard Shortcuts
+      </h2>
+      <button type="button" class="modal-close-btn" onclick="closeShortcutsModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-modern" style="padding: 16px 20px;">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Use these instant keyboard shortcuts from anywhere in the software for ultra-fast operations:
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+
+        <!-- POS & Sales Hotkeys -->
+        <div
+          style="background: var(--bg-card-hover, rgba(15,23,42,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+          <div
+            style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <i class="ti ti-device-laptop" style="color: var(--success);"></i> POS Billing &amp; Sales
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>New POS Checkout</span>
+              <kbd
+                style="background: var(--primary); color: #fff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F2</kbd>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Focus Barcode Input</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F4</kbd>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Instant Cash Checkout</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F9</kbd>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Print Tax Invoice</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Ctrl
+                + P</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation & Quick Tools -->
+        <div
+          style="background: var(--bg-card-hover, rgba(15,23,42,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+          <div
+            style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <i class="ti ti-compass" style="color: var(--primary);"></i> Navigation &amp; Search
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Global Search</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Ctrl
+                + K</kbd>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Products Catalog</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F4</kbd>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Customers Directory</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F8</kbd>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Shortcuts Help</span>
+              <kbd
+                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F1
+                / ?</kbd>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer-modern" style="justify-content: flex-end;">
+      <button type="button" class="btn-modern btn-primary-modern" onclick="closeShortcutsModal()">
+        Got It (Esc)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Progressive Web App (PWA) Engine Script -->
+<script>
+  // Ensure manifest & meta tags exist in <head>
+  (function initPwaMeta() {
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = '/manifest.json';
+      document.head.appendChild(manifestLink);
+    }
+    if (!document.querySelector('meta[name="theme-color"]')) {
+      const themeMeta = document.createElement('meta');
+      themeMeta.name = 'theme-color';
+      themeMeta.content = '#1366d9';
+      document.head.appendChild(themeMeta);
+    }
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+      const appleMeta = document.createElement('meta');
+      appleMeta.name = 'apple-mobile-web-app-capable';
+      appleMeta.content = 'yes';
+      document.head.appendChild(appleMeta);
+    }
+  })();
+
+  // Register Service Worker for Instant Load & Offline Asset Caching
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js')
+        .then(function (registration) {
+          // Service Worker registered successfully
+        })
+        .catch(function (err) {
+          // SW registration silent fallback
+        });
+    });
+  }
+
+  // Handle PWA 1-Click Installation
+  let pwaDeferredPrompt = null;
+  const pwaBtn = document.getElementById('pwaInstallBtn');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    pwaDeferredPrompt = e;
+    if (pwaBtn) {
+      pwaBtn.style.display = 'inline-flex';
+    }
+  });
+
+  if (pwaBtn) {
+    pwaBtn.addEventListener('click', async function () {
+      if (pwaDeferredPrompt) {
+        pwaDeferredPrompt.prompt();
+        const choiceResult = await pwaDeferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          pwaBtn.style.display = 'none';
+        }
+        pwaDeferredPrompt = null;
+      }
+    });
+  }
+
+  window.addEventListener('appinstalled', function () {
+    if (pwaBtn) pwaBtn.style.display = 'none';
+    if (typeof showToast === 'function') {
+      showToast('success', '🎉 Grocery POS Web App installed successfully!');
+    }
+  });
+</script>

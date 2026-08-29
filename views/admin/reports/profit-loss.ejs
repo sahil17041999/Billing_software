@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profit &amp; Loss Statement - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'reports' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-trending-up" style="color: var(--primary);"></i> Profit &amp; Loss Statement
+              </h1>
+              <p class="page-subheading">Net margin analysis comparing gross sales against cost of goods sold and operating expenses</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/reports/sales" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-chart-bar"></i> Sales Report
+              </a>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar Card -->
+          <div class="card-modern" style="padding: 18px 24px; margin-bottom: 24px;">
+            <div style="display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="fromDate">From Date</label>
+                <input type="date" id="fromDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="toDate">To Date</label>
+                <input type="date" id="toDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <button type="button" class="btn-modern btn-primary-modern" onclick="loadReport()" style="height: 42px;" id="generateBtn">
+                <i class="ti ti-chart-pie"></i> Calculate P&amp;L
+              </button>
+              <div style="display: flex; gap: 6px; align-items: center; margin-left: auto; flex-wrap: wrap;">
+                <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="setDatePreset('today')">Today</button>
+                <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="setDatePreset('month')">This Month</button>
+                <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="setDatePreset('last30')">Last 30 Days</button>
+                <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="setDatePreset('all')">All Time</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- P&L Visual Stat Breakdown -->
+          <div class="stat-cards-grid">
+            
+            <!-- Revenue -->
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box emerald"><i class="ti ti-cash"></i></div>
+                <span class="stat-card-tag up">Income</span>
+              </div>
+              <div class="stat-card-title">Gross Revenue</div>
+              <div class="stat-card-value" id="valRevenue" style="color: #10b981;">₹0.00</div>
+              <div class="stat-card-footer">Total billed sales</div>
+            </div>
+
+            <!-- Cost of Goods -->
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box amber"><i class="ti ti-truck-loading"></i></div>
+                <span class="stat-card-tag neutral">COGS</span>
+              </div>
+              <div class="stat-card-title">Cost of Goods (Purchases)</div>
+              <div class="stat-card-value" id="valCost" style="color: #f59e0b;">₹0.00</div>
+              <div class="stat-card-footer">Inventory inward cost</div>
+            </div>
+
+            <!-- Expenses -->
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box rose"><i class="ti ti-receipt-tax"></i></div>
+                <span class="stat-card-tag down">Overheads</span>
+              </div>
+              <div class="stat-card-title">Operating Expenses</div>
+              <div class="stat-card-value" id="valExpenses" style="color: #ef4444;">₹0.00</div>
+              <div class="stat-card-footer">Utilities, rent, salaries</div>
+            </div>
+
+            <!-- Net Profit -->
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box indigo"><i class="ti ti-trophy"></i></div>
+                <span class="stat-card-tag up" id="tagMargin">Margin: 0%</span>
+              </div>
+              <div class="stat-card-title">Net Profit / (Loss)</div>
+              <div class="stat-card-value" id="valProfit" style="color: var(--primary);">₹0.00</div>
+              <div class="stat-card-footer">Revenue - COGS - Expenses</div>
+            </div>
+
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatDateYMD(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function setDatePreset(type) {
+      const now = new Date();
+      const fromEl = document.getElementById('fromDate');
+      const toEl = document.getElementById('toDate');
+      
+      if (type === 'today') {
+        fromEl.value = formatDateYMD(now);
+        toEl.value = formatDateYMD(now);
+      } else if (type === 'month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        fromEl.value = formatDateYMD(firstDay);
+        toEl.value = formatDateYMD(now);
+      } else if (type === 'last30') {
+        const past = new Date();
+        past.setDate(now.getDate() - 30);
+        fromEl.value = formatDateYMD(past);
+        toEl.value = formatDateYMD(now);
+      } else if (type === 'all') {
+        fromEl.value = '';
+        toEl.value = '';
+      }
+      loadReport();
+    }
+
+    function loadReport() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const btn = document.getElementById('generateBtn');
+      if (btn) btn.disabled = true;
+      
+      let url = '/admin/reports/profit-loss';
+      if (fromDate) url += '?fromDate=' + fromDate;
+      if (toDate) url += (fromDate ? '&' : '?') + 'toDate=' + toDate;
+      
+      fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(res => res.json())
+        .then(data => {
+          if (btn) btn.disabled = false;
+          if (data.success) {
+            const d = data.data;
+            document.getElementById('valRevenue').textContent = '₹' + parseFloat(d.revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            document.getElementById('valCost').textContent = '₹' + parseFloat(d.cost || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            document.getElementById('valExpenses').textContent = '₹' + parseFloat(d.expenses || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            
+            const profit = parseFloat(d.profit || 0);
+            const profitEl = document.getElementById('valProfit');
+            profitEl.textContent = '₹' + profit.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            profitEl.style.color = profit >= 0 ? '#10b981' : '#ef4444';
+            
+            document.getElementById('tagMargin').textContent = 'Margin: ' + (d.profitMargin || 0) + '%';
+          }
+        })
+        .catch(err => {
+          if (btn) btn.disabled = false;
+          console.error(err);
+        });
+    }
+    
+    // Default: Set current month and calculate
+    document.addEventListener('DOMContentLoaded', function() {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      document.getElementById('fromDate').value = formatDateYMD(firstDay);
+      document.getElementById('toDate').value = formatDateYMD(now);
+      loadReport();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Report - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'reports' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-receipt-tax" style="color: var(--primary);"></i> Operating Expense Breakdown
+              </h1>
+              <p class="page-subheading">Analyze overheads, monthly recurring expenditures, and operational costs</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/expenses" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-receipt"></i> Expenses List
+              </a>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar Card -->
+          <div class="card-modern" style="padding: 18px 24px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="fromDate">From Date</label>
+                <input type="date" id="fromDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="toDate">To Date</label>
+                <input type="date" id="toDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="category">Category</label>
+                <select id="category" class="form-control-modern" style="width: 160px;">
+                  <option value="">All Categories</option>
+                  <option value="rent">Rent</option>
+                  <option value="electricity">Electricity</option>
+                  <option value="salary">Salary</option>
+                  <option value="transport">Transport</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="supplies">Supplies</option>
+                  <option value="packaging">Packaging</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <button type="button" class="btn-modern btn-primary-modern" onclick="loadReport()" style="height: 42px;">
+                <i class="ti ti-chart-pie"></i> Generate Report
+              </button>
+            </div>
+          </div>
+
+          <!-- Stat KPI Summary Cards -->
+          <div class="stat-cards-grid" id="summaryCards">
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box rose"><i class="ti ti-cash-off"></i></div>
+                <span class="stat-card-tag down">Outflow</span>
+              </div>
+              <div class="stat-card-title">Total Expenditures</div>
+              <div class="stat-card-value" id="kpiExpense" style="color: #ef4444;">₹0.00</div>
+            </div>
+
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box indigo"><i class="ti ti-category"></i></div>
+                <span class="stat-card-tag neutral">Categories</span>
+              </div>
+              <div class="stat-card-title">Active Categories</div>
+              <div class="stat-card-value" id="kpiCategories">0</div>
+            </div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Expense Category</th>
+                      <th style="text-align: center;">Entry Count</th>
+                      <th style="text-align: right;">Total Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportBody">
+                    <tr>
+                      <td colspan="3" class="table-empty-state">
+                        <i class="ti ti-receipt-off icon"></i>
+                        <p>Click "Generate Report" to compile expense summary.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadReport() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const category = document.getElementById('category').value;
+      
+      let url = '/admin/reports/expense?';
+      const params = [];
+      if (fromDate) params.push('fromDate=' + fromDate);
+      if (toDate) params.push('toDate=' + toDate);
+      if (category) params.push('category=' + category);
+      url += params.join('&');
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const report = data.data;
+            const tbody = document.getElementById('reportBody');
+            
+            if (report.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="3" class="table-empty-state"><i class="ti ti-receipt-off icon"></i><p>No expenses found in selected period.</p></td></tr>';
+            } else {
+              tbody.innerHTML = report.map(row => `
+                <tr>
+                  <td><span class="badge-modern secondary" style="text-transform: capitalize; font-size: 13px;">${row.category}</span></td>
+                  <td style="text-align: center;"><strong>${row.count}</strong></td>
+                  <td style="text-align: right; color: #ef4444; font-weight: 700;" class="amount-cell">₹${parseFloat(row.total || 0).toFixed(2)}</td>
+                </tr>
+              `).join('');
+            }
+            
+            document.getElementById('kpiExpense').textContent = '₹' + parseFloat(data.summary.grandTotal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            document.getElementById('kpiCategories').textContent = report.length;
+          }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReport);
+  </script>
+</body>
+</html>

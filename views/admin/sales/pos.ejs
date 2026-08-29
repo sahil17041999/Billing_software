@@ -1,0 +1,2837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Point of Sale (POS) - Advanced Billing Terminal</title>
+  <meta name="description" content="Advanced Multi-Level Point of Sale (POS) Enterprise Billing Terminal">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/assets/js/indian-states-cities.js"></script>
+
+  <style>
+    /* ==========================================================
+       ADVANCED MULTI-LEVEL POS STYLING & DESIGN SYSTEM
+       ========================================================== */
+    :root {
+      --pos-bg: #f8fafc;
+      --pos-card-bg: #ffffff;
+      --pos-primary: #1366d9;
+      --pos-primary-hover: #0f52b0;
+      --pos-primary-light: #edf5ff;
+      --pos-success: #107c41;
+      --pos-success-hover: #0b5a2f;
+      --pos-warning: #f59e0b;
+      --pos-danger: #ef4444;
+      --pos-border: #cbd5e1;
+      --pos-border-light: #e2e8f0;
+      --pos-text-main: #0f172a;
+      --pos-text-muted: #64748b;
+      --pos-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    body {
+      background-color: var(--pos-bg);
+      font-family: inherit;
+    }
+
+    .pos-workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 520px;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 1200px) {
+      .pos-workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Mobile Segmented Switcher & Floating Bottom Cart */
+    .pos-mobile-view-switcher {
+      display: none;
+      background: #e2e8f0;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 14px;
+      gap: 4px;
+    }
+    .mobile-switch-btn {
+      flex: 1;
+      padding: 10px 10px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mobile-switch-btn.active {
+      background: #ffffff;
+      color: var(--pos-primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .pos-mobile-bottom-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 16px;
+      z-index: 1040;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      animation: slideUpFade 0.25s ease;
+    }
+    .mobile-bottom-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .m-cart-chip {
+      background: rgba(255,255,255,0.18);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .m-cart-total {
+      font-size: 16px;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: var(--pos-font-mono);
+    }
+    .m-checkout-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.4);
+    }
+    .mobile-back-to-products {
+      display: none;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--pos-border);
+    }
+
+    @media (max-width: 991px) {
+      .pos-mobile-view-switcher {
+        display: flex;
+      }
+      .pos-mobile-bottom-bar.show-mobile {
+        display: flex;
+      }
+      .mobile-back-to-products {
+        display: block;
+      }
+      body.pos-mobile-mode-products .pos-catalog-card {
+        display: block !important;
+      }
+      body.pos-mobile-mode-products .pos-checkout-panel {
+        display: none !important;
+      }
+      body.pos-mobile-mode-cart .pos-catalog-card {
+        display: none !important;
+      }
+      body.pos-mobile-mode-cart .pos-checkout-panel {
+        display: flex !important;
+      }
+      body.pos-mobile-mode-cart .pos-mobile-bottom-bar {
+        display: none !important;
+      }
+    }
+
+    /* Top Action Bar */
+    .pos-top-bar {
+      background: #ffffff;
+      border: 1px solid var(--pos-border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pos-bar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pos-title-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Parked Orders Tabs */
+    .pos-parked-scroll {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .pos-tab-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1.5px solid var(--pos-border-light);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--pos-text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pos-tab-chip:hover {
+      background: #e2e8f0;
+      color: var(--pos-text-main);
+    }
+    .pos-tab-chip.active {
+      background: var(--pos-primary);
+      color: #ffffff;
+      border-color: var(--pos-primary);
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+    }
+
+    /* Left Catalog Explorer */
+    .pos-catalog-card {
+      background: #ffffff;
+      border: 1px solid var(--pos-border);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    .pos-search-wrapper {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .pos-search-wrapper input {
+      width: 100%;
+      height: 46px;
+      padding: 0 16px 0 44px;
+      border-radius: 8px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 13.5px;
+      color: var(--pos-text-main);
+      outline: none;
+      transition: all 0.2s;
+      background: #f8fafc;
+      font-weight: 500;
+    }
+    .pos-search-wrapper input:focus {
+      background: #ffffff;
+      border-color: var(--pos-primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+    .pos-search-wrapper .search-icon-left {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: var(--pos-primary);
+      pointer-events: none;
+    }
+
+    .pos-category-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      scrollbar-width: thin;
+    }
+    .pos-cat-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .pos-cat-chip:hover, .pos-cat-chip.active {
+      background: var(--pos-primary);
+      color: #ffffff;
+      border-color: var(--pos-primary);
+    }
+
+    .pos-products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      max-height: calc(100vh - 310px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .pos-product-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: 110px;
+      position: relative;
+    }
+    .pos-product-item:hover {
+      border-color: var(--pos-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37,99,235,0.12);
+    }
+    .pos-product-item:active {
+      transform: scale(0.97);
+    }
+    .pos-product-item .prod-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--pos-text-main);
+      margin-bottom: 4px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pos-product-item .prod-meta {
+      font-size: 11px;
+      color: var(--pos-text-muted);
+      margin-bottom: 8px;
+    }
+    .pos-product-item .prod-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px dashed #e2e8f0;
+      padding-top: 6px;
+    }
+    .pos-product-item .prod-rate {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--pos-primary);
+      font-family: var(--pos-font-mono);
+    }
+    .pos-product-item .prod-tax {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: var(--pos-text-muted);
+    }
+
+    /* Right Checkout Box & 5-Level Stepper */
+    .pos-checkout-panel {
+      background: #ffffff;
+      border: 1px solid var(--pos-border);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 85px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 5-Level Stepper Navigation - Vibrant Glowing POS Theme */
+    .pos-multilevel-stepper {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .stepper-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .stepper-step-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      padding: 9px 4px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      user-select: none;
+    }
+    .stepper-step-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .stepper-step-btn.active {
+      background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%) !important;
+      border-color: #a5b4fc !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.5), 0 0 0 2px rgba(99, 102, 241, 0.3);
+      transform: scale(1.02);
+    }
+    .stepper-step-btn.completed {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #34d399;
+    }
+
+    .pos-multilevel-body {
+      padding: 16px 18px;
+      min-height: 290px;
+    }
+
+    /* Level 1: Cart Table */
+    .pos-cart-scroll-table {
+      max-height: 230px;
+      overflow-y: auto;
+    }
+    .pos-cart-table-element {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .pos-cart-table-element th {
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--pos-border-light);
+    }
+    .pos-cart-table-element td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .cart-row-highlight {
+      animation: cartFlash 1.2s ease-out;
+    }
+    @keyframes cartFlash {
+      0% { background-color: rgba(37, 99, 235, 0.25); }
+      100% { background-color: transparent; }
+    }
+
+    .pos-stepper-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+    }
+    .pos-stepper-btn {
+      width: 22px;
+      height: 22px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0f172a;
+      transition: all 0.15s;
+    }
+    .pos-stepper-btn:hover {
+      background: var(--pos-primary);
+      color: #ffffff;
+      border-color: var(--pos-primary);
+    }
+    .pos-stepper-val {
+      font-size: 13px;
+      font-weight: 800;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    /* Level 3: Payment Mode Tiles */
+    .pos-payment-tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pos-pay-tile {
+      background: #ffffff;
+      border: 2px solid var(--pos-border-light);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pos-pay-tile:hover {
+      border-color: var(--pos-primary);
+      background: #f8fafc;
+    }
+    .pos-pay-tile.selected {
+      border-color: var(--pos-primary);
+      background: var(--pos-primary-light);
+      color: var(--pos-primary);
+      box-shadow: 0 2px 8px rgba(37,99,235,0.15);
+    }
+    .pos-pay-tile .tile-icon {
+      font-size: 22px;
+      margin-bottom: 2px;
+      display: block;
+    }
+    .pos-pay-tile .tile-name {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Multi-Level Footer & Totals */
+    .pos-multilevel-footer {
+      background: #f8fafc;
+      border-top: 1.5px solid var(--pos-border);
+      padding: 14px 18px;
+    }
+    .pos-totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 12.5px;
+      color: var(--pos-text-muted);
+    }
+    .pos-grand-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      margin-top: 8px;
+      border-top: 2px solid #0f172a;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--pos-text-main);
+    }
+
+    .pos-nav-controls {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pos-nav-controls.single-col {
+      grid-template-columns: 1fr;
+    }
+
+    /* Floating Item Added Banner (Interactive While Adding Items) */
+    #posItemAddedBanner {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 99999;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+      border-left: 5px solid var(--pos-success);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      font-size: 13px;
+      pointer-events: none;
+      max-width: 380px;
+    }
+    #posItemAddedBanner.show {
+      transform: translateX(0);
+    }
+
+    /* Multi-Step Animated Bill Processing Overlay */
+    #posBillProcessingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+    #posBillProcessingOverlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .pos-processing-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 28px;
+      width: 90%;
+      max-width: 460px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      text-align: center;
+      transform: scale(0.92);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #posBillProcessingOverlay.active .pos-processing-card {
+      transform: scale(1);
+    }
+
+    .pos-step-indicator-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #64748b;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .pos-step-indicator-item.active {
+      background: #eff6ff;
+      color: var(--pos-primary);
+      border: 1px solid #bfdbfe;
+    }
+    .pos-step-indicator-item.completed {
+      background: #f0fdf4;
+      color: var(--pos-success);
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Celebration Bill Success Box */
+    .pos-success-badge-pulse {
+      width: 64px;
+      height: 64px;
+      background: #dcfce7;
+      color: #16a34a;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 12px;
+      animation: pulseGrow 1.5s infinite;
+    }
+    @keyframes pulseGrow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 0 12px rgba(22, 163, 74, 0); }
+    }
+  </style>
+</head>
+
+<body>
+<div class="admin-layout">
+  <%- include('../../partials/sidebar.ejs', { currentPage: 'pos' }) %>
+
+  <div class="page-wrapper">
+    <div class="body-wrapper">
+      <%- include('../../partials/header.ejs') %>
+
+      <!-- Floating Live Item Added Message Banner -->
+      <div id="posItemAddedBanner">
+        <i class="ti ti-circle-check" style="font-size: 24px; color: #10b981;"></i>
+        <div>
+          <div style="font-weight: 700;" id="bannerItemName">Item Added</div>
+          <div style="font-size: 11px; color: #94a3b8;" id="bannerItemMeta">Qty: 1 &bull; Rate: ₹0.00</div>
+        </div>
+      </div>
+
+      <!-- Live Bill Processing & Dispatch Overlay -->
+      <div id="posBillProcessingOverlay">
+        <div class="pos-processing-card">
+          <div style="display: flex; justify-content: center; margin-bottom: 14px;">
+            <div class="spinner-border text-primary" role="status" style="width: 42px; height: 42px; border-width: 3.5px;"></div>
+          </div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Adding & Generating Bill...</h3>
+          <p style="font-size: 12px; color: #64748b; margin-bottom: 16px;">Please wait while the transaction is securely recorded in real-time.</p>
+
+          <div id="processingStepsContainer">
+            <div class="pos-step-indicator-item active" id="pStep1">
+              <i class="ti ti-database"></i> <span>1. Validating stock & customer account</span>
+            </div>
+            <div class="pos-step-indicator-item" id="pStep2">
+              <i class="ti ti-calculator"></i> <span>2. Applying GST rules, discounts & charges</span>
+            </div>
+            <div class="pos-step-indicator-item" id="pStep3">
+              <i class="ti ti-file-certificate"></i> <span>3. Generating GST Tax Invoice Number</span>
+            </div>
+            <div class="pos-step-indicator-item" id="pStep4">
+              <i class="ti ti-printer"></i> <span>4. Finalizing payment & print stream</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main class="page-content" style="max-width: 100%; padding: 18px 24px;">
+
+        <!-- TOP BAR: Status, Cart Tabs & Quick Action Shortcuts -->
+        <div class="pos-top-bar">
+          <div class="pos-bar-group">
+            <div class="pos-title-badge">
+              <i class="ti ti-device-laptop"></i>
+              <span>ADVANCED POS TERMINAL</span>
+            </div>
+
+            <!-- Parked / Multi-Cart Tabs -->
+            <div class="pos-parked-scroll" id="parkedTabsBar">
+              <!-- Dynamically populated cart tabs -->
+            </div>
+
+            <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="createNewOrderTab()" title="Open another cart (F6)">
+              <i class="ti ti-plus"></i> Hold / New Cart
+            </button>
+          </div>
+
+          <div class="pos-bar-group">
+            <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="openCustomItemModal()">
+              <i class="ti ti-clipboard-plus"></i> + Loose Item
+            </button>
+            <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="openPosProductModal()">
+              <i class="ti ti-package"></i> + Master Item
+            </button>
+            <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" id="audioToggleBtn" onclick="togglePosAudio()" title="Sound On/Off">
+              <i class="ti ti-volume"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Segmented View Switcher (Only visible on screens <= 991px) -->
+        <div class="pos-mobile-view-switcher" id="posMobileViewSwitcher">
+          <button type="button" class="mobile-switch-btn active" id="mTabProducts" onclick="switchMobilePosView('products')">
+            <i class="ti ti-layout-grid"></i> <span>Catalog (<%= products ? products.length : 0 %>)</span>
+          </button>
+          <button type="button" class="mobile-switch-btn" id="mTabCart" onclick="switchMobilePosView('cart')">
+            <i class="ti ti-shopping-cart"></i> <span>Cart &amp; Bill (<span id="mMobileCartBadge">0</span>)</span>
+          </button>
+        </div>
+
+        <!-- MAIN 2-COLUMN WORKSPACE -->
+        <div class="pos-workspace-grid">
+
+          <!-- LEFT COLUMN: Product Catalog & Instant Barcode Scanner -->
+          <div class="pos-catalog-card">
+
+            <!-- Search & Barcode Scan Bar -->
+            <div class="pos-search-wrapper">
+              <i class="ti ti-scan search-icon-left"></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Scan barcode or type product name/SKU (Press '/' or F4 to focus)..."
+                oninput="filterCatalog()"
+                autofocus
+              />
+            </div>
+
+            <!-- Categories Filter -->
+            <div class="pos-category-scroll" id="categoryBar">
+              <button class="pos-cat-chip active" data-cat="all" onclick="selectCategory('all', this)">
+                <i class="ti ti-layout-grid"></i> All Items
+              </button>
+              <% 
+                const categoriesMap = {};
+                if (products && products.length > 0) {
+                  products.forEach(p => {
+                    const catName = p.category ? p.category.name : (p.Category ? p.Category.name : null);
+                    if (catName) categoriesMap[catName] = true;
+                  });
+                }
+                Object.keys(categoriesMap).forEach(cat => {
+              %>
+                <button class="pos-cat-chip" data-cat="<%= cat.toLowerCase() %>" onclick="selectCategory('<%= cat.toLowerCase() %>', this)">
+                  <%= cat %>
+                </button>
+              <% }); %>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="pos-products-grid" id="productGrid">
+              <% if (!products || products.length === 0) { %>
+                <div class="table-empty-state" style="grid-column: 1 / -1; padding: 30px 0;">
+                  <i class="ti ti-package-off icon" style="font-size: 32px;"></i>
+                  <p>No active products found.</p>
+                  <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" onclick="openPosProductModal()" style="margin-top: 8px;">
+                    <i class="ti ti-plus"></i> Add First Product
+                  </button>
+                </div>
+              <% } else { %>
+                <% products.forEach(product => { 
+                    const catObj = product.category || product.Category;
+                    const taxObj = product.tax || product.Tax;
+                    const unitObj = product.unit || product.Unit;
+                    const taxRate = taxObj ? Number(taxObj.rate || 0) : 0;
+                    const catName = catObj ? catObj.name : 'General';
+                %>
+                  <div
+                    class="pos-product-item product-card"
+                    data-id="<%= product.id %>"
+                    data-name="<%= product.name %>"
+                    data-barcode="<%= product.barcode || '' %>"
+                    data-sku="<%= product.sku || '' %>"
+                    data-price="<%= product.selling_price %>"
+                    data-tax="<%= taxRate %>"
+                    data-cat="<%= catName.toLowerCase() %>"
+                    onclick="addProductToCart(this)"
+                  >
+                    <div>
+                      <div class="prod-title"><%= product.name %></div>
+                      <div class="prod-meta">
+                        <% if (product.barcode) { %>
+                          <span style="font-family: var(--pos-font-mono);"><%= product.barcode %></span>
+                        <% } else { %>
+                          <%= catName %> &bull; <%= unitObj ? unitObj.name : 'Pcs' %>
+                        <% } %>
+                      </div>
+                    </div>
+                    <div class="prod-bottom">
+                      <div class="prod-rate">₹<%= Number(product.selling_price || 0).toFixed(2) %></div>
+                      <div class="prod-tax"><%= taxRate > 0 ? (taxRate + '% GST') : '0% GST' %></div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: 5-Level Advanced Checkout Register -->
+          <div class="pos-checkout-panel">
+
+            <!-- Mobile Back to Catalog Button -->
+            <div class="mobile-back-to-products" id="mobileBackToProductsBtn">
+              <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" style="width: 100%; justify-content: center; font-size: 13px; font-weight: 700;" onclick="switchMobilePosView('products')">
+                <i class="ti ti-arrow-left"></i> &larr; Back to Product Catalog
+              </button>
+            </div>
+
+            <!-- 5-Level Stepper Navigation -->
+            <div class="pos-multilevel-stepper">
+              <div class="stepper-nav-grid">
+                <div class="stepper-step-btn active" id="levelBtn1" onclick="goToLevel(1)">
+                  <span>Level 1</span>
+                  <span>🛒 Items (<span id="cartCountBadge">0</span>)</span>
+                </div>
+                <div class="stepper-step-btn" id="levelBtn2" onclick="goToLevel(2)">
+                  <span>Level 2</span>
+                  <span>👤 Customer</span>
+                </div>
+                <div class="stepper-step-btn" id="levelBtn3" onclick="goToLevel(3)">
+                  <span>Level 3</span>
+                  <span>💳 Payment</span>
+                </div>
+                <div class="stepper-step-btn" id="levelBtn4" onclick="goToLevel(4)">
+                  <span>Level 4</span>
+                  <span>⚡ Advanced</span>
+                </div>
+                <div class="stepper-step-btn" id="levelBtn5" onclick="goToLevel(5)">
+                  <span>Level 5</span>
+                  <span>🧾 Invoice</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==============================================
+                 LEVEL 1: CART ITEMS & QUANTITIES
+                 ============================================== -->
+            <div class="pos-multilevel-body" id="levelPanel1">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--pos-text-main);">
+                  <i class="ti ti-shopping-cart" style="color: var(--pos-primary);"></i> Current Order Items
+                </div>
+                <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="clearCart()" style="padding: 2px 8px; font-size: 11px;">
+                  <i class="ti ti-trash"></i> Clear Cart
+                </button>
+              </div>
+
+              <div class="pos-cart-scroll-table">
+                <table class="pos-cart-table-element" id="cartTableElement">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left;">Item</th>
+                      <th style="text-align: center; width: 85px;">Qty</th>
+                      <th style="text-align: right; width: 75px;">Rate</th>
+                      <th style="text-align: right; width: 75px;">Total</th>
+                      <th style="width: 25px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="cartTableRows">
+                    <!-- Dynamic cart rows rendered via JS -->
+                  </tbody>
+                </table>
+
+                <div id="cartEmptyNotice" class="table-empty-state" style="padding: 30px 0 !important;">
+                  <i class="ti ti-shopping-cart-off icon" style="font-size: 28px;"></i>
+                  <p style="font-size: 12.5px;">Cart is empty.<br><small>Click catalog items or scan barcode to add.</small></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==============================================
+                 LEVEL 2: CUSTOMER & LOYALTY DETAILS
+                 ============================================== -->
+            <div class="pos-multilevel-body" id="levelPanel2" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--pos-text-main);">
+                  <i class="ti ti-user" style="color: var(--pos-primary);"></i> Customer &amp; Loyalty Profile
+                </div>
+                <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" onclick="openPosCustomerModal()" style="padding: 3px 8px; font-size: 11px;">
+                  <i class="ti ti-plus"></i> New Customer (F8)
+                </button>
+              </div>
+
+              <div class="form-group-modern" style="margin-bottom: 12px;">
+                <label class="form-label-modern" style="font-size: 11.5px;">Select Registered Customer</label>
+                <select id="customer_id" class="form-control-modern" style="height: 38px; font-size: 13px;" onchange="updateCustomerPreview()">
+                  <option value="">Walk-in Customer</option>
+                  <% if (customers && customers.length > 0) { %>
+                    <% customers.forEach(c => { %>
+                      <option value="<%= c.id %>" data-phone="<%= c.phone || '' %>" data-gstin="<%= c.gstin || '' %>" data-city="<%= c.city || '' %>">
+                        <%= c.name %> <%= c.phone ? `(${c.phone})` : '' %>
+                      </option>
+                    <% }); %>
+                  <% } %>
+                </select>
+              </div>
+
+              <div id="customerDetailsBox" style="background: #f8fafc; border: 1.5px solid var(--pos-border); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <div style="font-weight: 800; font-size: 13.5px; color: var(--pos-text-main);" id="custBoxName">Walk-in Customer</div>
+                    <div style="color: var(--pos-text-muted); font-size: 11.5px; margin-top: 2px;" id="custBoxMeta">Standard Retail Sale</div>
+                  </div>
+                  <span class="badge-modern info" id="custLoyaltyBadge" style="font-size: 10.5px;">Loyalty: 0 Pts</span>
+                </div>
+              </div>
+
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" style="font-size: 11.5px;">Order / Invoice Notes (Optional)</label>
+                <input type="text" id="invoice_notes" class="form-control-modern" placeholder="e.g. Counter 1, Gift wrap, Urgent delivery" style="height: 36px; font-size: 12px;">
+              </div>
+            </div>
+
+            <!-- ==============================================
+                 LEVEL 3: PAYMENT SETTLEMENT & TENDER
+                 ============================================== -->
+            <div class="pos-multilevel-body" id="levelPanel3" style="display: none;">
+              <div style="font-size: 13px; font-weight: 700; color: var(--pos-text-main); margin-bottom: 10px;">
+                <i class="ti ti-credit-card" style="color: var(--pos-primary);"></i> Payment Mode &amp; Settlement
+              </div>
+
+              <!-- Payment Mode Selector Tiles -->
+              <div class="pos-payment-tiles-grid">
+                <div class="pos-pay-tile selected" id="payTileCash" onclick="selectPaymentModeTile('Cash')">
+                  <i class="ti ti-cash tile-icon" style="color: #059669;"></i>
+                  <div class="tile-name">Cash</div>
+                </div>
+                <div class="pos-pay-tile" id="payTileUpi" onclick="selectPaymentModeTile('UPI')">
+                  <i class="ti ti-qrcode tile-icon" style="color: #2563eb;"></i>
+                  <div class="tile-name">UPI / QR</div>
+                </div>
+                <div class="pos-pay-tile" id="payTileCard" onclick="selectPaymentModeTile('Card')">
+                  <i class="ti ti-credit-card tile-icon" style="color: #0284c7;"></i>
+                  <div class="tile-name">Card / POS</div>
+                </div>
+                <div class="pos-pay-tile" id="payTileCredit" onclick="selectPaymentModeTile('Credit')">
+                  <i class="ti ti-notebook tile-icon" style="color: #d97706;"></i>
+                  <div class="tile-name">Credit (Khata)</div>
+                </div>
+              </div>
+
+              <select id="payment_mode_id" style="display: none;">
+                <% if (paymentModes && paymentModes.length > 0) { %>
+                  <% paymentModes.forEach(m => { %>
+                    <option value="<%= m.id %>"><%= m.name %></option>
+                  <% }); %>
+                <% } else { %>
+                  <option value="">Cash</option>
+                <% } %>
+              </select>
+
+              <!-- Cash Tender Calculator -->
+              <div id="cashTenderBox" style="background: white; border: 1.5px solid var(--pos-border); border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 11.5px; font-weight: 700; color: var(--pos-text-muted); text-transform: uppercase;">Cash Received:</span>
+                  <input
+                    type="number"
+                    id="tenderAmount"
+                    placeholder="0.00"
+                    step="1"
+                    min="0"
+                    class="form-control-modern"
+                    style="width: 110px; height: 32px; text-align: right; font-weight: 800; font-family: var(--pos-font-mono);"
+                    oninput="calcChange()"
+                  />
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0;">
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px; font-size: 11px; font-weight: 700;" onclick="setTender('exact')">Exact</button>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px; font-size: 11px; font-weight: 700;" onclick="setTender(100)">+₹100</button>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px; font-size: 11px; font-weight: 700;" onclick="setTender(500)">+₹500</button>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px; font-size: 11px; font-weight: 700;" onclick="setTender(2000)">+₹2000</button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 12px; padding-top: 4px; border-top: 1px dashed var(--pos-border);">
+                  <span style="color: var(--pos-text-muted);">Change Return:</span>
+                  <span id="changeReturn" style="font-weight: 800; font-family: var(--pos-font-mono); color: #059669; font-size: 13.5px;">₹0.00</span>
+                </div>
+              </div>
+
+              <!-- UPI Dynamic QR Container -->
+              <div id="upiMiniQrBox" style="display: none; background: white; border: 1.5px solid var(--pos-border); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 10px;">
+                <div style="font-size: 11.5px; font-weight: 600; color: var(--pos-text-muted); margin-bottom: 6px;">Scan &amp; Pay via GPay, PhonePe, Paytm or UPI</div>
+                <div id="miniUpiQrContainer" style="display: flex; justify-content: center; min-height: 110px;"></div>
+              </div>
+            </div>
+
+            <!-- ==============================================
+                 LEVEL 4: ADVANCED BILLING OPTIONS (NEW LEVEL)
+                 ============================================== -->
+            <div class="pos-multilevel-body" id="levelPanel4" style="display: none;">
+              <div style="font-size: 13px; font-weight: 700; color: var(--pos-text-main); margin-bottom: 10px;">
+                <i class="ti ti-adjustments" style="color: var(--pos-primary);"></i> Advanced Bill Adjustments &amp; Controls
+              </div>
+
+              <!-- Additional Surcharges & Round-off Grid -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <div class="form-group-modern" style="margin-bottom: 0;">
+                  <label class="form-label-modern" style="font-size: 11px;">Delivery / Shipping (₹)</label>
+                  <input type="number" id="extraDeliveryCharge" class="form-control-modern" value="0" min="0" step="1" oninput="calculateTotals()" style="height: 32px; font-size: 12px;">
+                </div>
+                <div class="form-group-modern" style="margin-bottom: 0;">
+                  <label class="form-label-modern" style="font-size: 11px;">Packaging / Bag (₹)</label>
+                  <input type="number" id="extraPackagingCharge" class="form-control-modern" value="0" min="0" step="1" oninput="calculateTotals()" style="height: 32px; font-size: 12px;">
+                </div>
+              </div>
+
+              <!-- Promo Code Engine -->
+              <div class="form-group-modern" style="margin-bottom: 12px; background: #ffffff; border: 1px solid var(--pos-border); border-radius: 8px; padding: 10px;">
+                <label class="form-label-modern" style="font-size: 11.5px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+                  <span><i class="ti ti-ticket" style="color: var(--pos-primary);"></i> Apply Coupon / Promo Code (Optional)</span>
+                </label>
+                <div style="display: flex; gap: 6px; margin-top: 4px;">
+                  <input type="text" id="promoCodeInput" class="form-control-modern" placeholder="e.g. SAVE10, FLAT50" style="height: 34px; font-size: 12px; text-transform: uppercase; font-weight: 700; font-family: var(--pos-font-mono);">
+                  <button type="button" class="btn-modern btn-primary-modern" onclick="applyPromoCode()" style="padding: 0 14px; height: 34px; font-size: 12px; font-weight: 700;">
+                    <i class="ti ti-check"></i> Apply
+                  </button>
+                </div>
+                
+                <!-- Quick Coupon Preset Chips -->
+                <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px;">
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 2px 8px; font-size: 10.5px; border-radius: 6px;" onclick="applyPromoPreset('SAVE10')">🏷️ SAVE10 (10%)</button>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 2px 8px; font-size: 10.5px; border-radius: 6px;" onclick="applyPromoPreset('FLAT50')">🏷️ FLAT50 (₹50)</button>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 2px 8px; font-size: 10.5px; border-radius: 6px;" onclick="applyPromoPreset('SUPER20')">🏷️ SUPER20 (20%)</button>
+                  <button type="button" class="btn-modern btn-secondary-modern" style="padding: 2px 8px; font-size: 10.5px; border-radius: 6px;" onclick="applyPromoPreset('FESTIVE100')">🏷️ FESTIVE100 (₹100)</button>
+                </div>
+
+                <div id="promoSuccessBadge" style="display: none; font-size: 11.5px; color: #059669; font-weight: 700; margin-top: 8px; padding: 4px 8px; background: #ecfdf5; border-radius: 6px; border: 1px solid #a7f3d0; align-items: center;"></div>
+              </div>
+
+              <!-- Round Off & Station -->
+              <div style="background: #f8fafc; border: 1px solid var(--pos-border-light); border-radius: 8px; padding: 10px; font-size: 11.5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-weight: 600;">Auto Round-Off Total:</span>
+                  <input type="checkbox" id="autoRoundOffCheck" checked onchange="calculateTotals()" style="width: 16px; height: 16px; accent-color: var(--pos-primary); cursor: pointer;">
+                </div>
+                <div style="display: flex; justify-content: space-between; color: var(--pos-text-muted);">
+                  <span>Assigned Counter:</span>
+                  <span style="font-weight: 700; color: #0f172a;">Counter #1 (Main Terminal)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==============================================
+                 LEVEL 5: INVOICE LIVE PREVIEW
+                 ============================================== -->
+            <div class="pos-multilevel-body" id="levelPanel5" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--pos-text-main);">
+                  <i class="ti ti-file-invoice" style="color: var(--pos-primary);"></i> Final Invoice Preview
+                </div>
+                <span class="badge-modern success" style="font-size: 11px;">Ready to Bill</span>
+              </div>
+
+              <div id="inlineInvoicePreview" style="background: white; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; font-size: 12px; max-height: 230px; overflow-y: auto;">
+                <!-- Generated live preview injected via JS -->
+              </div>
+            </div>
+
+            <!-- Multi-Level Summary & Navigation Footer -->
+            <div class="pos-multilevel-footer">
+              <div class="pos-totals-row">
+                <span>Subtotal</span>
+                <span id="subtotal" style="font-family: var(--pos-font-mono); font-weight: 600;">₹0.00</span>
+              </div>
+
+              <div class="pos-totals-row">
+                <span>Tax (GST)</span>
+                <span id="taxTotal" style="font-family: var(--pos-font-mono); font-weight: 600;">₹0.00</span>
+              </div>
+
+              <div class="pos-totals-row">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span>Discount</span>
+                  <select id="discountType" onchange="calculateTotals()" style="font-size: 11px; padding: 2px 4px; border: 1px solid var(--pos-border); border-radius: 4px; background: white;">
+                    <option value="flat">₹ Flat</option>
+                    <option value="percent">% Off</option>
+                  </select>
+                </div>
+                <input
+                  type="number"
+                  id="discountInput"
+                  value="0"
+                  min="0"
+                  step="0.01"
+                  class="form-control-modern"
+                  style="width: 90px; height: 26px; text-align: right; font-size: 12.5px;"
+                  oninput="calculateTotals()"
+                />
+              </div>
+
+              <div class="pos-totals-row" id="additionalChargesRow" style="display: none;">
+                <span>Extra Charges</span>
+                <span id="additionalChargesTotal" style="font-family: var(--pos-font-mono); font-weight: 600;">₹0.00</span>
+              </div>
+
+              <div class="pos-totals-row" id="roundOffRow" style="display: none;">
+                <span>Round-off</span>
+                <span id="roundOffValue" style="font-family: var(--pos-font-mono); font-weight: 600;">₹0.00</span>
+              </div>
+
+              <!-- Grand Total -->
+              <div class="pos-grand-total-row">
+                <span>Net Payable</span>
+                <span id="grandTotal" style="color: var(--pos-primary); font-family: var(--pos-font-mono);">₹0.00</span>
+              </div>
+
+              <!-- Navigation Wizard Controls -->
+              <div class="pos-nav-controls single-col" id="wizardNavRow">
+                <button type="button" class="btn-modern btn-secondary-modern" id="wizardBackBtn" onclick="prevLevel()" style="display: none; height: 44px; font-weight: 700;">
+                  <i class="ti ti-chevron-left"></i> Back
+                </button>
+
+                <button type="button" class="btn-modern btn-primary-modern" id="wizardNextBtn" onclick="nextLevel()" style="height: 44px; font-weight: 800; font-size: 14px;">
+                  Continue to Customer (Level 2) <i class="ti ti-chevron-right"></i>
+                </button>
+
+                <button type="button" class="btn-modern btn-success-modern" id="wizardPayBtn" onclick="completeSale()" style="display: none; height: 44px; font-weight: 800; font-size: 14px;">
+                  <i class="ti ti-printer"></i> Confirm &amp; Print Bill (F2)
+                </button>
+              </div>
+
+              <div class="shortcuts-bar" style="margin-top: 8px; font-size: 11px; color: #64748b; display: flex; justify-content: center; gap: 8px;">
+                <span><span class="kbd-shortcut">F2</span> Next/Pay</span>
+                <span><span class="kbd-shortcut">F4</span> Scan</span>
+                <span><span class="kbd-shortcut">F6</span> Hold</span>
+                <span><span class="kbd-shortcut">F8</span> Cust</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Mobile Floating Bottom Cart Bar (Only visible when items in cart on mobile) -->
+        <div class="pos-mobile-bottom-bar" id="posMobileBottomBar" onclick="switchMobilePosView('cart')">
+          <div class="mobile-bottom-info">
+            <span class="m-cart-chip"><i class="ti ti-shopping-cart"></i> <strong id="bottomCartCount">0</strong> items</span>
+            <span class="m-cart-total" id="bottomCartTotal">₹0.00</span>
+          </div>
+          <button type="button" class="m-checkout-btn">
+            <span>Checkout</span> <i class="ti ti-arrow-right"></i>
+          </button>
+        </div>
+
+      </main>
+
+      <%- include('../../partials/footer.ejs') %>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================
+     SUCCESS INVOICE CELEBRATION MODAL
+     ========================================================== -->
+<div id="posInvoiceSuccessModal" class="modal-backdrop-modern" onclick="if(event.target===this)closeSuccessInvoiceModal()">
+  <div class="modal-dialog-modern" style="max-width: 680px;">
+    <div class="modal-header-modern" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white;">
+      <h2 class="modal-title-modern" style="color: white; font-size: 16px;">
+        <i class="ti ti-circle-check" style="color: #10b981;"></i> Bill Added Successfully!
+      </h2>
+      <button type="button" class="modal-close-btn" style="color: #94a3b8; background: rgba(255,255,255,0.1);" onclick="closeSuccessInvoiceModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-modern" style="padding: 18px; background: #f8fafc;">
+      <div id="successInvoiceRenderArea" style="max-height: 60vh; overflow-y: auto; background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <!-- Injected Invoice -->
+      </div>
+    </div>
+
+    <div class="modal-footer-modern" style="justify-content: space-between; background: white;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="btn-modern btn-primary-modern" onclick="printActiveInvoice('a4')">
+          <i class="ti ti-printer"></i> Print A4
+        </button>
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="printActiveInvoice('thermal')">
+          <i class="ti ti-receipt"></i> 80mm Thermal
+        </button>
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="shareActiveInvoiceWhatsapp()" style="color: #16a34a;">
+          <i class="ti ti-brand-whatsapp"></i> WhatsApp
+        </button>
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="emailActiveInvoice()">
+          <i class="ti ti-mail"></i> Email
+        </button>
+      </div>
+      <button type="button" class="btn-modern btn-success-modern" onclick="closeSuccessInvoiceModalAndNext()">
+        <i class="ti ti-plus"></i> Next Bill (F4)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================
+     QUICK ADD CUSTOM LOOSE ITEM MODAL
+     ========================================================== -->
+<div id="posCustomItemModal" class="modal-backdrop-modern" onclick="if(event.target===this)closeCustomItemModal()">
+  <div class="modal-dialog-modern" style="max-width: 480px;">
+    <div class="modal-header-modern">
+      <h2 class="modal-title-modern">
+        <i class="ti ti-clipboard-plus" style="color: var(--pos-primary);"></i> Add Custom Loose Item
+      </h2>
+      <button type="button" class="modal-close-btn" onclick="closeCustomItemModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <form id="posCustomItemForm">
+      <div class="modal-body-modern">
+        <div class="form-group-modern">
+          <label class="form-label-modern">Item Description / Name <span class="required-dot">*</span></label>
+          <input type="text" id="custom_item_name" class="form-control-modern" placeholder="e.g. Loose Sugar, Fresh Vegetables" required>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group-modern">
+            <label class="form-label-modern">Unit Price (₹) <span class="required-dot">*</span></label>
+            <input type="number" id="custom_item_price" class="form-control-modern" placeholder="0.00" step="0.01" min="0" required>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Quantity</label>
+            <input type="number" id="custom_item_qty" class="form-control-modern" value="1" min="0.01" step="0.01" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group-modern">
+            <label class="form-label-modern">GST Tax Rate</label>
+            <select id="custom_item_tax" class="form-control-modern">
+              <option value="0">0% GST (Exempt)</option>
+              <option value="5">5% GST</option>
+              <option value="12">12% GST</option>
+              <option value="18" selected>18% GST</option>
+              <option value="28">28% GST</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Unit</label>
+            <select id="custom_item_unit" class="form-control-modern">
+              <option value="Pcs">Pieces (Pcs)</option>
+              <option value="Kg">Kilogram (Kg)</option>
+              <option value="G">Grams (G)</option>
+              <option value="Ltr">Litre (Ltr)</option>
+              <option value="Packet">Packet</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-modern">
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="closeCustomItemModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-modern btn-primary-modern">
+          <i class="ti ti-plus"></i> Add to Cart
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==========================================================
+     QUICK ADD PRODUCT MASTER MODAL
+     ========================================================== -->
+<div id="posProductModal" class="modal-backdrop-modern" onclick="if(event.target===this)closePosProductModal()">
+  <div class="modal-dialog-modern" style="max-width: 580px;">
+    <div class="modal-header-modern">
+      <h2 class="modal-title-modern">
+        <i class="ti ti-package" style="color: var(--pos-primary);"></i> Quick Add Product Master
+      </h2>
+      <button type="button" class="modal-close-btn" onclick="closePosProductModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <form id="posProductForm">
+      <div class="modal-body-modern">
+        <div class="form-group-modern">
+          <label class="form-label-modern">Product Name <span class="required-dot">*</span></label>
+          <input type="text" id="quick_prod_name" class="form-control-modern" placeholder="e.g. Basmati Rice 5kg" required>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group-modern">
+            <label class="form-label-modern">Barcode / EAN</label>
+            <input type="text" id="quick_prod_barcode" class="form-control-modern" placeholder="e.g. 890123456789">
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">SKU Code</label>
+            <input type="text" id="quick_prod_sku" class="form-control-modern" placeholder="e.g. RICE-01">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group-modern">
+            <label class="form-label-modern">Selling Price (₹) <span class="required-dot">*</span></label>
+            <input type="number" id="quick_prod_selling" class="form-control-modern" placeholder="0.00" step="0.01" min="0" required>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Cost / Purchase Price (₹)</label>
+            <input type="number" id="quick_prod_purchase" class="form-control-modern" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group-modern">
+            <label class="form-label-modern">Category</label>
+            <select id="quick_prod_category" class="form-control-modern">
+              <option value="">General</option>
+              <% if (typeof categories !== 'undefined' && categories) { %>
+                <% categories.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }); %>
+              <% } %>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Unit</label>
+            <select id="quick_prod_unit" class="form-control-modern">
+              <% if (typeof units !== 'undefined' && units) { %>
+                <% units.forEach(u => { %><option value="<%= u.id %>"><%= u.name %></option><% }); %>
+              <% } else { %>
+                <option value="1">Pieces (Pcs)</option>
+              <% } %>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">GST Tax Rate</label>
+            <select id="quick_prod_tax" class="form-control-modern">
+              <% if (typeof taxes !== 'undefined' && taxes) { %>
+                <% taxes.forEach(t => { %><option value="<%= t.id %>" data-rate="<%= t.rate %>"><%= t.name %> (<%= t.rate %>%)</option><% }); %>
+              <% } else { %>
+                <option value="" data-rate="0">0% GST</option>
+              <% } %>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-modern">
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="closePosProductModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-modern btn-primary-modern" id="quickProdSubmitBtn">
+          <i class="ti ti-plus"></i> Save &amp; Add to Cart
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==========================================================
+     QUICK ADD CUSTOMER MODAL
+     ========================================================== -->
+<div id="posCustomerModal" class="modal-backdrop-modern" onclick="if(event.target===this)closePosCustomerModal()">
+  <div class="modal-dialog-modern" style="max-width: 540px;">
+    <div class="modal-header-modern">
+      <h2 class="modal-title-modern">
+        <i class="ti ti-user-plus" style="color: var(--pos-primary);"></i> Quick Add Customer
+      </h2>
+      <button type="button" class="modal-close-btn" onclick="closePosCustomerModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <form id="posCustomerForm">
+      <div class="modal-body-modern">
+        <div class="form-group-modern">
+          <label class="form-label-modern">Customer Full Name <span class="required-dot">*</span></label>
+          <input type="text" id="pos_cust_name" class="form-control-modern" placeholder="e.g. Ramesh Kumar" required>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group-modern">
+            <label class="form-label-modern">Mobile Phone</label>
+            <input type="tel" id="pos_cust_phone" class="form-control-modern" placeholder="e.g. 9876543210">
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Email Address</label>
+            <input type="email" id="pos_cust_email" class="form-control-modern" placeholder="customer@example.com">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group-modern">
+            <label class="form-label-modern">Customer Type</label>
+            <select id="pos_cust_type" class="form-control-modern">
+              <option value="retail">Retail Consumer (B2C)</option>
+              <option value="wholesale">Wholesale / Trade (B2B)</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">GSTIN (Optional)</label>
+            <input type="text" id="pos_cust_gstin" class="form-control-modern" placeholder="22AAAAA0000A1Z5">
+          </div>
+        </div>
+
+        <div class="form-group-modern">
+          <label class="form-label-modern">Billing Address</label>
+          <input type="text" id="pos_cust_address" class="form-control-modern" placeholder="Street, Building, Area">
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group-modern">
+            <label class="form-label-modern">State</label>
+            <select id="pos_cust_state" class="form-control-modern">
+              <option value="">Select State</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">City</label>
+            <select id="pos_cust_city" class="form-control-modern">
+              <option value="">Select City</option>
+            </select>
+          </div>
+          <div class="form-group-modern">
+            <label class="form-label-modern">Pincode</label>
+            <input type="text" id="pos_cust_postal_code" class="form-control-modern" placeholder="e.g. 400001">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-modern">
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="closePosCustomerModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-modern btn-primary-modern" id="posCustSubmitBtn">
+          <i class="ti ti-user-check"></i> Save Customer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==========================================================
+     ADVANCED POS LOGIC & MULTI-LEVEL ENGINE
+     ========================================================== -->
+<script>
+  // Web Audio Synthesizer Feedback
+  const PosAudio = {
+    enabled: true,
+    ctx: null,
+    init() {
+      if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    },
+    beep() {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.09);
+      } catch (e) {}
+    },
+    success() {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.08);
+          gain.gain.setValueAtTime(0.14, this.ctx.currentTime + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (i + 1) * 0.08);
+          osc.start(this.ctx.currentTime + i * 0.08);
+          osc.stop(this.ctx.currentTime + (i + 1) * 0.08);
+        });
+      } catch (e) {}
+    },
+    error() {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+      } catch (e) {}
+    }
+  };
+
+  function togglePosAudio() {
+    PosAudio.enabled = !PosAudio.enabled;
+    const btn = document.getElementById('audioToggleBtn');
+    if (PosAudio.enabled) {
+      btn.innerHTML = '<i class="ti ti-volume"></i>';
+      showToast('info', 'Audio feedback enabled');
+      PosAudio.beep();
+    } else {
+      btn.innerHTML = '<i class="ti ti-volume-off"></i>';
+      showToast('info', 'Audio feedback muted');
+    }
+  }
+
+  // ==========================================================
+  // MULTI-LEVEL & MULTI-CART STATE
+  // ==========================================================
+  let currentLevel = 1;
+  let orderTabs = [
+    {
+      id: 0,
+      title: 'Cart #1',
+      cart: [],
+      customer_id: '',
+      customer_name: 'Walk-in Customer',
+      payment_mode_id: '',
+      discount: 0,
+      discountType: 'flat',
+      deliveryCharge: 0,
+      packagingCharge: 0,
+      promoDiscount: 0,
+      notes: ''
+    }
+  ];
+  let activeTabIndex = 0;
+  let currentSelectedCategory = 'all';
+  let activeInvoiceData = null;
+
+  function getActiveTab() {
+    return orderTabs[activeTabIndex] || orderTabs[0];
+  }
+
+  function getCart() {
+    return getActiveTab().cart;
+  }
+
+  // Level Navigation (Levels 1 to 5)
+  function goToLevel(level) {
+    const currentCart = getCart();
+
+    if (level > 1 && currentCart.length === 0) {
+      PosAudio.error();
+      showWarning('Empty Cart', 'Please add products to the cart first.');
+      return;
+    }
+
+    currentLevel = level;
+
+    for (let i = 1; i <= 5; i++) {
+      const panel = document.getElementById(`levelPanel${i}`);
+      if (panel) panel.style.display = (i === level) ? 'block' : 'none';
+
+      const btn = document.getElementById(`levelBtn${i}`);
+      if (btn) {
+        btn.classList.remove('active');
+        if (i === level) btn.classList.add('active');
+        if (i < level) btn.classList.add('completed');
+        else btn.classList.remove('completed');
+      }
+    }
+
+    const backBtn = document.getElementById('wizardBackBtn');
+    const nextBtn = document.getElementById('wizardNextBtn');
+    const payBtn = document.getElementById('wizardPayBtn');
+    const navRow = document.getElementById('wizardNavRow');
+
+    if (level === 1) {
+      backBtn.style.display = 'none';
+      nextBtn.style.display = 'inline-flex';
+      nextBtn.innerHTML = 'Continue to Customer (Level 2) <i class="ti ti-chevron-right"></i>';
+      payBtn.style.display = 'none';
+      navRow.className = 'pos-nav-controls single-col';
+    } else if (level === 2) {
+      backBtn.style.display = 'inline-flex';
+      backBtn.innerHTML = '<i class="ti ti-chevron-left"></i> Back to Items';
+      nextBtn.style.display = 'inline-flex';
+      nextBtn.innerHTML = 'Continue to Payment (Level 3) <i class="ti ti-chevron-right"></i>';
+      payBtn.style.display = 'none';
+      navRow.className = 'pos-nav-controls';
+    } else if (level === 3) {
+      backBtn.style.display = 'inline-flex';
+      backBtn.innerHTML = '<i class="ti ti-chevron-left"></i> Back';
+      nextBtn.style.display = 'inline-flex';
+      nextBtn.innerHTML = 'Advanced Options (Level 4) <i class="ti ti-chevron-right"></i>';
+      payBtn.style.display = 'inline-flex';
+      payBtn.innerHTML = '<i class="ti ti-printer"></i> Instant Pay (F2)';
+      navRow.className = 'pos-nav-controls';
+    } else if (level === 4) {
+      backBtn.style.display = 'inline-flex';
+      backBtn.innerHTML = '<i class="ti ti-chevron-left"></i> Back';
+      nextBtn.style.display = 'inline-flex';
+      nextBtn.innerHTML = 'Preview Invoice (Level 5) <i class="ti ti-chevron-right"></i>';
+      payBtn.style.display = 'inline-flex';
+      payBtn.innerHTML = '<i class="ti ti-printer"></i> Instant Pay (F2)';
+      navRow.className = 'pos-nav-controls';
+    } else if (level === 5) {
+      backBtn.style.display = 'inline-flex';
+      backBtn.innerHTML = '<i class="ti ti-chevron-left"></i> Back to Settings';
+      nextBtn.style.display = 'none';
+      payBtn.style.display = 'inline-flex';
+      payBtn.innerHTML = '<i class="ti ti-printer"></i> Confirm &amp; Print Bill (F2)';
+      navRow.className = 'pos-nav-controls single-col';
+      renderInlineInvoicePreview();
+    }
+  }
+
+  function nextLevel() {
+    if (currentLevel < 5) {
+      goToLevel(currentLevel + 1);
+    }
+  }
+
+  function prevLevel() {
+    if (currentLevel > 1) {
+      goToLevel(currentLevel - 1);
+    }
+  }
+
+  // Multi-Order Tab Rendering
+  function renderOrderTabs() {
+    const container = document.getElementById('parkedTabsBar');
+    container.innerHTML = orderTabs.map((tab, idx) => {
+      let tabTotal = 0;
+      tab.cart.forEach(item => {
+        tabTotal += (item.quantity * item.unit_price) * (1 + item.tax_rate / 100);
+      });
+      const isActive = (idx === activeTabIndex);
+      return `
+        <button type="button" class="pos-tab-chip ${isActive ? 'active' : ''}" onclick="switchOrderTab(${idx})">
+          <i class="ti ti-shopping-cart"></i>
+          <span>${tab.title} (₹${tabTotal.toFixed(2)})</span>
+        </button>
+      `;
+    }).join('');
+  }
+
+  function createNewOrderTab() {
+    const newIdx = orderTabs.length;
+    orderTabs.push({
+      id: newIdx,
+      title: `Cart #${newIdx + 1}`,
+      cart: [],
+      customer_id: '',
+      customer_name: 'Walk-in Customer',
+      payment_mode_id: document.getElementById('payment_mode_id').value || '',
+      discount: 0,
+      discountType: 'flat',
+      deliveryCharge: 0,
+      packagingCharge: 0,
+      promoDiscount: 0,
+      notes: ''
+    });
+    switchOrderTab(newIdx);
+    showToast('info', `Opened new Cart #${newIdx + 1}`);
+  }
+
+  function switchOrderTab(idx) {
+    if (idx < 0 || idx >= orderTabs.length) return;
+    activeTabIndex = idx;
+    const tab = getActiveTab();
+    
+    document.getElementById('customer_id').value = tab.customer_id || '';
+    if (tab.payment_mode_id) {
+      document.getElementById('payment_mode_id').value = tab.payment_mode_id;
+    }
+    document.getElementById('discountInput').value = tab.discount || 0;
+    document.getElementById('discountType').value = tab.discountType || 'flat';
+    document.getElementById('extraDeliveryCharge').value = tab.deliveryCharge || 0;
+    document.getElementById('extraPackagingCharge').value = tab.packagingCharge || 0;
+    document.getElementById('invoice_notes').value = tab.notes || '';
+
+    updateCustomerPreview();
+    renderOrderTabs();
+    renderCart();
+    goToLevel(1);
+  }
+
+  // Floating Live Item-Added Banner Trigger
+  let bannerTimer = null;
+  function showItemAddedBanner(name, qty, price) {
+    const banner = document.getElementById('posItemAddedBanner');
+    document.getElementById('bannerItemName').textContent = `Added: ${name}`;
+    document.getElementById('bannerItemMeta').textContent = `Qty: ${qty} • Rate: ₹${Number(price).toFixed(2)}`;
+    banner.classList.add('show');
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => {
+      banner.classList.remove('show');
+    }, 2400);
+  }
+
+  // Cart Operations
+  function addToCart(productId, name, price, taxRate) {
+    const pId = productId ? Number(productId) : null;
+    const pPrice = Number(price) || 0;
+    const pTax = Number(taxRate) || 0;
+    const currentCart = getCart();
+
+    const existing = pId ? currentCart.find(item => item.product_id === pId) : null;
+    let finalQty = 1;
+    let targetIndex = -1;
+
+    if (existing) {
+      existing.quantity += 1;
+      finalQty = existing.quantity;
+      targetIndex = currentCart.indexOf(existing);
+    } else {
+      currentCart.push({
+        product_id: pId,
+        name: name,
+        unit_price: pPrice,
+        tax_rate: pTax,
+        quantity: 1
+      });
+      targetIndex = currentCart.length - 1;
+    }
+
+    PosAudio.beep();
+    showItemAddedBanner(name, finalQty, pPrice);
+    renderCart();
+    renderOrderTabs();
+
+    // Highlight row
+    setTimeout(() => {
+      const rows = document.querySelectorAll('#cartTableRows tr');
+      if (rows[targetIndex]) {
+        rows[targetIndex].classList.add('cart-row-highlight');
+      }
+    }, 50);
+  }
+
+  function addProductToCart(element) {
+    const id = Number(element.dataset.id);
+    const name = element.dataset.name;
+    const price = Number(element.dataset.price);
+    const tax = Number(element.dataset.tax);
+
+    if (!name || price < 0) {
+      PosAudio.error();
+      showWarning('Invalid Product', 'Product data is incomplete.');
+      return;
+    }
+
+    addToCart(id, name, price, tax);
+  }
+
+  function updateQuantity(index, delta) {
+    const currentCart = getCart();
+    if (index < 0 || index >= currentCart.length) return;
+    currentCart[index].quantity += delta;
+    if (currentCart[index].quantity <= 0) {
+      currentCart.splice(index, 1);
+    }
+    PosAudio.beep();
+    renderCart();
+    renderOrderTabs();
+  }
+
+  function removeFromCart(index) {
+    const currentCart = getCart();
+    if (index < 0 || index >= currentCart.length) return;
+    currentCart.splice(index, 1);
+    renderCart();
+    renderOrderTabs();
+  }
+
+  function clearCart() {
+    const currentCart = getCart();
+    if (currentCart.length === 0) return;
+    showConfirm('Clear Cart?', 'All items will be removed from cart.', 'Yes, Clear')
+      .then(res => {
+        if (res.isConfirmed) {
+          getActiveTab().cart = [];
+          getActiveTab().promoDiscount = 0;
+          renderCart();
+          renderOrderTabs();
+          goToLevel(1);
+          showToast('info', 'Cart cleared.');
+        }
+      });
+  }
+
+  // Mobile View Switcher for Handheld / Mobile POS Terminals
+  function switchMobilePosView(view) {
+    if (view === 'cart') {
+      document.body.classList.remove('pos-mobile-mode-products');
+      document.body.classList.add('pos-mobile-mode-cart');
+      const tabP = document.getElementById('mTabProducts');
+      const tabC = document.getElementById('mTabCart');
+      if (tabP) tabP.classList.remove('active');
+      if (tabC) tabC.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      document.body.classList.remove('pos-mobile-mode-cart');
+      document.body.classList.add('pos-mobile-mode-products');
+      const tabP = document.getElementById('mTabProducts');
+      const tabC = document.getElementById('mTabCart');
+      if (tabP) tabP.classList.add('active');
+      if (tabC) tabC.classList.remove('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // Initialize mobile mode to products catalog by default
+  document.body.classList.add('pos-mobile-mode-products');
+
+  function renderCart() {
+    const tbody = document.getElementById('cartTableRows');
+    const emptyNotice = document.getElementById('cartEmptyNotice');
+    const tableEl = document.getElementById('cartTableElement');
+    const countBadge = document.getElementById('cartCountBadge');
+    const mCartBadge = document.getElementById('mMobileCartBadge');
+    const bCartCount = document.getElementById('bottomCartCount');
+    const bCartBar = document.getElementById('posMobileBottomBar');
+    const currentCart = getCart();
+
+    if (countBadge) countBadge.textContent = currentCart.length;
+    if (mCartBadge) mCartBadge.textContent = currentCart.length;
+    if (bCartCount) bCartCount.textContent = currentCart.length;
+
+    if (bCartBar) {
+      if (currentCart.length > 0) {
+        bCartBar.classList.add('show-mobile');
+      } else {
+        bCartBar.classList.remove('show-mobile');
+      }
+    }
+
+    if (currentCart.length === 0) {
+      tbody.innerHTML = '';
+      tableEl.style.display = 'none';
+      emptyNotice.style.display = 'block';
+    } else {
+      emptyNotice.style.display = 'none';
+      tableEl.style.display = 'table';
+      tbody.innerHTML = currentCart.map((item, index) => {
+        const itemLineTotal = item.quantity * item.unit_price;
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: #0f172a; line-height: 1.2;">${escapeHtml(item.name)}</div>
+              ${item.tax_rate > 0 ? `<div style="font-size: 10px; color: var(--pos-primary);">${item.tax_rate}% GST</div>` : '<div style="font-size: 10px; color: #64748b;">0% GST</div>'}
+            </td>
+            <td style="text-align: center;">
+              <div class="pos-stepper-chip">
+                <button type="button" class="pos-stepper-btn" onclick="updateQuantity(${index}, -1)">&minus;</button>
+                <span class="pos-stepper-val">${item.quantity}</span>
+                <button type="button" class="pos-stepper-btn" onclick="updateQuantity(${index}, 1)">&plus;</button>
+              </div>
+            </td>
+            <td style="text-align: right; font-family: var(--pos-font-mono); font-weight: 600;">₹${item.unit_price.toFixed(2)}</td>
+            <td style="text-align: right; font-family: var(--pos-font-mono); font-weight: 800; color: #0f172a;">₹${itemLineTotal.toFixed(2)}</td>
+            <td style="text-align: right;">
+              <button
+                type="button"
+                class="btn-modern btn-danger-modern btn-icon-only"
+                style="width: 22px; height: 22px; font-size: 11px;"
+                onclick="removeFromCart(${index})"
+                title="Remove"
+              >
+                <i class="ti ti-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    calculateTotals();
+  }
+
+  function calculateTotals() {
+    const currentCart = getCart();
+    let subtotal = 0;
+    let taxTotal = 0;
+
+    currentCart.forEach(item => {
+      const lineTotal = item.quantity * item.unit_price;
+      const taxAmount = (lineTotal * item.tax_rate) / 100;
+      subtotal += lineTotal;
+      taxTotal += taxAmount;
+    });
+
+    const discountInput = document.getElementById('discountInput');
+    const discountType = document.getElementById('discountType').value;
+    let rawDiscount = Number(discountInput ? discountInput.value : 0) || 0;
+    if (rawDiscount < 0) rawDiscount = 0;
+
+    let discountAmount = rawDiscount;
+    if (discountType === 'percent') {
+      discountAmount = ((subtotal + taxTotal) * rawDiscount) / 100;
+    }
+
+    const tab = getActiveTab();
+    const promoDisc = tab.promoDiscount || 0;
+    discountAmount += promoDisc;
+
+    // Additional Level 4 Charges
+    const delivery = Number(document.getElementById('extraDeliveryCharge')?.value) || 0;
+    const packaging = Number(document.getElementById('extraPackagingCharge')?.value) || 0;
+    const totalExtra = delivery + packaging;
+
+    tab.deliveryCharge = delivery;
+    tab.packagingCharge = packaging;
+
+    const extraRow = document.getElementById('additionalChargesRow');
+    if (extraRow) {
+      if (totalExtra > 0) {
+        extraRow.style.display = 'flex';
+        document.getElementById('additionalChargesTotal').textContent = '₹' + totalExtra.toFixed(2);
+      } else {
+        extraRow.style.display = 'none';
+      }
+    }
+
+    const maxDiscount = subtotal + taxTotal;
+    if (discountAmount > maxDiscount) discountAmount = maxDiscount;
+
+    let rawNet = Math.max(0, subtotal + taxTotal + totalExtra - discountAmount);
+    let finalPayable = rawNet;
+    let roundOffDiff = 0;
+
+    const roundOffCheck = document.getElementById('autoRoundOffCheck');
+    if (roundOffCheck && roundOffCheck.checked) {
+      finalPayable = Math.round(rawNet);
+      roundOffDiff = finalPayable - rawNet;
+    }
+
+    const roundOffRow = document.getElementById('roundOffRow');
+    if (roundOffRow) {
+      if (Math.abs(roundOffDiff) > 0.001) {
+        roundOffRow.style.display = 'flex';
+        document.getElementById('roundOffValue').textContent = (roundOffDiff > 0 ? '+₹' : '-₹') + Math.abs(roundOffDiff).toFixed(2);
+      } else {
+        roundOffRow.style.display = 'none';
+      }
+    }
+
+    document.getElementById('subtotal').textContent = '₹' + subtotal.toFixed(2);
+    document.getElementById('taxTotal').textContent = '₹' + taxTotal.toFixed(2);
+    document.getElementById('grandTotal').textContent = '₹' + finalPayable.toFixed(2);
+
+    const bCartTotal = document.getElementById('bottomCartTotal');
+    if (bCartTotal) bCartTotal.textContent = '₹' + finalPayable.toFixed(2);
+
+    tab.discount = rawDiscount;
+    tab.discountType = discountType;
+
+    calcChange();
+  }
+
+
+  function setTender(val) {
+    const grandTotalStr = document.getElementById('grandTotal').textContent.replace('₹', '');
+    const grandTotal = Number(grandTotalStr) || 0;
+    const input = document.getElementById('tenderAmount');
+
+    if (val === 'exact') {
+      input.value = Math.ceil(grandTotal);
+    } else {
+      const current = Number(input.value) || 0;
+      input.value = current + Number(val);
+    }
+    calcChange();
+  }
+
+  function calcChange() {
+    const grandTotalStr = document.getElementById('grandTotal').textContent.replace('₹', '');
+    const grandTotal = Number(grandTotalStr) || 0;
+    const tenderVal = Number(document.getElementById('tenderAmount').value) || 0;
+    const changeEl = document.getElementById('changeReturn');
+
+    if (tenderVal >= grandTotal && grandTotal > 0) {
+      const diff = tenderVal - grandTotal;
+      changeEl.textContent = '₹' + diff.toFixed(2);
+      changeEl.style.color = '#059669';
+    } else {
+      changeEl.textContent = '₹0.00';
+      changeEl.style.color = '#64748b';
+    }
+  }
+
+  function updateCustomerPreview() {
+    const select = document.getElementById('customer_id');
+    const opt = select.options[select.selectedIndex];
+    const name = opt ? opt.text : 'Walk-in Customer';
+    const phone = opt?.dataset?.phone || '';
+    const city = opt?.dataset?.city || '';
+
+    document.getElementById('custBoxName').textContent = name;
+    document.getElementById('custBoxMeta').textContent = phone ? `Phone: ${phone} ${city ? '• ' + city : ''}` : 'Standard Retail Sale';
+    
+    getActiveTab().customer_id = select.value || '';
+    getActiveTab().customer_name = name;
+  }
+
+  function selectPaymentModeTile(modeName) {
+    document.querySelectorAll('.pos-pay-tile').forEach(t => t.classList.remove('selected'));
+    
+    const isCash = (modeName === 'Cash');
+    const isUpi = (modeName === 'UPI');
+    const isCard = (modeName === 'Card');
+    const isCredit = (modeName === 'Credit');
+
+    if (isCash) document.getElementById('payTileCash')?.classList.add('selected');
+    if (isUpi) document.getElementById('payTileUpi')?.classList.add('selected');
+    if (isCard) document.getElementById('payTileCard')?.classList.add('selected');
+    if (isCredit) document.getElementById('payTileCredit')?.classList.add('selected');
+
+    const select = document.getElementById('payment_mode_id');
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].text.toLowerCase().includes(modeName.toLowerCase())) {
+        select.selectedIndex = i;
+        break;
+      }
+    }
+
+    document.getElementById('cashTenderBox').style.display = isCash ? 'block' : 'none';
+    const upiBox = document.getElementById('upiMiniQrBox');
+    
+    if (isUpi) {
+      upiBox.style.display = 'block';
+      const grandTotalStr = document.getElementById('grandTotal').textContent.replace('₹', '');
+      const qrContainer = document.getElementById('miniUpiQrContainer');
+      qrContainer.innerHTML = '';
+      const payload = `upi://pay?pa=storebilling@upi&pn=GroceryBillingStore&am=${grandTotalStr}&cu=INR&tn=Invoice-${Date.now()}`;
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrContainer, { text: payload, width: 110, height: 110 });
+      }
+    } else {
+      upiBox.style.display = 'none';
+    }
+  }
+
+  function renderInlineInvoicePreview() {
+    const currentCart = getCart();
+    const customerSelect = document.getElementById('customer_id');
+    const custName = customerSelect.options[customerSelect.selectedIndex]?.text || 'Walk-in Customer';
+    const grandTotal = document.getElementById('grandTotal').textContent;
+    const subtotal = document.getElementById('subtotal').textContent;
+    const tax = document.getElementById('taxTotal').textContent;
+
+    const container = document.getElementById('inlineInvoicePreview');
+    container.innerHTML = `
+      <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;">
+        <div><strong>Billed To:</strong> ${escapeHtml(custName)}</div>
+        <div style="color: #059669; font-weight: 700;">Status: Ready to Bill</div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 11.5px;">
+        <thead>
+          <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <th style="padding: 4px; text-align: left;">Item</th>
+            <th style="padding: 4px; text-align: center;">Qty</th>
+            <th style="padding: 4px; text-align: right;">Rate</th>
+            <th style="padding: 4px; text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${currentCart.map(item => `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 4px;">${escapeHtml(item.name)}</td>
+              <td style="padding: 4px; text-align: center;">${item.quantity}</td>
+              <td style="padding: 4px; text-align: right;">₹${item.unit_price.toFixed(2)}</td>
+              <td style="padding: 4px; text-align: right; font-weight: 600;">₹${(item.quantity * item.unit_price).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+        <div style="width: 200px; font-size: 12px;">
+          <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+            <span style="color: #64748b;">Subtotal:</span>
+            <span>${subtotal}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+            <span style="color: #64748b;">Tax (GST):</span>
+            <span>${tax}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 4px 0; border-top: 2px solid #0f172a; margin-top: 4px; font-weight: 800; font-size: 14px; color: var(--pos-primary);">
+            <span>Payable:</span>
+            <span>${grandTotal}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Multi-Form 1: Custom Loose Item Modal
+  function openCustomItemModal() {
+    document.getElementById('posCustomItemForm').reset();
+    document.getElementById('posCustomItemModal').classList.add('show');
+    setTimeout(() => document.getElementById('custom_item_name').focus(), 100);
+  }
+
+  function closeCustomItemModal() {
+    document.getElementById('posCustomItemModal').classList.remove('show');
+  }
+
+  document.getElementById('posCustomItemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('custom_item_name').value.trim();
+    const price = Number(document.getElementById('custom_item_price').value) || 0;
+    const qty = Number(document.getElementById('custom_item_qty').value) || 1;
+    const tax = Number(document.getElementById('custom_item_tax').value) || 0;
+    const unit = document.getElementById('custom_item_unit').value;
+
+    if (!name || price <= 0) {
+      showToast('error', 'Please enter a valid item name and price');
+      return;
+    }
+
+    const currentCart = getCart();
+    currentCart.push({
+      product_id: null,
+      name: `${name} (${unit})`,
+      unit_price: price,
+      tax_rate: tax,
+      quantity: qty
+    });
+
+    PosAudio.beep();
+    renderCart();
+    renderOrderTabs();
+    closeCustomItemModal();
+    showToast('success', `Added custom item "${name}"`);
+  });
+
+  // Multi-Form 2: Quick Add Product Master Modal
+  function openPosProductModal() {
+    document.getElementById('posProductForm').reset();
+    document.getElementById('posProductModal').classList.add('show');
+    setTimeout(() => document.getElementById('quick_prod_name').focus(), 100);
+  }
+
+  function closePosProductModal() {
+    document.getElementById('posProductModal').classList.remove('show');
+  }
+
+  document.getElementById('posProductForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('quick_prod_name').value.trim();
+    const barcode = document.getElementById('quick_prod_barcode').value.trim();
+    const sku = document.getElementById('quick_prod_sku').value.trim();
+    const sellingPrice = Number(document.getElementById('quick_prod_selling').value) || 0;
+    const purchasePrice = Number(document.getElementById('quick_prod_purchase').value) || 0;
+    const categoryId = document.getElementById('quick_prod_category').value || null;
+    const unitId = document.getElementById('quick_prod_unit').value || 1;
+    const taxSelect = document.getElementById('quick_prod_tax');
+    const taxId = taxSelect.value || null;
+    const taxRate = Number(taxSelect.options[taxSelect.selectedIndex]?.dataset.rate || 0);
+
+    if (!name || sellingPrice <= 0) {
+      showToast('error', 'Please provide a valid product name and price');
+      return;
+    }
+
+    const saveBtn = document.getElementById('quickProdSubmitBtn');
+    saveBtn.disabled = true;
+
+    try {
+      const res = await fetch('/admin/master/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name, barcode, sku,
+          selling_price: sellingPrice,
+          purchase_price: purchasePrice,
+          category_id: categoryId ? parseInt(categoryId) : null,
+          unit_id: parseInt(unitId),
+          tax_id: taxId ? parseInt(taxId) : null,
+          min_stock_level: 5,
+          reorder_quantity: 10
+        })
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to add product');
+
+      const newProd = json.product;
+      addToCart(newProd.id, newProd.name, Number(newProd.selling_price), taxRate);
+
+      closePosProductModal();
+      showToast('success', `Product "${newProd.name}" added to catalog & cart!`);
+    } catch(err) {
+      showError('Error', err.message);
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  // Multi-Form 3: Quick Add Customer Master Modal
+  function openPosCustomerModal() {
+    document.getElementById('posCustomerForm').reset();
+    if (typeof setupDynamicStateCity === 'function') {
+      setupDynamicStateCity('pos_cust_state', 'pos_cust_city', '', '');
+    }
+    document.getElementById('posCustomerModal').classList.add('show');
+    setTimeout(() => document.getElementById('pos_cust_name').focus(), 100);
+  }
+
+  function closePosCustomerModal() {
+    document.getElementById('posCustomerModal').classList.remove('show');
+  }
+
+  // ==========================================================
+  // OPTIONAL COUPON / PROMO CODE ENGINE
+  // ==========================================================
+  function applyPromoPreset(code) {
+    const input = document.getElementById('promoCodeInput');
+    if (input) input.value = code;
+    applyPromoCode();
+  }
+
+  function applyPromoCode() {
+    const input = document.getElementById('promoCodeInput');
+    const code = input ? input.value.trim().toUpperCase() : '';
+    const badge = document.getElementById('promoSuccessBadge');
+    const currentCart = getCart();
+
+    if (!code) {
+      showToast('warning', 'Please enter a coupon code');
+      return;
+    }
+
+    if (currentCart.length === 0) {
+      PosAudio.error();
+      showWarning('Empty Cart', 'Please add products to cart before applying coupon code.');
+      return;
+    }
+
+    let subtotal = currentCart.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+    let discount = 0;
+    let desc = '';
+
+    // Standard Preset Coupons & Dynamic Matcher
+    switch (code) {
+      case 'SAVE10':
+      case 'DISCOUNT10':
+        discount = (subtotal * 10) / 100;
+        desc = '10% Discount Applied';
+        break;
+      case 'SUPER20':
+      case 'SAVE20':
+        discount = (subtotal * 20) / 100;
+        desc = '20% Super Discount Applied';
+        break;
+      case 'FLAT50':
+        discount = Math.min(subtotal, 50);
+        desc = '₹50 Flat Off Applied';
+        break;
+      case 'FESTIVE100':
+      case 'WELCOME100':
+        discount = Math.min(subtotal, 100);
+        desc = '₹100 Festive Off Applied';
+        break;
+      case 'FLAT200':
+        discount = Math.min(subtotal, 200);
+        desc = '₹200 Flat Off Applied';
+        break;
+      default:
+        // Match patterns like SAVE15 or FLAT75
+        const pctMatch = code.match(/^(?:SAVE|OFF|DISC)(\d{1,2})$/);
+        const flatMatch = code.match(/^(?:FLAT|CASH)(\d{2,4})$/);
+        if (pctMatch) {
+          const pct = parseInt(pctMatch[1]);
+          discount = (subtotal * pct) / 100;
+          desc = `${pct}% Off Applied`;
+        } else if (flatMatch) {
+          const flat = parseInt(flatMatch[1]);
+          discount = Math.min(subtotal, flat);
+          desc = `₹${flat} Flat Off Applied`;
+        } else {
+          PosAudio.error();
+          showToast('error', `Invalid coupon code "${code}". Try SAVE10, FLAT50, SUPER20 or FESTIVE100.`);
+          return;
+        }
+    }
+
+    const tab = getActiveTab();
+    tab.promoCode = code;
+    tab.promoDiscount = discount;
+
+    PosAudio.beep();
+    if (badge) {
+      badge.style.display = 'flex';
+      badge.innerHTML = `<span><i class="ti ti-circle-check"></i> ${desc} (-₹${discount.toFixed(2)})</span> <a href="javascript:void(0)" onclick="removePromoCode()" style="color:#ef4444; margin-left:auto; font-weight:800;" title="Remove Coupon">&times; Remove</a>`;
+    }
+
+    calculateTotals();
+    showToast('success', `🎉 Coupon "${code}" Applied: ${desc}!`);
+  }
+
+  function removePromoCode() {
+    const tab = getActiveTab();
+    tab.promoCode = '';
+    tab.promoDiscount = 0;
+    const input = document.getElementById('promoCodeInput');
+    const badge = document.getElementById('promoSuccessBadge');
+    if (input) input.value = '';
+    if (badge) {
+      badge.style.display = 'none';
+      badge.innerHTML = '';
+    }
+    calculateTotals();
+    showToast('info', 'Coupon removed');
+  }
+
+  // POS Quick Customer jQuery Validation Initialization
+  $(document).ready(function() {
+    if (typeof initFormValidation === 'function') {
+      initFormValidation('#posCustomerForm', {
+        rules: {
+          name: { required: true, minlength: 2 },
+          phone: { phoneIN: true },
+          email: { email: true },
+          postal_code: { pincode: true },
+          gstin: { gstin: true }
+        },
+        messages: {
+          name: { required: 'Customer name is required', minlength: 'Name must be at least 2 characters' },
+          phone: { phoneIN: 'Please enter a valid 10-digit mobile number' },
+          email: { email: 'Please enter a valid email address' },
+          postal_code: { pincode: 'Please enter a valid 6-digit pincode' },
+          gstin: { gstin: 'Please enter a valid 15-character GSTIN' }
+        },
+        onSubmit: function(form, $form) {
+          const data = {
+            name: $('#pos_cust_name').val().trim(),
+            phone: $('#pos_cust_phone').val().trim(),
+            email: $('#pos_cust_email').val().trim(),
+            address: $('#pos_cust_address').val().trim(),
+            state: $('#pos_cust_state').val().trim(),
+            city: $('#pos_cust_city').val().trim(),
+            postal_code: $('#pos_cust_postal_code').val().trim(),
+            customer_type: $('#pos_cust_type').val(),
+            gstin: $('#pos_cust_gstin').val().trim().toUpperCase()
+          };
+
+          const saveBtn = document.getElementById('posCustSubmitBtn');
+          saveBtn.disabled = true;
+
+          fetch('/admin/master/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json().then(json => ({ ok: res.ok, json })))
+          .then(({ ok, json }) => {
+            saveBtn.disabled = false;
+            if (ok && json.success && json.customer) {
+              const newCust = json.customer;
+              const select = document.getElementById('customer_id');
+              const opt = document.createElement('option');
+              opt.value = newCust.id;
+              opt.dataset.phone = newCust.phone || '';
+              opt.dataset.city = newCust.city || '';
+              opt.textContent = `${newCust.name} ${newCust.phone ? '(' + newCust.phone + ')' : ''}`;
+              opt.selected = true;
+              select.appendChild(opt);
+
+              updateCustomerPreview();
+              closePosCustomerModal();
+              showToast('success', `Customer "${newCust.name}" added & selected!`);
+            } else {
+              const errMsg = json.errors ? Object.values(json.errors).flat().join(', ') : (json.error || 'Failed to add customer');
+              showToast('error', errMsg);
+            }
+          })
+          .catch(err => {
+            saveBtn.disabled = false;
+            showToast('error', 'Network error while adding customer');
+          });
+        }
+      });
+    }
+  });
+
+  // Complete Sale & Live Step-by-Step "Adding Bill" Message Overlay
+  async function completeSale() {
+    const currentCart = getCart();
+    if (currentCart.length === 0) {
+      PosAudio.error();
+      showWarning('Empty Cart', 'Please add at least one product before checkout.');
+      return;
+    }
+
+    const customerId = document.getElementById('customer_id').value || null;
+    const paymentModeId = document.getElementById('payment_mode_id').value || null;
+    const customerSelect = document.getElementById('customer_id');
+    const customerName = customerSelect.options[customerSelect.selectedIndex]?.text || 'Walk-in Customer';
+    
+    const grandTotalStr = document.getElementById('grandTotal').textContent.replace('₹', '');
+    const subtotalStr = document.getElementById('subtotal').textContent.replace('₹', '');
+    const taxStr = document.getElementById('taxTotal').textContent.replace('₹', '');
+    const subtotal = Number(subtotalStr) || 0;
+    const taxTotal = Number(taxStr) || 0;
+    const grandTotal = Number(grandTotalStr) || 0;
+    const discount = Math.max(0, (subtotal + taxTotal) - grandTotal);
+
+    const payload = {
+      customer_id: customerId ? Number(customerId) : null,
+      payment_mode_id: paymentModeId ? Number(paymentModeId) : null,
+      discount_amount: discount,
+      items: currentCart.map(item => ({
+        product_id: item.product_id,
+        name: item.name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        tax_rate: item.tax_rate,
+        discount_amount: 0,
+        discount_percent: 0
+      }))
+    };
+
+    const overlay = document.getElementById('posBillProcessingOverlay');
+    const s1 = document.getElementById('pStep1');
+    const s2 = document.getElementById('pStep2');
+    const s3 = document.getElementById('pStep3');
+    const s4 = document.getElementById('pStep4');
+
+    // Reset steps
+    [s1, s2, s3, s4].forEach(s => { s.className = 'pos-step-indicator-item'; });
+    s1.className = 'pos-step-indicator-item active';
+    overlay.classList.add('active');
+
+    // Step 1: Validating stock
+    await new Promise(r => setTimeout(r, 280));
+    s1.className = 'pos-step-indicator-item completed';
+    s2.className = 'pos-step-indicator-item active';
+
+    // Step 2: Applying taxes
+    await new Promise(r => setTimeout(r, 280));
+    s2.className = 'pos-step-indicator-item completed';
+    s3.className = 'pos-step-indicator-item active';
+
+    try {
+      const response = await fetch('/admin/sales', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to complete sale');
+      }
+
+      s3.className = 'pos-step-indicator-item completed';
+      s4.className = 'pos-step-indicator-item active';
+      await new Promise(r => setTimeout(r, 220));
+      s4.className = 'pos-step-indicator-item completed';
+
+      overlay.classList.remove('active');
+      PosAudio.success();
+
+      const invoiceNum = result.invoice_number || 'N/A';
+      const saleId = result.sale_id;
+      const finalTotal = Number(result.grand_total || grandTotal).toFixed(2);
+
+      activeInvoiceData = {
+        saleId,
+        invoiceNum,
+        customerName,
+        date: new Date().toLocaleString('en-IN'),
+        items: [...currentCart],
+        subtotal: subtotal.toFixed(2),
+        tax: taxTotal.toFixed(2),
+        discount: discount.toFixed(2),
+        grandTotal: finalTotal
+      };
+
+      // Empty active cart immediately on successful bill creation
+      const activeTab = getActiveTab();
+      if (activeTab) {
+        activeTab.cart = [];
+        activeTab.customer_id = '';
+        activeTab.customer_name = 'Walk-in Customer';
+        activeTab.discount = 0;
+        activeTab.deliveryCharge = 0;
+        activeTab.packagingCharge = 0;
+        activeTab.promoDiscount = 0;
+        activeTab.notes = '';
+      }
+      
+      const custSelect = document.getElementById('customer_id');
+      if (custSelect) custSelect.value = '';
+      const discInput = document.getElementById('discountInput');
+      if (discInput) discInput.value = '0';
+      const delInput = document.getElementById('extraDeliveryCharge');
+      if (delInput) delInput.value = '0';
+      const packInput = document.getElementById('extraPackagingCharge');
+      if (packInput) packInput.value = '0';
+      const notesInput = document.getElementById('invoice_notes');
+      if (notesInput) notesInput.value = '';
+      const promoBadge = document.getElementById('appliedPromoBadge');
+      if (promoBadge) promoBadge.style.display = 'none';
+      const promoInp = document.getElementById('promoCodeInput');
+      if (promoInp) promoInp.value = '';
+      
+      calculateTotals();
+      renderCart();
+      renderOrderTabs();
+      updateCustomerPreview();
+      goToLevel(1);
+
+      renderSuccessInvoice(activeInvoiceData);
+      showToast('success', `🎉 Bill Added! Invoice #${invoiceNum} generated.`);
+
+    } catch (err) {
+      overlay.classList.remove('active');
+      PosAudio.error();
+      showError('Sale Error', err.message);
+    }
+  }
+
+  function renderSuccessInvoice(data) {
+    const area = document.getElementById('successInvoiceRenderArea');
+    area.innerHTML = `
+      <div style="text-align: center; margin-bottom: 16px;">
+        <div class="pos-success-badge-pulse">
+          <i class="ti ti-check"></i>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">TAX INVOICE GENERATED</h3>
+        <p style="font-size: 12px; color: #64748b; margin-top: 2px;">GST Rule 46 Compliant Bill Generated Successfully</p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 12px;">
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #0f172a;">Invoice Number</div>
+          <span style="font-size: 15px; font-weight: 800; color: var(--pos-primary); font-family: var(--pos-font-mono);">#${data.invoiceNum}</span>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 13px; font-weight: 700; color: #0f172a;">Billing Date &amp; Time</div>
+          <div style="font-size: 12px; color: #64748b;">${data.date}</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 12px; font-size: 12px;">
+        <div><strong>Billed To:</strong> ${escapeHtml(data.customerName)}</div>
+        <div style="color: #059669; font-weight: 700;">PAID &bull; COMPLETED</div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1;">
+            <th style="padding: 6px; text-align: left;">Item Description</th>
+            <th style="padding: 6px; text-align: center;">Qty</th>
+            <th style="padding: 6px; text-align: right;">Rate</th>
+            <th style="padding: 6px; text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.items.map(item => `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 6px;">${escapeHtml(item.name)}</td>
+              <td style="padding: 6px; text-align: center;">${item.quantity}</td>
+              <td style="padding: 6px; text-align: right;">₹${item.unit_price.toFixed(2)}</td>
+              <td style="padding: 6px; text-align: right; font-weight: 700;">₹${(item.quantity * item.unit_price).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <div style="width: 220px; font-size: 12.5px;">
+          <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+            <span style="color: #64748b;">Subtotal:</span>
+            <span>₹${data.subtotal}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+            <span style="color: #64748b;">GST:</span>
+            <span>₹${data.tax}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-top: 2px solid #0f172a; margin-top: 4px; font-size: 16px; font-weight: 800; color: var(--pos-primary);">
+            <span>Grand Total:</span>
+            <span>₹${data.grandTotal}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('posInvoiceSuccessModal').classList.add('show');
+  }
+
+  function closeSuccessInvoiceModal() {
+    document.getElementById('posInvoiceSuccessModal').classList.remove('show');
+  }
+
+  function closeSuccessInvoiceModalAndNext() {
+    closeSuccessInvoiceModal();
+    getActiveTab().cart = [];
+    getActiveTab().promoDiscount = 0;
+    document.getElementById('discountInput').value = 0;
+    document.getElementById('tenderAmount').value = '';
+    document.getElementById('promoCodeInput').value = '';
+    document.getElementById('promoSuccessBadge').style.display = 'none';
+    renderCart();
+    renderOrderTabs();
+    goToLevel(1);
+    document.getElementById('searchInput').focus();
+  }
+
+  function printActiveInvoice(format) {
+    if (!activeInvoiceData || !activeInvoiceData.saleId) return;
+    window.open(`/admin/sales/invoice/${activeInvoiceData.saleId}?format=${format || 'a4'}`, '_blank');
+  }
+
+  function shareActiveInvoiceWhatsapp() {
+    if (!activeInvoiceData) return;
+    const msg = `Tax Invoice #${activeInvoiceData.invoiceNum}%0ATotal Amount: ₹${activeInvoiceData.grandTotal}%0ABilled to: ${activeInvoiceData.customerName}%0AThank you for shopping with us!`;
+    window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+  }
+
+  function emailActiveInvoice() {
+    if (!activeInvoiceData || !activeInvoiceData.saleId) return;
+    Swal.fire({
+      title: `Email Invoice #${activeInvoiceData.invoiceNum}`,
+      html: `<input type="email" id="posEmailInput" class="swal2-input" placeholder="e.g. customer@example.com" style="width:100%;">`,
+      showCancelButton: true,
+      confirmButtonText: 'Send Email'
+    }).then(res => {
+      if (res.isConfirmed) {
+        const email = document.getElementById('posEmailInput').value.trim();
+        if (email) {
+          fetch(`/admin/sales/invoice/${activeInvoiceData.saleId}/email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          })
+          .then(r => r.json())
+          .then(d => showToast('success', d.message || 'Invoice emailed!'))
+          .catch(() => showToast('error', 'Failed to send email'));
+        }
+      }
+    });
+  }
+
+  // Search & Enter Auto-Add
+  function filterCatalog() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.product-card');
+
+    cards.forEach(card => {
+      const text = card.textContent.toLowerCase();
+      const barcode = (card.dataset.barcode || '').toLowerCase();
+      const sku = (card.dataset.sku || '').toLowerCase();
+      const cat = (card.dataset.cat || '').toLowerCase();
+
+      const matchesSearch = text.includes(search) || barcode.includes(search) || sku.includes(search);
+      const matchesCat = (currentSelectedCategory === 'all' || cat === currentSelectedCategory);
+
+      card.style.display = (matchesSearch && matchesCat) ? 'flex' : 'none';
+    });
+  }
+
+  function selectCategory(cat, btn) {
+    currentSelectedCategory = cat;
+    document.querySelectorAll('.pos-cat-chip').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    filterCatalog();
+  }
+
+  document.getElementById('searchInput').addEventListener('keydown', async function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = this.value.trim();
+      if (!query) return;
+
+      const exactMatch = Array.from(document.querySelectorAll('.product-card')).find(c => 
+        (c.dataset.barcode && c.dataset.barcode.toLowerCase() === query.toLowerCase()) ||
+        (c.dataset.sku && c.dataset.sku.toLowerCase() === query.toLowerCase())
+      );
+
+      if (exactMatch) {
+        addProductToCart(exactMatch);
+        this.value = '';
+        filterCatalog();
+        return;
+      }
+
+      try {
+        const res = await fetch(`/admin/sales/search/barcode?barcode=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (res.ok && data.product) {
+          const p = data.product;
+          const taxRate = p.tax ? Number(p.tax.rate) : (p.Tax ? Number(p.Tax.rate) : 0);
+          addToCart(p.id, p.name, Number(p.selling_price), taxRate);
+          this.value = '';
+          filterCatalog();
+        } else {
+          PosAudio.error();
+          showWarning('Item Not Found', `No product found matching '${query}'.`);
+        }
+      } catch(err) {
+        PosAudio.error();
+      }
+    }
+  });
+
+  // Global Fast Keyboard Shortcuts Engine for POS
+  document.addEventListener('keydown', function(e) {
+    const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+
+    // F2 or Ctrl+Enter -> Fast Invoice Creation / Print Bill
+    if (e.key === 'F2' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
+      e.preventDefault();
+      completeSale();
+      return;
+    }
+    // F4 or / -> Focus Barcode / Search
+    if (e.key === 'F4' || (e.key === '/' && !isInput)) {
+      e.preventDefault();
+      const searchInp = document.getElementById('searchInput');
+      if (searchInp) { searchInp.focus(); searchInp.select(); }
+      return;
+    }
+    // F6 -> Open New Order Cart Tab
+    if (e.key === 'F6') {
+      e.preventDefault();
+      createNewOrderTab();
+      return;
+    }
+    // F8 -> Quick Add Customer
+    if (e.key === 'F8') {
+      e.preventDefault();
+      openPosCustomerModal();
+      return;
+    }
+    // F9 -> Quick Cash & Auto Tender Exact
+    if (e.key === 'F9') {
+      e.preventDefault();
+      const pmSelect = document.getElementById('payment_mode_id');
+      if (pmSelect) {
+        Array.from(pmSelect.options).forEach(opt => {
+          if (opt.text.toLowerCase().includes('cash')) pmSelect.value = opt.value;
+        });
+      }
+      setTender('exact');
+      showToast('info', '💵 Payment set to Cash (Exact Tender)');
+      return;
+    }
+    // F10 -> Quick UPI / QR Payment
+    if (e.key === 'F10') {
+      e.preventDefault();
+      const pmSelect = document.getElementById('payment_mode_id');
+      if (pmSelect) {
+        Array.from(pmSelect.options).forEach(opt => {
+          if (opt.text.toLowerCase().includes('upi') || opt.text.toLowerCase().includes('qr') || opt.text.toLowerCase().includes('online')) pmSelect.value = opt.value;
+        });
+      }
+      setTender('exact');
+      showToast('info', '📱 Payment set to UPI / QR');
+      return;
+    }
+  });
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Initial Run
+  renderOrderTabs();
+  calculateTotals();
+  renderCart();
+  goToLevel(1);
+</script>
+
+</body>
+</html>

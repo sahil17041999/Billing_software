@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plans &amp; Pricing &bull; Next-Gen Cloud POS Billing Software</title>
+  <meta name="description" content="Affordable cloud POS billing, inventory management, barcode scanning, and GST invoicing software for grocery stores and supermarkets.">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+
+  <!-- Standard Typography: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
+  <!-- jQuery & SweetAlert2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --primary: #1366d9;
+      --primary-hover: #0f52b0;
+      --primary-gradient: linear-gradient(135deg, #1366d9 0%, #3b82f6 50%, #06b6d4 100%);
+      --bg-dark: #0f172a;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #334155;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Public Header Navigation */
+    .b2c-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 24px;
+    }
+
+    .b2c-nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .b2c-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #0f172a;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .b2c-brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(19, 102, 217, 0.3);
+    }
+
+    .b2c-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-nav-login {
+      padding: 8px 18px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 13.5px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav-login:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    /* Hero Section */
+    .b2c-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #0f172a 100%);
+      color: #ffffff;
+      padding: 70px 20px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .b2c-hero::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(56, 116, 255, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #93c5fd;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+
+    .b2c-hero h1 {
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      max-width: 820px;
+      margin: 0 auto 16px;
+    }
+
+    .b2c-hero p {
+      font-size: 17px;
+      color: #cbd5e1;
+      max-width: 650px;
+      margin: 0 auto 32px;
+      line-height: 1.5;
+    }
+
+    /* Cycle Switcher */
+    .cycle-switcher-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .cycle-switcher-pills {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 4px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .cycle-pill-btn {
+      padding: 9px 20px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .cycle-pill-btn.active {
+      background: #ffffff;
+      color: #1366d9;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .discount-ribbon {
+      background: #107c41;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+
+    /* Main Container */
+    .pricing-container {
+      max-width: 1200px;
+      margin: -40px auto 70px;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Pricing Cards Grid */
+    .plans-pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 50px;
+    }
+
+    @media (max-width: 992px) {
+      .plans-pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .plan-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.07);
+    }
+
+    .plan-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px -4px rgba(15, 23, 42, 0.14);
+      border-color: #cbd5e1;
+    }
+
+    .plan-card.popular {
+      border: 2.5px solid #1366d9;
+      box-shadow: 0 16px 36px -4px rgba(19, 102, 217, 0.22);
+    }
+
+    .popular-tag {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #1366d9 0%, #2563eb 100%);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 16px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(19, 102, 217, 0.35);
+    }
+
+    .plan-header {
+      margin-bottom: 20px;
+    }
+
+    .plan-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .plan-desc {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.4;
+      min-height: 38px;
+    }
+
+    .plan-price-box {
+      margin: 16px 0 24px;
+      padding: 16px 0;
+      border-top: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .plan-price {
+      font-size: 38px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .plan-period {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .plan-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-grow: 1;
+    }
+
+    .plan-feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: #334155;
+    }
+
+    .plan-feature-item i {
+      color: #107c41;
+      font-size: 17px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .plan-btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 14.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .plan-btn-primary {
+      background: linear-gradient(135deg, #1366d9 0%, #2563eb 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(19, 102, 217, 0.3);
+    }
+    .plan-btn-primary:hover {
+      background: linear-gradient(135deg, #0f52b0 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+    }
+
+    .plan-btn-secondary {
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+    .plan-btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* Comparison Table Section */
+    .compare-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.05);
+      margin-bottom: 50px;
+    }
+
+    table.compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table.compare-table th {
+      background: #f8fafc;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    table.compare-table td {
+      padding: 14px 16px;
+      font-size: 13.5px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    /* Modern Checkout Modal */
+    .b2c-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .b2c-modal-backdrop.show {
+      display: flex;
+    }
+
+    .b2c-modal-dialog {
+      background: #ffffff;
+      border-radius: 22px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      animation: modalFadeIn 0.25s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .b2c-modal-header {
+      padding: 22px 26px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .b2c-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .b2c-modal-close {
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    .b2c-modal-body {
+      padding: 24px 26px;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-group-client {
+      margin-bottom: 16px;
+    }
+
+    .form-group-client label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-control-client {
+      width: 100%;
+      height: 42px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 13.5px;
+      color: #0f172a;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control-client:focus {
+      outline: none;
+      border-color: #1366d9;
+      box-shadow: 0 0 0 3px rgba(19, 102, 217, 0.15);
+    }
+
+    .pay-methods-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .pay-btn-opt {
+      padding: 10px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #334155;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .pay-btn-opt.active {
+      border-color: #1366d9;
+      background: #edf5ff;
+      color: #1366d9;
+    }
+
+    .b2c-modal-footer {
+      padding: 18px 26px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Trust Footer */
+    .b2c-footer {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 13.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="b2c-nav">
+    <div class="b2c-nav-inner">
+      <a href="/" class="b2c-brand">
+        <div class="b2c-brand-icon">
+          <i class="ti ti-shopping-cart-discount"></i>
+        </div>
+        <span>Grocery POS <span style="font-size: 13px; font-weight: 600; color: #1366d9;">Cloud ERP</span></span>
+      </a>
+
+      <div class="b2c-nav-links">
+        <a href="#compare" style="color: #475569; text-decoration: none; font-size: 13.5px; font-weight: 600;">Features</a>
+        <a href="/admin/login" class="btn-nav-login">
+          <i class="ti ti-login"></i> Client Sign In
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="b2c-hero">
+    <div class="hero-badge">
+      <i class="ti ti-sparkles"></i> NEXT-GEN GROCERY &amp; SUPERMARKET BILLING
+    </div>
+    <h1>Modern Cloud POS Billing Software for Growing Retail Stores</h1>
+    <p>Ultra-fast barcode billing, multi-cart holding, automated GST tax invoices, inventory stock ledger, and dynamic SMTP email receipts in one unified platform.</p>
+
+    <!-- Billing Cycle Switcher -->
+    <div class="cycle-switcher-wrap">
+      <div class="cycle-switcher-pills">
+        <button type="button" class="cycle-pill-btn active" id="pillMonthly" onclick="switchPublicCycle('monthly')">
+          Monthly Billing
+        </button>
+        <button type="button" class="cycle-pill-btn" id="pillYearly" onclick="switchPublicCycle('yearly')">
+          Annual Billing <span class="discount-ribbon">Save 20%</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Cards Container -->
+  <main class="pricing-container">
+    <div class="plans-pricing-grid">
+      <% if (typeof plans !== 'undefined' && plans) { %>
+        <% plans.forEach(plan => { %>
+          <div class="plan-card <%= plan.is_popular ? 'popular' : '' %>">
+            <% if (plan.is_popular) { %>
+              <div class="popular-tag"><i class="ti ti-star"></i> <%= plan.badge_text || 'MOST POPULAR' %></div>
+            <% } %>
+
+            <div class="plan-header">
+              <h2 class="plan-name"><%= plan.name %></h2>
+              <div class="plan-desc"><%= plan.description %></div>
+            </div>
+
+            <div class="plan-price-box">
+              <div class="plan-price">
+                <span class="price-val" data-monthly="<%= plan.price_monthly %>" data-yearly="<%= plan.price_yearly %>">
+                  ₹<%= plan.price_monthly %>
+                </span>
+                <span class="plan-period">/ month</span>
+              </div>
+              <div class="yearly-note" style="font-size: 11.5px; color: #107c41; font-weight: 700; display: none; margin-top: 3px;">
+                Billed annually at ₹<%= plan.price_yearly %>/yr (2 Months Free)
+              </div>
+            </div>
+
+            <ul class="plan-features-list">
+              <% if (plan.features && Array.isArray(plan.features)) { %>
+                <% plan.features.forEach(feat => { %>
+                  <li class="plan-feature-item">
+                    <i class="ti ti-circle-check-filled"></i>
+                    <span><%= feat %></span>
+                  </li>
+                <% }); %>
+              <% } %>
+            </ul>
+
+            <div>
+              <button type="button" class="plan-btn <%= plan.is_popular ? 'plan-btn-primary' : 'plan-btn-secondary' %>"
+                      onclick="openClientCheckout('<%= plan.id %>', '<%= plan.name %>', <%= plan.price_monthly %>, <%= plan.price_yearly %>)">
+                <i class="ti ti-shopping-cart-plus"></i> Buy <%= plan.name.split(' ')[0] %> Plan
+              </button>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <!-- Feature Entitlements Comparison Table -->
+    <section id="compare" class="compare-section">
+      <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">
+        Compare Capabilities &amp; Entitlements
+      </h2>
+      <p style="color: #64748b; font-size: 13.5px;">Choose the exact license tier designed for your store counter capacity.</p>
+
+      <div style="overflow-x: auto;">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width: 40%; text-align: left;">Feature Module</th>
+              <th style="text-align: center;">Starter Retailer</th>
+              <th style="text-align: center; color: #1366d9;">Professional Store</th>
+              <th style="text-align: center;">Enterprise Supermarket</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 700;">Multi-Level &amp; Multi-Cart POS Terminal</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">High-Speed Barcode Scanning &amp; Audio Beep</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Automated SMTP Email Invoicing &amp; Presets</td>
+              <td style="text-align: center;">Basic</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Full Dynamic</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Dedicated Relay</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Custom Store Logo on A4 &amp; 80mm Thermal Receipts</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Day-End Cash Reconciliation &amp; Closing Audit</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Cashier &amp; Operator Accounts</td>
+              <td style="text-align: center;">2 Users</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">6 Users</td>
+              <td style="text-align: center; font-weight: 700; color: #107c41;">Unlimited</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Products in Catalog</td>
+              <td style="text-align: center;">1,000 Items</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">10,000 Items</td>
+              <td style="text-align: center; font-weight: 700; color: #107c41;">Unlimited</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Monthly Invoicing Quota</td>
+              <td style="text-align: center;">2,000 Bills/mo</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">15,000 Bills/mo</td>
+              <td style="text-align: center; font-weight: 700; color: #107c41;">Unlimited</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Client Onboarding & Checkout Modal -->
+  <div id="clientCheckoutModal" class="b2c-modal-backdrop" onclick="if(event.target===this)closeClientCheckout()">
+    <div class="b2c-modal-dialog">
+      <div class="b2c-modal-header">
+        <h2 class="b2c-modal-title">
+          <i class="ti ti-shopping-bag-check" style="color: #1366d9;"></i> Subscribe &amp; Create Store
+        </h2>
+        <button type="button" class="b2c-modal-close" onclick="closeClientCheckout()">&times;</button>
+      </div>
+
+      <form id="clientCheckoutForm" onsubmit="handleClientOrderSubmit(event)">
+        <div class="b2c-modal-body">
+          <!-- Order Summary Card -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 15px; font-weight: 800; color: #0f172a;" id="checkoutPlanTitle">Professional Store</span>
+              <span style="background: #edf5ff; color: #1366d9; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800;" id="checkoutCycleBadge">Monthly Plan</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <span style="font-size: 12.5px; color: #64748b;">Subscription Price:</span>
+              <span style="font-size: 24px; font-weight: 800; color: #1366d9;" id="checkoutAmountDisplay">₹999.00</span>
+            </div>
+          </div>
+
+          <!-- Store Registration Details -->
+          <div class="form-group-client">
+            <label>Store / Grocery / Supermarket Name <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="cust_store_name" class="form-control-client" placeholder="e.g. Apex Supermarket" required>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label>Owner / Contact Name <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="cust_owner_name" class="form-control-client" placeholder="e.g. Ramesh Kumar" required>
+            </div>
+            <div class="form-group-client">
+              <label>10-Digit Mobile Number <span style="color:#ef4444;">*</span></label>
+              <input type="tel" id="cust_phone" class="form-control-client" placeholder="e.g. 9876543210" pattern="[6-9][0-9]{9}" required>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label>Email Address <span style="color:#ef4444;">*</span></label>
+              <input type="email" id="cust_email" class="form-control-client" placeholder="name@store.com" required>
+            </div>
+            <div class="form-group-client">
+              <label>City / Location</label>
+              <input type="text" id="cust_city" class="form-control-client" placeholder="e.g. Mumbai">
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-group-client" style="margin-top: 10px;">
+            <label>Choose Payment Method</label>
+            <div class="pay-methods-grid">
+              <button type="button" class="pay-btn-opt active" onclick="selectPay(this, 'UPI')">
+                <i class="ti ti-qrcode" style="font-size: 20px;"></i>
+                <span>Instant UPI QR</span>
+              </button>
+              <button type="button" class="pay-btn-opt" onclick="selectPay(this, 'Card')">
+                <i class="ti ti-credit-card" style="font-size: 20px;"></i>
+                <span>Debit / Credit</span>
+              </button>
+              <button type="button" class="pay-btn-opt" onclick="selectPay(this, 'NetBanking')">
+                <i class="ti ti-building-bank" style="font-size: 20px;"></i>
+                <span>Net Banking</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 12px; font-size: 12px; color: #065f46; display: flex; align-items: center; gap: 8px;">
+            <i class="ti ti-shield-check fs-5" style="color: #107c41;"></i>
+            <span>100% Secure &amp; Verified. Admin will review and activate your store dashboard immediately upon verification.</span>
+          </div>
+        </div>
+
+        <div class="b2c-modal-footer">
+          <button type="button" class="plan-btn plan-btn-secondary" style="width: auto; padding: 0 18px;" onclick="closeClientCheckout()">
+            Cancel
+          </button>
+          <button type="submit" class="plan-btn plan-btn-primary" id="btnSubmitClientOrder" style="width: auto; padding: 0 24px;">
+            <i class="ti ti-check"></i> Complete Purchase &amp; Register Store
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="b2c-footer">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <p>&copy; <%= new Date().getFullYear() %> Grocery POS ERP Software. All rights reserved.</p>
+      <p style="font-size: 12px; margin-top: 6px;">Multi-Tenant Cloud Point of Sale, GST Invoicing &amp; Retail ERP.</p>
+    </div>
+  </footer>
+
+  <script>
+    let selectedCycle = 'monthly';
+    let targetPlanId = null;
+    let selectedPayment = 'UPI';
+
+    function switchPublicCycle(cycle) {
+      selectedCycle = cycle;
+      const isYearly = cycle === 'yearly';
+
+      $('#pillMonthly').toggleClass('active', !isYearly);
+      $('#pillYearly').toggleClass('active', isYearly);
+
+      $('.price-val').each(function() {
+        const m = $(this).data('monthly');
+        const y = $(this).data('yearly');
+        if (isYearly) {
+          const monthlyEq = Math.round(y / 12);
+          $(this).text('₹' + monthlyEq);
+        } else {
+          $(this).text('₹' + m);
+        }
+      });
+
+      $('.yearly-note').toggle(isYearly);
+    }
+
+    function selectPay(btn, method) {
+      $('.pay-btn-opt').removeClass('active');
+      $(btn).addClass('active');
+      selectedPayment = method;
+    }
+
+    function openClientCheckout(planId, planName, priceMonthly, priceYearly) {
+      targetPlanId = planId;
+      $('#checkoutPlanTitle').text(planName);
+
+      const isYearly = selectedCycle === 'yearly';
+      $('#checkoutCycleBadge').text(isYearly ? 'Annual Plan (20% Off)' : 'Monthly Plan');
+
+      const amount = isYearly ? priceYearly : priceMonthly;
+      $('#checkoutAmountDisplay').text('₹' + Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+
+      $('#clientCheckoutModal').addClass('show');
+    }
+
+    function closeClientCheckout() {
+      $('#clientCheckoutModal').removeClass('show');
+    }
+
+    function handleClientOrderSubmit(e) {
+      e.preventDefault();
+
+      const btn = $('#btnSubmitClientOrder');
+      const origText = btn.html();
+      btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:spin 0.75s linear infinite"></i> Processing Order...');
+
+      const payload = {
+        plan_id: targetPlanId,
+        billing_cycle: selectedCycle,
+        store_name: $('#cust_store_name').val().trim(),
+        owner_name: $('#cust_owner_name').val().trim(),
+        phone: $('#cust_phone').val().trim(),
+        email: $('#cust_email').val().trim(),
+        city: $('#cust_city').val().trim(),
+        payment_method: selectedPayment
+      };
+
+      fetch('/api/subscriptions/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        btn.prop('disabled', false).html(origText);
+
+        if (!ok || !data.success) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Registration Error',
+            text: data.error || 'Could not complete registration. Please check your inputs.'
+          });
+        } else {
+          closeClientCheckout();
+          Swal.fire({
+            icon: 'success',
+            title: 'Order Placed Successfully!',
+            html: `
+              <div style="text-align: left; background: #f8fafc; padding: 14px; border-radius: 10px; margin: 12px 0; font-size: 13px;">
+                <div><strong>Order Reference:</strong> ${data.order_id}</div>
+                <div><strong>Store Registered:</strong> ${payload.store_name}</div>
+                <div><strong>Mobile Login ID:</strong> +91 ${payload.phone}</div>
+                <div style="margin-top: 8px; color: #107c41; font-weight: 600;">Status: Pending Administrator Approval</div>
+              </div>
+              <p style="font-size: 13px; color: #64748b;">The administrator has been notified. As soon as your store account is verified and approved, you can sign in directly using your mobile number!</p>
+            `,
+            confirmButtonText: 'Go to Sign In',
+            confirmButtonColor: '#1366d9'
+          }).then(() => {
+            window.location.href = '/admin/login';
+          });
+        }
+      })
+      .catch(err => {
+        btn.prop('disabled', false).html(origText);
+        Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not connect to server. Please try again.' });
+      });
+    }
+  </script>
+</body>
+</html>

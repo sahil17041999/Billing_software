@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Profile - Grocery Billing ERP</title>
+  <meta name="description" content="Manage personal profile details, contact information, and upload profile photo">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/js/validation.js"></script>
+
+  <style>
+    /* ==========================================================
+       ACCOUNT PROFILE ENHANCED MODERN DESIGN SYSTEM
+       ========================================================== */
+    .profile-layout-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 992px) {
+      .profile-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Profile Identity Card */
+    .profile-identity-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      position: sticky;
+      top: 84px;
+    }
+
+    .profile-card-cover {
+      height: 110px;
+      background: linear-gradient(135deg, #1366d9 0%, #3b82f6 50%, #06b6d4 100%);
+      position: relative;
+    }
+
+    .profile-card-body {
+      padding: 0 24px 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-top: -55px;
+      margin-bottom: 14px;
+    }
+
+    .avatar-image-container {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #ffffff;
+      padding: 4px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      border: 2px solid #e2e8f0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .avatar-image-container:hover img {
+      transform: scale(1.05);
+    }
+
+    .avatar-camera-btn {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #1366d9;
+      color: #ffffff;
+      border: 2.5px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(19, 102, 217, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .avatar-camera-btn:hover {
+      background: #0f52b0;
+      transform: scale(1.1);
+    }
+
+    .profile-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 4px;
+    }
+
+    .profile-username {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .profile-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: #edf5ff;
+      color: #1366d9;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid #d0e1fd;
+      margin-bottom: 18px;
+    }
+
+    .avatar-actions-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .avatar-guideline-note {
+      font-size: 11.5px;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .profile-meta-list {
+      border-top: 1px solid #f1f5f9;
+      padding-top: 16px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .meta-list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .meta-list-item .item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #1366d9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .meta-list-item .item-content {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meta-list-item .item-label {
+      font-size: 11px;
+      color: #64748b;
+      display: block;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .meta-list-item .item-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* Right Main Form Cards */
+    .profile-content-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card-profile-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    .card-profile-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-profile-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-profile-title i {
+      color: #1366d9;
+      font-size: 20px;
+    }
+
+    .card-profile-body {
+      padding: 24px;
+    }
+
+    /* Modern Styled Input Groups */
+    .profile-input-group {
+      position: relative;
+    }
+
+    .profile-input-group .input-icon-left {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 18px;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .profile-input-group input.form-control-modern {
+      padding-left: 42px !important;
+      height: 44px;
+      font-size: 14px;
+      border-radius: 10px;
+    }
+
+    .profile-input-group input.form-control-modern:focus + .input-icon-left,
+    .profile-input-group:focus-within .input-icon-left {
+      color: #1366d9;
+    }
+
+    /* Validation Feedback Enhancements */
+    .field-error-text, span.invalid-feedback-custom {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #ef4444;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 5px;
+      animation: errorFadeIn 0.2s ease-in;
+    }
+
+    @keyframes errorFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input.is-invalid {
+      border-color: #ef4444 !important;
+      background-color: #fff5f5 !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+    }
+
+    input.is-valid {
+      border-color: #10b981 !important;
+      background-color: #f0fdf4 !important;
+    }
+
+    /* System Stats Grid */
+    .system-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .system-stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .system-stat-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #edf5ff;
+      color: #1366d9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .system-stat-meta .stat-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+
+    .system-stat-meta .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar.ejs', { currentPage: 'profile' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box" style="margin-bottom: 22px;">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-user-circle" style="color:var(--primary);"></i> Account Profile
+              </h1>
+              <p class="page-subheading">Manage personal details, store operator information, and profile photo</p>
+            </div>
+          </div>
+
+          <!-- Alert Notification -->
+          <div id="profileAlert" class="alert-banner" style="display:none; margin-bottom: 20px; border-radius: 12px; padding: 14px 20px; font-weight: 600;"></div>
+
+          <div class="profile-layout-grid">
+
+            <!-- ==========================================================
+                 LEFT COLUMN: PROFILE IDENTITY & AVATAR UPLOAD
+                 ========================================================== -->
+            <div class="profile-identity-card">
+              <div class="profile-card-cover"></div>
+
+              <div class="profile-card-body">
+                <!-- Avatar with Camera Badge -->
+                <div class="avatar-wrapper">
+                  <div class="avatar-image-container">
+                    <img id="profileAvatarImg" 
+                         src="<%= (profile && profile.avatar) ? profile.avatar : '/assets/images/profile/user-1.jpg' %>" 
+                         alt="User Profile Photo">
+                  </div>
+                  <button type="button" class="avatar-camera-btn" title="Upload new photo" onclick="triggerAvatarUpload()">
+                    <i class="ti ti-camera"></i>
+                  </button>
+                </div>
+
+                <h2 class="profile-name" id="heroProfileName">
+                  <%= profile.first_name ? (profile.first_name + ' ' + (profile.last_name || '')) : profile.username %>
+                </h2>
+                <div class="profile-username">@<%= profile.username %></div>
+
+                <div class="profile-role-badge">
+                  <i class="ti ti-shield-check"></i> <%= profile.role ? profile.role.name : 'Staff Member' %>
+                </div>
+
+                <!-- Avatar Actions -->
+                <div class="avatar-actions-group">
+                  <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" onclick="triggerAvatarUpload()">
+                    <i class="ti ti-upload"></i> Upload Photo
+                  </button>
+                  <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" id="removeAvatarBtn" 
+                          onclick="handleRemoveAvatar()" 
+                          style="<%= (profile && profile.avatar) ? '' : 'display: none;' %>">
+                    <i class="ti ti-trash" style="color: #ef4444;"></i> Remove
+                  </button>
+                </div>
+
+                <!-- Hidden Native File Input -->
+                <input type="file" id="avatarFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display: none;" onchange="handleAvatarFileSelect(this)">
+
+                <div class="avatar-guideline-note">
+                  Recommended: Square JPG, PNG, or WebP. Max file size: 5MB.
+                </div>
+
+                <!-- Profile Meta List -->
+                <div class="profile-meta-list">
+                  <div class="meta-list-item">
+                    <div class="item-icon"><i class="ti ti-mail"></i></div>
+                    <div class="item-content">
+                      <span class="item-label">Primary Email</span>
+                      <span class="item-value" id="heroProfileEmail"><%= profile.email || 'Not configured' %></span>
+                    </div>
+                  </div>
+
+                  <div class="meta-list-item">
+                    <div class="item-icon"><i class="ti ti-phone"></i></div>
+                    <div class="item-content">
+                      <span class="item-label">Mobile Number</span>
+                      <span class="item-value" id="heroProfilePhone">+91 <%= profile.phone || '-' %></span>
+                    </div>
+                  </div>
+
+                  <div class="meta-list-item">
+                    <div class="item-icon"><i class="ti ti-building-store"></i></div>
+                    <div class="item-content">
+                      <span class="item-label">Assigned Store</span>
+                      <span class="item-value"><%= profile.company ? profile.company.name : 'Master Store' %></span>
+                    </div>
+                  </div>
+
+                  <div class="meta-list-item">
+                    <div class="item-icon"><i class="ti ti-calendar"></i></div>
+                    <div class="item-content">
+                      <span class="item-label">Member Since</span>
+                      <span class="item-value">
+                        <%= new Date(profile.created_at || Date.now()).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ==========================================================
+                 RIGHT COLUMN: PERSONAL DETAILS & SYSTEM OVERVIEW
+                 ========================================================== -->
+            <div class="profile-content-col">
+
+              <!-- Personal Information Card -->
+              <div class="card-profile-section">
+                <div class="card-profile-header">
+                  <h3 class="card-profile-title">
+                    <i class="ti ti-id-badge"></i> Personal Details &amp; Contact Info
+                  </h3>
+                  <span class="badge-modern info" style="font-size: 11px;">
+                    <i class="ti ti-check"></i> Account Verified
+                  </span>
+                </div>
+
+                <div class="card-profile-body">
+                  <form id="profileForm" novalidate>
+
+                    <!-- System Username (Readonly) -->
+                    <div class="form-group-modern" style="margin-bottom: 20px;">
+                      <label class="form-label-modern" style="font-weight: 700;">
+                        System Username <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Unique Account Identifier)</span>
+                      </label>
+                      <div class="profile-input-group">
+                        <input class="form-control-modern" type="text" value="<%= profile.username %>" disabled 
+                               style="background: #f8fafc; font-weight: 600; color: #64748b; cursor: not-allowed;">
+                        <i class="ti ti-lock input-icon-left"></i>
+                      </div>
+                    </div>
+
+                    <!-- First & Last Name Grid -->
+                    <div class="form-grid-2" style="margin-bottom: 20px;">
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="p_first_name" style="font-weight: 700;">
+                          First Name <span style="color:#ef4444;">*</span>
+                        </label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="text" id="p_first_name" name="first_name" 
+                                 value="<%= profile.first_name || '' %>" placeholder="e.g. Ramesh" required>
+                          <i class="ti ti-user input-icon-left"></i>
+                        </div>
+                      </div>
+
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="p_last_name" style="font-weight: 700;">
+                          Last Name
+                        </label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="text" id="p_last_name" name="last_name" 
+                                 value="<%= profile.last_name || '' %>" placeholder="e.g. Kumar">
+                          <i class="ti ti-user input-icon-left"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Email Address -->
+                    <div class="form-group-modern" style="margin-bottom: 20px;">
+                      <label class="form-label-modern" for="p_email" style="font-weight: 700;">
+                        Email Address <span style="color:#ef4444;">*</span>
+                      </label>
+                      <div class="profile-input-group">
+                        <input class="form-control-modern" type="email" id="p_email" name="email" 
+                               value="<%= profile.email || '' %>" placeholder="name@company.com" required>
+                        <i class="ti ti-mail input-icon-left"></i>
+                      </div>
+                    </div>
+
+                    <!-- Mobile Number -->
+                    <div class="form-group-modern" style="margin-bottom: 26px;">
+                      <label class="form-label-modern" for="p_phone" style="font-weight: 700;">
+                        Mobile Number <span style="color:#ef4444;">*</span> 
+                        <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Used for OTP &amp; Account Login)</span>
+                      </label>
+                      <div class="profile-input-group">
+                        <input class="form-control-modern" type="tel" id="p_phone" name="phone" 
+                               value="<%= profile.phone || '' %>" placeholder="10-digit mobile number" required>
+                        <i class="ti ti-device-mobile input-icon-left"></i>
+                      </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                      <button type="submit" class="btn-modern btn-primary-modern" id="saveProfileBtn" style="padding: 10px 24px; font-size: 14px; font-weight: 700;">
+                        <i class="ti ti-device-floppy"></i> Save Changes
+                      </button>
+                      <span id="saveStatusHint" style="font-size: 12.5px; color: #64748b;"></span>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- System Account & Role Overview Card -->
+              <div class="card-profile-section">
+                <div class="card-profile-header">
+                  <h3 class="card-profile-title">
+                    <i class="ti ti-shield-lock" style="color: #0284c7;"></i> Account Privilege &amp; Session Info
+                  </h3>
+                </div>
+
+                <div class="card-profile-body">
+                  <div class="system-overview-grid">
+                    <div class="system-stat-box">
+                      <div class="system-stat-icon"><i class="ti ti-hash"></i></div>
+                      <div class="system-stat-meta">
+                        <div class="stat-label">User ID</div>
+                        <div class="stat-value">#<%= profile.id %></div>
+                      </div>
+                    </div>
+
+                    <div class="system-stat-box">
+                      <div class="system-stat-icon"><i class="ti ti-building-store"></i></div>
+                      <div class="system-stat-meta">
+                        <div class="stat-label">Store Enterprise</div>
+                        <div class="stat-value"><%= profile.company ? profile.company.name : 'Main Organization' %></div>
+                      </div>
+                    </div>
+
+                    <div class="system-stat-box">
+                      <div class="system-stat-icon"><i class="ti ti-user-check"></i></div>
+                      <div class="system-stat-meta">
+                        <div class="stat-label">System Role</div>
+                        <div class="stat-value">
+                          <span class="badge-modern info"><%= profile.role ? profile.role.name.toUpperCase() : 'STAFF' %></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="system-stat-box">
+                      <div class="system-stat-icon"><i class="ti ti-clock-check"></i></div>
+                      <div class="system-stat-meta">
+                        <div class="stat-label">Account Status</div>
+                        <div class="stat-value">
+                          <span class="badge-modern <%= profile.is_active ? 'success' : 'danger' %>">
+                            <%= profile.is_active ? 'Active & Ready' : 'Suspended' %>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </main>
+
+        <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+<!-- ==========================================================
+     SCRIPTS & JQUERY VALIDATION ENGINE
+     ========================================================== -->
+<script>
+function showAlert(msg, type) {
+  const el = document.getElementById('profileAlert');
+  if (!el) return;
+  el.className = 'alert-banner alert-' + type;
+  el.innerHTML = `<i class="ti ti-${type === 'success' ? 'circle-check' : 'alert-circle'}"></i> ${msg}`;
+  el.style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// Trigger hidden file input
+function triggerAvatarUpload() {
+  const fileInput = document.getElementById('avatarFileInput');
+  if (fileInput) fileInput.click();
+}
+
+// Handle Avatar Selection & Upload
+function handleAvatarFileSelect(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  // Validate File Type
+  const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    if (typeof showError === 'function') {
+      showError('Invalid File Type', 'Please upload a PNG, JPG, or WebP image.');
+    } else {
+      alert('Please upload a PNG, JPG, or WebP image.');
+    }
+    input.value = '';
+    return;
+  }
+
+  // Validate File Size (Max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    if (typeof showError === 'function') {
+      showError('File Too Large', 'Profile photo must be less than 5MB.');
+    } else {
+      alert('Profile photo must be less than 5MB.');
+    }
+    input.value = '';
+    return;
+  }
+
+  // Read base64 data and upload via AJAX
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result;
+
+    // Instant local preview
+    $('#profileAvatarImg').attr('src', base64Data);
+
+    if (typeof showPageLoader === 'function') {
+      showPageLoader('Uploading profile photo...');
+    }
+
+    fetch('/admin/users/profile/avatar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ avatarData: base64Data })
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (typeof hidePageLoader === 'function') hidePageLoader();
+
+      if (!ok || !data.success) {
+        if (typeof showError === 'function') {
+          showError('Upload Failed', data.error || 'Could not update profile photo.');
+        } else {
+          alert(data.error || 'Could not update profile photo.');
+        }
+      } else {
+        // Update avatar in UI
+        const newAvatar = data.avatar;
+        $('#profileAvatarImg').attr('src', newAvatar);
+        $('#removeAvatarBtn').show();
+
+        // Update header & sidebar avatar images dynamically
+        $('.header-user-avatar-img').attr('src', newAvatar);
+        $('.user-avatar-small').attr('src', newAvatar);
+
+        if (typeof showToast === 'function') {
+          showToast('success', 'Profile photo updated successfully!');
+        } else if (typeof showSuccess === 'function') {
+          showSuccess('Success', 'Profile photo updated successfully!');
+        }
+      }
+    })
+    .catch(err => {
+      if (typeof hidePageLoader === 'function') hidePageLoader();
+      if (typeof showError === 'function') {
+        showError('Network Error', 'Failed to upload photo. Please check your connection.');
+      }
+    });
+  };
+
+  reader.readAsDataURL(file);
+}
+
+// Remove Avatar Handler
+function handleRemoveAvatar() {
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: 'Remove Profile Photo?',
+      text: 'Your profile avatar will be reset to the default image.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, Remove Photo',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        executeRemoveAvatar();
+      }
+    });
+  } else {
+    if (confirm('Are you sure you want to remove your profile photo?')) {
+      executeRemoveAvatar();
+    }
+  }
+}
+
+function executeRemoveAvatar() {
+  if (typeof showPageLoader === 'function') showPageLoader('Removing photo...');
+
+  fetch('/admin/users/profile/avatar', {
+    method: 'DELETE',
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(res => res.json().then(data => ({ ok: res.ok, data })))
+  .then(({ ok, data }) => {
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+
+    if (ok && data.success) {
+      const defaultImg = '/assets/images/profile/user-1.jpg';
+      $('#profileAvatarImg').attr('src', defaultImg);
+      $('#removeAvatarBtn').hide();
+      $('#avatarFileInput').val('');
+
+      $('.header-user-avatar-img').attr('src', defaultImg);
+      $('.user-avatar-small').attr('src', defaultImg);
+
+      if (typeof showToast === 'function') {
+        showToast('success', 'Profile photo removed.');
+      }
+    } else {
+      if (typeof showError === 'function') {
+        showError('Error', data.error || 'Failed to remove profile photo.');
+      }
+    }
+  })
+  .catch(() => {
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+  });
+}
+
+// ==========================================================
+// JQUERY FORM VALIDATION INITIALIZATION
+// ==========================================================
+$(document).ready(function() {
+  // Custom Indian Mobile validator method
+  if ($.validator && !$.validator.methods.phoneIN) {
+    $.validator.addMethod('phoneIN', function(value, element) {
+      return this.optional(element) || /^[6-9]\d{9}$/.test(String(value).trim().replace(/[\s-]/g, ''));
+    }, 'Please enter a valid 10-digit Indian mobile number.');
+  }
+
+  // Initialize jQuery Validate on #profileForm
+  $('#profileForm').validate({
+    errorElement: 'span',
+    errorClass: 'invalid-feedback-custom',
+    rules: {
+      first_name: {
+        required: true,
+        minlength: 2
+      },
+      last_name: {
+        minlength: 1
+      },
+      email: {
+        required: true,
+        email: true
+      },
+      phone: {
+        required: true,
+        phoneIN: true
+      }
+    },
+    messages: {
+      first_name: {
+        required: '<i class="ti ti-alert-circle"></i> Please enter your first name',
+        minlength: '<i class="ti ti-alert-circle"></i> First name must be at least 2 characters'
+      },
+      last_name: {
+        minlength: '<i class="ti ti-alert-circle"></i> Last name must be at least 1 character'
+      },
+      email: {
+        required: '<i class="ti ti-alert-circle"></i> Please enter your email address',
+        email: '<i class="ti ti-alert-circle"></i> Please enter a valid email address'
+      },
+      phone: {
+        required: '<i class="ti ti-alert-circle"></i> Please enter your 10-digit mobile number',
+        phoneIN: '<i class="ti ti-alert-circle"></i> Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)'
+      }
+    },
+    errorPlacement: function(error, element) {
+      error.addClass('field-error-text');
+      if (element.parent('.profile-input-group').length) {
+        error.insertAfter(element.parent());
+      } else {
+        error.insertAfter(element);
+      }
+    },
+    highlight: function(element) {
+      $(element).addClass('is-invalid').removeClass('is-valid');
+    },
+    unhighlight: function(element) {
+      $(element).removeClass('is-invalid').addClass('is-valid');
+    },
+    submitHandler: function(form, e) {
+      if (e) e.preventDefault();
+
+      const btn = $('#saveProfileBtn');
+      const originalHtml = btn.html();
+      btn.prop('disabled', true);
+      btn.html('<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite; display:inline-block;"></i> Saving...');
+
+      const firstName = $('#p_first_name').val().trim();
+      const lastName = $('#p_last_name').val().trim();
+      const email = $('#p_email').val().trim();
+      const phone = $('#p_phone').val().trim();
+
+      fetch('/admin/users/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          phone: phone
+        })
+      })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        btn.prop('disabled', false);
+        btn.html(originalHtml);
+
+        if (!ok || !data.success) {
+          showAlert(data.error || 'Failed to update profile', 'error');
+          if (typeof showError === 'function') {
+            showError('Save Failed', data.error || 'Could not update profile.');
+          }
+        } else {
+          // Update live preview in Left Identity Card
+          const fullName = firstName + (lastName ? (' ' + lastName) : '');
+          $('#heroProfileName').text(fullName);
+          $('#heroProfileEmail').text(email);
+          $('#heroProfilePhone').text('+91 ' + phone);
+
+          // Update header user text if present
+          $('.header-user-text .name').text(fullName);
+
+          if (typeof showToast === 'function') {
+            showToast('success', data.message || 'Profile saved successfully!');
+          } else if (typeof showSuccess === 'function') {
+            showSuccess('Profile Updated', 'Your profile details were updated successfully!');
+          }
+        }
+      })
+      .catch(err => {
+        btn.prop('disabled', false);
+        btn.html(originalHtml);
+        showAlert('Network error occurred. Please try again.', 'error');
+      });
+
+      return false;
+    }
+  });
+});
+</script>
+</body>
+</html>

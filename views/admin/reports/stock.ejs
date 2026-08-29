@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Valuation Report - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'reports' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-boxes" style="color: var(--primary);"></i> Inventory Stock Valuation Report
+              </h1>
+              <p class="page-subheading">Assessment of warehouse asset value at purchase cost versus anticipated retail turnover</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/inventory/stock" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-stack"></i> Live Inventory
+              </a>
+            </div>
+          </div>
+
+          <!-- Stat KPI Cards -->
+          <div class="stat-cards-grid" id="summaryCards">
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box indigo"><i class="ti ti-box"></i></div>
+                <span class="stat-card-tag neutral">Catalog</span>
+              </div>
+              <div class="stat-card-title">Total Active SKUs</div>
+              <div class="stat-card-value" id="kpiProducts">0</div>
+            </div>
+
+            <div class="stat-card-modern">
+              <div class="stat-card-header">
+                <div class="stat-card-icon-box emerald"><i class="ti ti-wallet"></i></div>
+                <span class="stat-card-tag up">Asset Value</span>
+              </div>
+              <div class="stat-card-title">Total Valuation (Cost)</div>
+              <div class="stat-card-value" id="kpiValuation">₹0.00</div>
+            </div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>SKU</th>
+                      <th style="text-align: right;">Quantity</th>
+                      <th style="text-align: center;">Min Stock</th>
+                      <th style="text-align: right;">Cost Value (₹)</th>
+                      <th style="text-align: right;">Retail Value (₹)</th>
+                      <th style="text-align: center;">Stock Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportBody">
+                    <tr>
+                      <td colspan="7" class="table-empty-state">
+                        <i class="ti ti-loader-2 icon" style="animation: spin 1s infinite linear;"></i>
+                        <p>Compiling inventory valuation data...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    fetch('/admin/reports/stock', { headers: { 'Accept': 'application/json' } })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const report = data.data;
+          const tbody = document.getElementById('reportBody');
+          
+          if (report.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="table-empty-state"><i class="ti ti-boxes-off icon"></i><p>No inventory records found.</p></td></tr>';
+          } else {
+            tbody.innerHTML = report.map(row => `
+              <tr>
+                <td><strong>${row.product ? row.product.name : '-'}</strong></td>
+                <td><span style="font-family: var(--font-mono); font-size: 12.5px;">${row.product ? row.product.sku : '-'}</span></td>
+                <td style="text-align: right; font-weight: 700;" class="amount-cell">${row.quantity}</td>
+                <td style="text-align: center; color: var(--text-muted);">${row.product ? row.product.min_stock_level : '-'}</td>
+                <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.stock_value_cost || 0).toFixed(2)}</td>
+                <td style="text-align: right; color: var(--primary);" class="amount-cell">₹${parseFloat(row.stock_value_retail || 0).toFixed(2)}</td>
+                <td style="text-align: center;">
+                  ${row.quantity <= (row.product ? row.product.min_stock_level : 0) ? '<span class="badge-modern danger"><i class="ti ti-alert-circle"></i> Low Stock</span>' : '<span class="badge-modern success"><i class="ti ti-check"></i> In Stock</span>'}
+                </td>
+              </tr>
+            `).join('');
+          }
+          
+          document.getElementById('kpiProducts').textContent = data.summary.totalProducts || 0;
+          document.getElementById('kpiValuation').textContent = '₹' + parseFloat(data.summary.totalValue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        }
+      });
+  </script>
+</body>
+</html>

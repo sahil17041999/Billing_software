@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Purchase Order - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <style>
+    .items-table-scroll { overflow-x: auto; margin-bottom: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+    .items-table input.form-control-modern { height: 36px; padding: 4px 8px; font-size: 13px; }
+    .items-table select.form-control-modern { height: 36px; padding: 4px 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'purchase' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-plus" style="color: var(--primary);"></i> New Purchase Entry
+              </h1>
+              <p class="page-subheading">Record stock receipt from suppliers with tax, batch numbers, and expiry dates</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/purchases" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Back to Orders
+              </a>
+            </div>
+          </div>
+
+          <!-- Purchase Form Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              <form id="purchaseForm" novalidate>
+                
+                <!-- Supplier & Date Header Details -->
+                <div style="background: var(--bg-subtle); padding: 20px; border-radius: var(--radius-md); margin-bottom: 24px; border: 1px solid var(--border-color);">
+                  <div class="form-grid-3">
+                    <div class="form-group-modern" style="margin-bottom: 0;">
+                      <label class="form-label-modern" for="supplier_id">Supplier <span class="required-dot">*</span></label>
+                      <select class="form-control-modern" id="supplier_id" name="supplier_id" required>
+                        <option value="">Select Supplier</option>
+                        <% suppliers.forEach(supplier => { %>
+                          <option value="<%= supplier.id %>"><%= supplier.name %></option>
+                        <% }); %>
+                      </select>
+                    </div>
+
+                    <div class="form-group-modern" style="margin-bottom: 0;">
+                      <label class="form-label-modern" for="purchase_date">Purchase Date <span class="required-dot">*</span></label>
+                      <input type="date" class="form-control-modern" id="purchase_date" name="purchase_date" value="<%= new Date().toISOString().split('T')[0] %>" required>
+                    </div>
+
+                    <div class="form-group-modern" style="margin-bottom: 0;">
+                      <label class="form-label-modern" for="invoice_number">Supplier Bill / Invoice #</label>
+                      <input type="text" class="form-control-modern" id="invoice_number" name="invoice_number" placeholder="e.g. SUP-2024-001">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Line Items Table -->
+                <h3 class="card-title-modern" style="margin-bottom: 14px;">
+                  <i class="ti ti-list"></i> Purchase Items
+                </h3>
+
+                <div class="items-table-scroll">
+                  <table class="table-modern items-table" id="itemsTable">
+                    <thead>
+                      <tr>
+                        <th style="min-width: 240px;">Product Name <span style="color: #ef4444;">*</span></th>
+                        <th style="width: 100px;">Quantity <span style="color: #ef4444;">*</span></th>
+                        <th style="width: 120px;">Unit Price (₹) <span style="color: #ef4444;">*</span></th>
+                        <th style="width: 100px;">Discount %</th>
+                        <th style="width: 100px;">Tax %</th>
+                        <th style="width: 130px;">Batch #</th>
+                        <th style="width: 140px;">Expiry Date</th>
+                        <th style="width: 120px; text-align: right;">Line Total</th>
+                        <th style="width: 50px; text-align: center;"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-top: 16px;">
+                  <button type="button" class="btn-modern btn-secondary-modern" id="addItemBtn">
+                    <i class="ti ti-plus"></i> Add Another Item
+                  </button>
+
+                  <!-- Totals Box -->
+                  <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px 24px; min-width: 320px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px;">
+                      <span>Subtotal</span>
+                      <span id="subtotal" style="font-family: var(--font-mono); font-weight: 600;">₹0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px;">
+                      <span>Total Tax (GST)</span>
+                      <span id="taxTotal" style="font-family: var(--font-mono); font-weight: 600;">₹0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13.5px; color: #059669;">
+                      <span>Total Discount</span>
+                      <span id="discountTotal" style="font-family: var(--font-mono); font-weight: 600;">₹0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; border-top: 1px solid var(--border-color); padding-top: 10px; color: var(--primary);">
+                      <span>Grand Total</span>
+                      <span id="grandTotal" style="font-family: var(--font-mono);">₹0.00</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                  <a href="/admin/purchases" class="btn-modern btn-secondary-modern">Cancel</a>
+                  <button type="submit" class="btn-modern btn-success-modern" style="padding: 10px 24px;">
+                    <i class="ti ti-check fs-5"></i> Save Purchase Order
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const products = <%- JSON.stringify(products) %>;
+    let itemCount = 0;
+    
+    function addItem() {
+      itemCount++;
+      const tbody = document.getElementById('itemsBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <select class="form-control-modern product-select" name="items[${itemCount}][product_id]" onchange="updateItem(this)" required>
+            <option value="">Select Product</option>
+            ${products.map(p => `<option value="${p.id}" data-price="${p.purchase_price}" data-tax="${p.tax ? p.tax.rate : 0}">${p.name}</option>`).join('')}
+          </select>
+        </td>
+        <td><input type="number" class="form-control-modern" name="items[${itemCount}][quantity]" min="1" value="1" onchange="updateItem(this)" onkeyup="updateItem(this)" required></td>
+        <td><input type="number" class="form-control-modern" step="0.01" name="items[${itemCount}][unit_price]" value="0" onchange="updateItem(this)" onkeyup="updateItem(this)" required></td>
+        <td><input type="number" class="form-control-modern" step="0.01" name="items[${itemCount}][discount_percent]" value="0" min="0" max="100" onchange="updateItem(this)" onkeyup="updateItem(this)"></td>
+        <td><input type="number" class="form-control-modern" step="0.01" name="items[${itemCount}][tax_rate]" value="0" onchange="updateItem(this)" onkeyup="updateItem(this)"></td>
+        <td><input type="text" class="form-control-modern" name="items[${itemCount}][batch_number]" placeholder="Batch"></td>
+        <td><input type="date" class="form-control-modern" name="items[${itemCount}][expiry_date]"></td>
+        <td class="line-total amount-cell" style="text-align: right; font-weight: 700;">₹0.00</td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-modern btn-danger-modern btn-icon-only" style="width: 28px; height: 28px; font-size: 13px;" onclick="this.closest('tr').remove(); calculateTotals();" title="Remove line item">
+            <i class="ti ti-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+    
+    function updateItem(element) {
+      const tr = element.closest('tr');
+      const select = tr.querySelector('.product-select');
+      
+      if (select.selectedIndex > 0 && element === select) {
+        tr.querySelector('input[name*="unit_price"]').value = select.options[select.selectedIndex].getAttribute('data-price') || 0;
+        tr.querySelector('input[name*="tax_rate"]').value = select.options[select.selectedIndex].getAttribute('data-tax') || 0;
+      }
+      
+      const qty = parseFloat(tr.querySelector('input[name*="quantity"]').value) || 0;
+      const price = parseFloat(tr.querySelector('input[name*="unit_price"]').value) || 0;
+      const discount = parseFloat(tr.querySelector('input[name*="discount_percent"]').value) || 0;
+      const tax = parseFloat(tr.querySelector('input[name*="tax_rate"]').value) || 0;
+      
+      const lineTotal = qty * price;
+      const discountAmt = (lineTotal * discount) / 100;
+      const taxable = lineTotal - discountAmt;
+      const taxAmt = (taxable * tax) / 100;
+      const total = taxable + taxAmt;
+      
+      tr.querySelector('.line-total').textContent = '₹' + total.toFixed(2);
+      calculateTotals();
+    }
+    
+    function calculateTotals() {
+      let subtotal = 0, taxTotal = 0, discountTotal = 0;
+      document.querySelectorAll('#itemsBody tr').forEach(tr => {
+        const qty = parseFloat(tr.querySelector('input[name*="quantity"]').value) || 0;
+        const price = parseFloat(tr.querySelector('input[name*="unit_price"]').value) || 0;
+        const discount = parseFloat(tr.querySelector('input[name*="discount_percent"]').value) || 0;
+        const tax = parseFloat(tr.querySelector('input[name*="tax_rate"]').value) || 0;
+        
+        const lineTotal = qty * price;
+        const discountAmt = (lineTotal * discount) / 100;
+        const taxable = lineTotal - discountAmt;
+        const taxAmt = (taxable * tax) / 100;
+        
+        subtotal += taxable;
+        taxTotal += taxAmt;
+        discountTotal += discountAmt;
+      });
+      
+      document.getElementById('subtotal').textContent = '₹' + subtotal.toFixed(2);
+      document.getElementById('taxTotal').textContent = '₹' + taxTotal.toFixed(2);
+      document.getElementById('discountTotal').textContent = '₹' + discountTotal.toFixed(2);
+      document.getElementById('grandTotal').textContent = '₹' + (subtotal + taxTotal).toFixed(2);
+    }
+    
+    $('#addItemBtn').on('click', addItem);
+    
+    $(document).ready(function() {
+      initFormValidation('#purchaseForm', {
+        rules: {
+          supplier_id: { required: true },
+          purchase_date: { required: true, validDate: true }
+        },
+        messages: {
+          supplier_id: { required: 'Please select a supplier from the list' },
+          purchase_date: { required: 'Please select purchase date' }
+        },
+        onSubmit: function(form, $form) {
+          const items = [];
+          let hasInvalidItem = false;
+
+          $('#itemsBody tr').each(function() {
+            const $tr = $(this);
+            const productId = $tr.find('.product-select').val();
+            const qty = parseFloat($tr.find('input[name*="quantity"]').val()) || 0;
+            const price = parseFloat($tr.find('input[name*="unit_price"]').val()) || 0;
+
+            if (productId) {
+              if (qty <= 0) {
+                $tr.find('input[name*="quantity"]').addClass('is-invalid');
+                hasInvalidItem = true;
+              } else {
+                $tr.find('input[name*="quantity"]').removeClass('is-invalid');
+              }
+
+              if (price < 0) {
+                $tr.find('input[name*="unit_price"]').addClass('is-invalid');
+                hasInvalidItem = true;
+              } else {
+                $tr.find('input[name*="unit_price"]').removeClass('is-invalid');
+              }
+
+              items.push({
+                product_id: parseInt(productId),
+                quantity: qty,
+                unit_price: price,
+                discount_percent: parseFloat($tr.find('input[name*="discount_percent"]').val()) || 0,
+                tax_rate: parseFloat($tr.find('input[name*="tax_rate"]').val()) || 0,
+                batch_number: $tr.find('input[name*="batch_number"]').val() || null,
+                expiry_date: $tr.find('input[name*="expiry_date"]').val() || null
+              });
+            }
+          });
+
+          if (items.length === 0) {
+            showWarning('No Items', 'Please select at least one valid product item.');
+            return;
+          }
+
+          if (hasInvalidItem) {
+            showWarning('Item Data Error', 'Please check quantity and unit price for all items.');
+            return;
+          }
+
+          const data = {
+            supplier_id: parseInt($('#supplier_id').val()),
+            purchase_date: $('#purchase_date').val(),
+            invoice_number: $('#invoice_number').val().trim(),
+            items: items
+          };
+
+          const saveBtn = $form.find('[type="submit"]');
+          saveBtn.prop('disabled', true);
+          if (typeof showPageLoader === 'function') showPageLoader('Saving purchase order & stock update...');
+
+          fetch('/admin/purchases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json().then(resData => ({ ok: res.ok, resData })))
+          .then(({ ok, resData }) => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            saveBtn.prop('disabled', false);
+            if (ok && resData.success) {
+              showToast('success', 'Purchase order ' + (resData.purchase_number || '') + ' recorded successfully!');
+              setTimeout(() => { window.location.href = '/admin/purchases'; }, 1100);
+            } else {
+              const errMsg = resData.errors ? Object.values(resData.errors).flat().join('<br>') : (resData.error || 'Failed to save purchase order');
+              showError('Save Failed', errMsg);
+            }
+          })
+          .catch(err => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            saveBtn.prop('disabled', false);
+            showError('Network Error', err.message || 'Could not connect to the server.');
+          });
+        }
+      });
+
+      // Initialize first row
+      addItem();
+    });
+  </script>
+</body>
+</html>

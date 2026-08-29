@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Low Stock Alerts - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'inventory' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-alert-triangle" style="color: #f59e0b;"></i> Low Stock Warnings
+              </h1>
+              <p class="page-subheading">Items whose current quantity is at or below the minimum safety stock threshold</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/purchases/new" class="btn-modern btn-primary-modern">
+                <i class="ti ti-truck-loading"></i> Create Purchase Inward
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>SKU Code</th>
+                      <th style="text-align: right;">Current Stock</th>
+                      <th style="text-align: right;">Min Stock Limit</th>
+                      <th style="text-align: right;">Suggested Reorder</th>
+                      <th style="text-align: center;">Alert Status</th>
+                      <th style="text-align: center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (products.length === 0) { %>
+                      <tr>
+                        <td colspan="7" class="table-empty-state">
+                          <i class="ti ti-circle-check icon" style="color: #10b981;"></i>
+                          <p>Great! All product stock levels are above minimum thresholds.</p>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% products.forEach(stock => { %>
+                      <tr>
+                        <td>
+                          <strong><%= stock.product ? stock.product.name : '-' %></strong>
+                        </td>
+                        <td><span style="font-family: var(--font-mono);"><%= stock.product ? stock.product.sku : '-' %></span></td>
+                        <td style="text-align: right; color: #ef4444; font-weight: 700; font-size: 15px;" class="amount-cell">
+                          <%= stock.quantity %>
+                        </td>
+                        <td style="text-align: right;" class="amount-cell"><%= stock.product ? stock.product.min_stock_level : '-' %></td>
+                        <td style="text-align: right;" class="amount-cell"><%= stock.product ? stock.product.reorder_quantity : '-' %></td>
+                        <td style="text-align: center;">
+                          <span class="badge-modern danger"><i class="ti ti-alert-circle"></i> Low Stock</span>
+                        </td>
+                        <td style="text-align: center;">
+                          <a href="/admin/purchases/new" class="btn-modern btn-secondary-modern btn-sm-modern">
+                            <i class="ti ti-plus"></i> Reorder
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

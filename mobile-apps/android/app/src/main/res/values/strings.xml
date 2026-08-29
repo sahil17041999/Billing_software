@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Grocery POS</string>
+    <string name="default_server_url">http://192.168.84.103:3000</string>
+    <string name="server_settings">Server Settings</string>
+    <string name="enter_server_url">Enter Store Server URL / IP</string>
+    <string name="connect">Connect</string>
+    <string name="cancel">Cancel</string>
+    <string name="connection_error">Unable to connect to Store Server. Please verify Wi-Fi and server IP.</string>
+</resources>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suppliers Directory - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/js/indian-states-cities.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'master' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-truck-delivery" style="color: var(--primary);"></i> Suppliers Directory
+              </h1>
+              <p class="page-subheading">Manage wholesale distributors, vendors, GSTINs, and payable balances</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <button class="btn-modern btn-primary-modern" onclick="openModal()">
+                <i class="ti ti-plus"></i> Add New Supplier
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <!-- Toolbar -->
+              <div class="toolbar-modern">
+                <div class="search-input-group">
+                  <i class="ti ti-search icon"></i>
+                  <input type="text" id="searchInput" placeholder="Search by supplier name, email, or phone..." onkeydown="if(event.key==='Enter') searchSuppliers()">
+                </div>
+                <button class="btn-modern btn-secondary-modern" onclick="searchSuppliers()">
+                  <i class="ti ti-search"></i> Search
+                </button>
+              </div>
+
+              <!-- Data Table -->
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Supplier Name</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                      <th>City</th>
+                      <th>GSTIN</th>
+                      <th style="text-align: right;">Outstanding Payable</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (suppliers.length === 0) { %>
+                      <tr>
+                        <td colspan="8" class="table-empty-state">
+                          <i class="ti ti-truck-off icon"></i>
+                          <p>No suppliers registered yet.</p>
+                          <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Add First Supplier
+                          </button>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% suppliers.forEach(supplier => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= supplier.id %></span></td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
+                              <%= supplier.name.charAt(0).toUpperCase() %>
+                            </div>
+                            <strong><%= supplier.name %></strong>
+                          </div>
+                        </td>
+                        <td><%= supplier.phone || '-' %></td>
+                        <td><%= supplier.email || '-' %></td>
+                        <td><%= supplier.city || '-' %></td>
+                        <td><span class="badge-modern secondary"><%= supplier.gstin || '-' %></span></td>
+                        <td style="text-align: right;" class="amount-cell">
+                          <span style="color: <%= Number(supplier.outstanding_amount) > 0 ? '#ef4444' : '#10b981' %>;">
+                            ₹<%= Number(supplier.outstanding_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern" 
+                            data-id="<%= supplier.id %>" 
+                            data-name="<%= supplier.name %>" 
+                            data-phone="<%= supplier.phone || '' %>" 
+                            data-email="<%= supplier.email || '' %>" 
+                            data-address="<%= supplier.address || '' %>"
+                            data-city="<%= supplier.city || '' %>" 
+                            data-state="<%= supplier.state || '' %>"
+                            data-postal="<%= supplier.postal_code || '' %>"
+                            data-gstin="<%= supplier.gstin || '' %>"
+                            data-pan="<%= supplier.pan || '' %>"
+                            data-bank="<%= supplier.bank_name || '' %>"
+                            data-account="<%= supplier.bank_account || '' %>"
+                            data-ifsc="<%= supplier.ifsc_code || '' %>"
+                            data-terms="<%= supplier.payment_terms || '' %>"
+                            onclick="editSupplier(this)" title="Edit supplier">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, Math.ceil(total / limit)) %></strong> (<%= total %> total suppliers)
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/master/suppliers?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page * limit < total) { %>
+                    <a href="/admin/master/suppliers?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="supplierModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
+          <i class="ti ti-truck-delivery" style="color: var(--primary);"></i> Add Supplier
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeModal()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="supplierForm">
+        <div class="modal-body-modern">
+          <input type="hidden" id="supplierId" name="id">
+          
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="name">Supplier / Vendor Name <span class="required-dot">*</span></label>
+            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Metro Wholesale Pvt Ltd" required>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="phone">Phone Number</label>
+              <input type="text" id="phone" name="phone" class="form-control-modern" placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="email">Email Address</label>
+              <input type="email" id="email" name="email" class="form-control-modern" placeholder="vendor@domain.com">
+            </div>
+          </div>
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="address">Address</label>
+            <textarea id="address" name="address" class="form-control-modern" rows="2" placeholder="Street / Warehouse location..."></textarea>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="state">State</label>
+              <select id="state" name="state" class="form-control-modern">
+                <option value="">-- Select State --</option>
+              </select>
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="city">City / District</label>
+              <select id="city" name="city" class="form-control-modern">
+                <option value="">-- Select City --</option>
+              </select>
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="postal_code">Postal Code (PIN)</label>
+              <input type="text" id="postal_code" name="postal_code" class="form-control-modern" placeholder="Pin code" maxlength="6">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="gstin">GSTIN</label>
+              <input type="text" id="gstin" name="gstin" class="form-control-modern" placeholder="GST Number">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="pan">PAN Number</label>
+              <input type="text" id="pan" name="pan" class="form-control-modern" placeholder="PAN Card">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="bank_name">Bank Name</label>
+              <input type="text" id="bank_name" name="bank_name" class="form-control-modern" placeholder="e.g. HDFC Bank">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="bank_account">Bank Account No.</label>
+              <input type="text" id="bank_account" name="bank_account" class="form-control-modern" placeholder="Account Number">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="ifsc_code">IFSC Code</label>
+              <input type="text" id="ifsc_code" name="ifsc_code" class="form-control-modern" placeholder="IFSC Code">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal()">
+            <i class="ti ti-x"></i> Cancel
+          </button>
+          <button type="submit" class="btn-modern btn-primary-modern" id="modalSubmitBtn">
+            <i class="ti ti-device-floppy" id="modalSubmitIcon"></i>
+            <span id="modalSubmitText">Save Supplier</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById('supplierForm').reset();
+      document.getElementById('supplierId').value = '';
+      document.getElementById('modalTitle').innerHTML = '<i class="ti ti-truck-delivery" style="color: var(--primary);"></i> Add Supplier';
+      document.getElementById('modalSubmitIcon').className = 'ti ti-device-floppy';
+      document.getElementById('modalSubmitText').textContent = 'Save Supplier';
+      
+      if (typeof setupDynamicStateCity === 'function') {
+        setupDynamicStateCity('state', 'city', '', '');
+      }
+
+      document.getElementById('supplierModal').classList.add('show');
+      setTimeout(() => document.getElementById('name').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('supplierModal').classList.remove('show');
+    }
+
+    function editSupplier(button) {
+      document.getElementById('modalTitle').innerHTML = '<i class="ti ti-edit" style="color: var(--primary);"></i> Edit Supplier';
+      document.getElementById('modalSubmitIcon').className = 'ti ti-check';
+      document.getElementById('modalSubmitText').textContent = 'Update Supplier';
+      
+      document.getElementById('supplierId').value = button.getAttribute('data-id') || '';
+      document.getElementById('name').value = button.getAttribute('data-name') || '';
+      document.getElementById('phone').value = button.getAttribute('data-phone') || '';
+      document.getElementById('email').value = button.getAttribute('data-email') || '';
+      document.getElementById('address').value = button.getAttribute('data-address') || '';
+      
+      const st = button.getAttribute('data-state') || '';
+      const ct = button.getAttribute('data-city') || '';
+      if (typeof setupDynamicStateCity === 'function') {
+        setupDynamicStateCity('state', 'city', st, ct);
+      } else {
+        document.getElementById('state').value = st;
+        document.getElementById('city').value = ct;
+      }
+
+      document.getElementById('postal_code').value = button.getAttribute('data-postal') || '';
+      document.getElementById('gstin').value = button.getAttribute('data-gstin') || '';
+      document.getElementById('pan').value = button.getAttribute('data-pan') || '';
+      document.getElementById('bank_name').value = button.getAttribute('data-bank') || '';
+      document.getElementById('bank_account').value = button.getAttribute('data-account') || '';
+      document.getElementById('ifsc_code').value = button.getAttribute('data-ifsc') || '';
+      document.getElementById('supplierModal').classList.add('show');
+      setTimeout(() => document.getElementById('name').focus(), 100);
+    }
+
+    function searchSuppliers() {
+      const search = $('#searchInput').val().trim();
+      if (typeof showPageLoader === 'function') showPageLoader('Searching suppliers...');
+      window.location.href = '/admin/master/suppliers?search=' + encodeURIComponent(search);
+    }
+
+    $(document).ready(function() {
+      initFormValidation('#supplierForm', {
+        rules: {
+          name: { required: true, minlength: 2 },
+          phone: { phoneIN: true },
+          email: { email: true },
+          gstin: { gstin: true },
+          pan: { pan: true },
+          postal_code: { pincode: true }
+        },
+        messages: {
+          name: { required: 'Please enter supplier or vendor name', minlength: 'Name must be at least 2 characters' },
+          phone: { phoneIN: 'Please enter a valid 10-digit phone number' },
+          email: { email: 'Please enter a valid email address' },
+          gstin: { gstin: 'Please enter a valid 15-character GSTIN' },
+          pan: { pan: 'Please enter a valid 10-character PAN' },
+          postal_code: { pincode: 'Please enter a valid 6-digit pincode' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#supplierId').val();
+          const data = {
+            name: $('#name').val().trim(),
+            phone: $('#phone').val().trim(),
+            email: $('#email').val().trim(),
+            address: $('#address').val().trim(),
+            city: $('#city').val().trim(),
+            state: $('#state').val().trim(),
+            postal_code: $('#postal_code').val().trim(),
+            gstin: $('#gstin').val().trim().toUpperCase(),
+            pan: $('#pan').val().trim().toUpperCase(),
+            bank_name: $('#bank_name').val().trim(),
+            bank_account: $('#bank_account').val().trim(),
+            ifsc_code: $('#ifsc_code').val().trim()
+          };
+          
+          const url = id ? '/admin/master/suppliers/' + id : '/admin/master/suppliers';
+          const method = id ? 'PUT' : 'POST';
+          const saveBtn = $('#modalSubmitBtn');
+          saveBtn.prop('disabled', true);
+          if (typeof showPageLoader === 'function') showPageLoader(id ? 'Updating Supplier...' : 'Saving Supplier...');
+          
+          fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json().then(json => ({ ok: res.ok, json })))
+          .then(({ ok, json }) => {
+            saveBtn.prop('disabled', false);
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            if (ok && json.success) {
+              closeModal();
+              showToast('success', id ? 'Supplier updated successfully!' : 'Supplier added successfully!');
+              setTimeout(() => location.reload(), 1100);
+            } else {
+              const errMsg = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.error || 'Failed to save supplier');
+              showError('Save Failed', errMsg);
+            }
+          })
+          .catch(err => {
+            saveBtn.prop('disabled', false);
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            showError('Network Error', err.message || 'Could not connect to the server.');
+          });
+        }
+      });
+
+      $('#supplierModal').on('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      // Auto initialize DataTables
+      if ($('#suppliersTable tbody tr').length > 0 && !$('#suppliersTable tbody td.table-empty-state').length) {
+        initStandardDataTable('#suppliersTable', {
+          order: [[0, 'desc']]
+        });
+      }
+    });
+  </script>
+</body>
+</html>

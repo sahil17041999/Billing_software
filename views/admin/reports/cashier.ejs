@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cashier Performance Report - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'reports' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-user-check" style="color: var(--primary);"></i> Cashier Shift Performance
+              </h1>
+              <p class="page-subheading">Track individual operator billing volume, checkout speed, and cash collections</p>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar Card -->
+          <div class="card-modern" style="padding: 18px 24px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="fromDate">From Date</label>
+                <input type="date" id="fromDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <div class="form-group-modern" style="margin-bottom: 0;">
+                <label class="form-label-modern" for="toDate">To Date</label>
+                <input type="date" id="toDate" class="form-control-modern" style="width: 170px;">
+              </div>
+              <button type="button" class="btn-modern btn-primary-modern" onclick="loadReport()" style="height: 42px;">
+                <i class="ti ti-chart-pie"></i> Generate Report
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Cashier Name</th>
+                      <th style="text-align: center;">Transactions Billed</th>
+                      <th style="text-align: right;">Total Sales (₹)</th>
+                      <th style="text-align: right;">GST Tax Handled (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportBody">
+                    <tr>
+                      <td colspan="4" class="table-empty-state">
+                        <i class="ti ti-user-x icon"></i>
+                        <p>Click "Generate Report" to pull cashier analytics.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadReport() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      
+      let url = '/admin/reports/cashier?';
+      const params = [];
+      if (fromDate) params.push('fromDate=' + fromDate);
+      if (toDate) params.push('toDate=' + toDate);
+      url += params.join('&');
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const report = data.data;
+            const tbody = document.getElementById('reportBody');
+            
+            if (report.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="4" class="table-empty-state"><i class="ti ti-user-x icon"></i><p>No cashier sessions found in this date range.</p></td></tr>';
+            } else {
+              tbody.innerHTML = report.map(row => `
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
+                        ${(row['cashier.first_name'] || row['cashier.username'] || 'C').charAt(0).toUpperCase()}
+                      </div>
+                      <strong>${row['cashier.first_name'] || row['cashier.username'] || 'Cashier #' + row.cashier_id}</strong>
+                    </div>
+                  </td>
+                  <td style="text-align: center;"><span class="badge-modern secondary">${row.transactions}</span></td>
+                  <td style="text-align: right; color: var(--primary); font-weight: 700;" class="amount-cell">₹${parseFloat(row.total || 0).toFixed(2)}</td>
+                  <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.tax || 0).toFixed(2)}</td>
+                </tr>
+              `).join('');
+            }
+          }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReport);
+  </script>
+</body>
+</html>

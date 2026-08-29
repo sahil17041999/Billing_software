@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Returns - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'returns' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-arrow-back-up" style="color: var(--primary);"></i> Sales Returns &amp; Refunds
+              </h1>
+              <p class="page-subheading">Process customer item returns, reverse invoice line items, and issue credit notes</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/returns/sales/form" class="btn-modern btn-primary-modern">
+                <i class="ti ti-plus"></i> New Sales Return
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th>Return #</th>
+                      <th>Original Invoice #</th>
+                      <th>Customer Name</th>
+                      <th>Return Date</th>
+                      <th style="text-align: right;">Refund Amount</th>
+                      <th style="text-align: center;">Status</th>
+                      <th>Handled By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (returns.length === 0) { %>
+                      <tr>
+                        <td colspan="7" class="table-empty-state">
+                          <i class="ti ti-arrow-back-up icon"></i>
+                          <p>No customer return records found.</p>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% returns.forEach(ret => { %>
+                      <tr>
+                        <td>
+                          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
+                            #<%= ret.return_number %>
+                          </span>
+                        </td>
+                        <td><span class="badge-modern secondary">#<%= ret.sale ? ret.sale.invoice_number : '-' %></span></td>
+                        <td>
+                          <strong><%= ret.customer ? ret.customer.name : 'Walk-in Customer' %></strong>
+                        </td>
+                        <td>
+                          <span style="color: var(--text-muted);">
+                            <%= new Date(ret.return_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                          </span>
+                        </td>
+                        <td style="text-align: right; color: #ef4444;" class="amount-cell">
+                          ₹<%= Number(ret.net_amount || 0).toFixed(2) %>
+                        </td>
+                        <td style="text-align: center;">
+                          <% if (ret.status === 'approved') { %>
+                            <span class="badge-modern success"><i class="ti ti-check"></i> Approved</span>
+                          <% } else if (ret.status === 'pending') { %>
+                            <span class="badge-modern warning"><i class="ti ti-clock"></i> Pending</span>
+                          <% } else { %>
+                            <span class="badge-modern danger"><%= ret.status %></span>
+                          <% } %>
+                        </td>
+                        <td><%= ret.creator ? ret.creator.username : 'Admin' %></td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, totalPages) %></strong>
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/returns/sales?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page < totalPages) { %>
+                    <a href="/admin/returns/sales?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

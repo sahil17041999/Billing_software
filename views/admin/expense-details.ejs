@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Voucher #<%= expense.id %> - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'expenses' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-receipt-tax" style="color: var(--primary);"></i> Expense Voucher #<%= expense.id %>
+              </h1>
+              <p class="page-subheading">Review expense details, category allocation, and approve or mark payments</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/expenses" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Back to Expenses
+              </a>
+            </div>
+          </div>
+
+          <!-- Expense Details Card -->
+          <div class="card-modern" style="max-width: 800px;">
+            <div class="card-body-modern">
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;">
+                <div>
+                  <span class="badge-modern secondary" style="text-transform: uppercase; font-size: 12px; margin-bottom: 6px; display: inline-block;">
+                    <%= expense.category %>
+                  </span>
+                  <h2 style="font-size: 20px; font-weight: 700; color: var(--text-main); margin: 0;">
+                    <%= expense.description || 'Expense Entry' %>
+                  </h2>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Amount</div>
+                  <div style="font-size: 26px; font-weight: 800; font-family: var(--font-mono); color: #ef4444;">
+                    ₹<%= Number(expense.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Information Grid -->
+              <div class="grid-2" style="gap: 16px; margin-bottom: 24px;">
+                <div style="background: var(--bg-subtle); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Payment Mode</div>
+                  <div style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-top: 4px; text-transform: capitalize;">
+                    <%= expense.payment_mode || 'Cash' %>
+                  </div>
+                </div>
+
+                <div style="background: var(--bg-subtle); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Payment Status</div>
+                  <div style="margin-top: 4px;">
+                    <% if (expense.status === 'paid') { %>
+                      <span class="badge-modern success"><i class="ti ti-check"></i> Paid</span>
+                    <% } else if (expense.status === 'approved') { %>
+                      <span class="badge-modern info"><i class="ti ti-thumb-up"></i> Approved</span>
+                    <% } else if (expense.status === 'pending') { %>
+                      <span class="badge-modern warning"><i class="ti ti-clock"></i> Pending Approval</span>
+                    <% } else { %>
+                      <span class="badge-modern danger"><%= expense.status %></span>
+                    <% } %>
+                  </div>
+                </div>
+
+                <div style="background: var(--bg-subtle); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Expense Date</div>
+                  <div style="font-size: 14.5px; font-weight: 600; color: var(--text-main); margin-top: 4px;">
+                    <%= new Date(expense.expense_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                  </div>
+                </div>
+
+                <div style="background: var(--bg-subtle); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Invoice / Receipt #</div>
+                  <div style="font-size: 14.5px; font-weight: 600; color: var(--text-main); margin-top: 4px;">
+                    <%= expense.invoice_number || '-' %>
+                  </div>
+                </div>
+              </div>
+
+              <% if (expense.notes) { %>
+                <div style="margin-bottom: 24px;">
+                  <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Notes / Remarks</div>
+                  <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 12px 16px; font-size: 13.5px; border: 1px solid var(--border-color);">
+                    <%= expense.notes %>
+                  </div>
+                </div>
+              <% } %>
+
+              <!-- Action Bar -->
+              <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <% if (expense.status === 'pending') { %>
+                  <button type="button" class="btn-modern btn-danger-modern" onclick="rejectExpense()">
+                    <i class="ti ti-x"></i> Reject
+                  </button>
+                  <button type="button" class="btn-modern btn-success-modern" onclick="approveExpense()">
+                    <i class="ti ti-check"></i> Approve Expense
+                  </button>
+                <% } %>
+                <% if (expense.status === 'approved') { %>
+                  <button type="button" class="btn-modern btn-success-modern" onclick="markAsPaid()">
+                    <i class="ti ti-cash"></i> Mark as Paid
+                  </button>
+                <% } %>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function approveExpense() {
+      fetch('/admin/expenses/<%= expense.id %>/approve', {
+        method: 'POST'
+      }).then(res => res.json()).then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error: ' + (data.error || 'Failed to approve'));
+        }
+      });
+    }
+    
+    function rejectExpense() {
+      const reason = prompt('Enter rejection reason:');
+      if (reason) {
+        fetch('/admin/expenses/<%= expense.id %>/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        }).then(res => res.json()).then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + (data.error || 'Failed to reject'));
+          }
+        });
+      }
+    }
+    
+    function markAsPaid() {
+      fetch('/admin/expenses/<%= expense.id %>/paid', {
+        method: 'POST'
+      }).then(res => res.json()).then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error: ' + (data.error || 'Failed to mark as paid'));
+        }
+      });
+    }
+  </script>
+</body>
+</html>

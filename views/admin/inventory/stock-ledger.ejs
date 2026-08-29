@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Ledger - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'inventory' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-book" style="color: var(--primary);"></i> Stock Movement Ledger
+              </h1>
+              <p class="page-subheading">Complete audit trail of inward, outward sales, returns, and inventory adjustments</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/inventory/stock" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-stack"></i> Stock Summary
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Product</th>
+                      <th style="text-align: center;">Movement</th>
+                      <th>Reference Event</th>
+                      <th style="text-align: right;">Opening</th>
+                      <th style="text-align: right;">Quantity</th>
+                      <th style="text-align: right;">Closing</th>
+                      <th>Batch #</th>
+                      <th>Timestamp</th>
+                      <th>Handled By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (ledgers.length === 0) { %>
+                      <tr>
+                        <td colspan="10" class="table-empty-state">
+                          <i class="ti ti-book-off icon"></i>
+                          <p>No inventory movements recorded yet.</p>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% ledgers.forEach(ledger => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= ledger.id %></span></td>
+                        <td>
+                          <strong><%= ledger.product ? ledger.product.name : '-' %></strong>
+                        </td>
+                        <td style="text-align: center;">
+                          <% if (ledger.transaction_type === 'in') { %>
+                            <span class="badge-modern success"><i class="ti ti-arrow-down-left"></i> IN</span>
+                          <% } else if (ledger.transaction_type === 'out') { %>
+                            <span class="badge-modern danger"><i class="ti ti-arrow-up-right"></i> OUT</span>
+                          <% } else if (ledger.transaction_type === 'adjustment') { %>
+                            <span class="badge-modern warning"><i class="ti ti-adjustments"></i> ADJ</span>
+                          <% } else { %>
+                            <span class="badge-modern info"><%= ledger.transaction_type %></span>
+                          <% } %>
+                        </td>
+                        <td>
+                          <span style="font-size: 12.5px; color: var(--text-muted);">
+                            <%= ledger.reference_type || '-' %> #<%= ledger.reference_id || '-' %>
+                          </span>
+                        </td>
+                        <td style="text-align: right;" class="amount-cell"><%= ledger.opening_stock %></td>
+                        <td style="text-align: right; font-weight: 700;" class="amount-cell">
+                          <%= (ledger.transaction_type === 'in' ? '+' : (ledger.transaction_type === 'out' ? '-' : '')) + (ledger.transaction_quantity || ledger.quantity) %>
+                        </td>
+                        <td style="text-align: right;" class="amount-cell"><%= ledger.closing_stock %></td>
+                        <td><span class="badge-modern secondary"><%= ledger.batch_number || '-' %></span></td>
+                        <td>
+                          <span style="color: var(--text-muted); font-size: 12.5px;">
+                            <%= new Date(ledger.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) %>
+                          </span>
+                        </td>
+                        <td><%= ledger.creator ? ledger.creator.username : 'System' %></td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, totalPages) %></strong>
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/inventory/ledger?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page < totalPages) { %>
+                    <a href="/admin/inventory/ledger?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

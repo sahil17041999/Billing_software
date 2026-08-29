@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day End Register Closing - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'dayend' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-lock-access" style="color: var(--primary);"></i> Daily Register Reconciliation
+              </h1>
+              <p class="page-subheading">Close cashier drawer, reconcile payment collections, and submit daily closing report</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/day-end/" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Back to Closings
+              </a>
+            </div>
+          </div>
+
+          <!-- Form Card -->
+          <div class="card-modern" style="max-width: 900px;">
+            <div class="card-body-modern">
+              
+              <!-- Session Overview Info Box -->
+              <div style="background: var(--bg-subtle); padding: 18px 24px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
+                <div class="grid-3" style="gap: 16px;">
+                  <div>
+                    <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Closing Date</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--text-main); margin-top: 4px;">
+                      <%= new Date(closing.closing_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Opening Cash Float</div>
+                    <div style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 4px;">
+                      ₹<%= Number(closing.opening_cash || 0).toFixed(2) %>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Today's Store Expenses</div>
+                    <div style="font-size: 16px; font-weight: 700; color: #ef4444; margin-top: 4px;">
+                      ₹<%= Number(expenses || 0).toFixed(2) %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <form id="closingForm" novalidate>
+                <input type="hidden" id="closing_id" value="<%= closing.id %>">
+                
+                <h3 class="card-title-modern" style="margin-bottom: 16px;">
+                  <i class="ti ti-credit-card"></i> 1. Collections by Payment Mode (Auto-Aggregated from POS)
+                </h3>
+                
+                <div class="form-grid-3">
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="cash_sales">Cash Sales (₹)</label>
+                    <input type="number" step="0.01" id="cash_sales" name="cash_sales" class="form-control-modern" value="<%= Number(breakdown ? breakdown.cash_sales : 0).toFixed(2) %>" oninput="calculateExpected()">
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="upi_sales">UPI / QR Sales (₹)</label>
+                    <input type="number" step="0.01" id="upi_sales" name="upi_sales" class="form-control-modern" value="<%= Number(breakdown ? breakdown.upi_sales : 0).toFixed(2) %>">
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="card_sales">Credit / Debit Card (₹)</label>
+                    <input type="number" step="0.01" id="card_sales" name="card_sales" class="form-control-modern" value="<%= Number(breakdown ? breakdown.card_sales : 0).toFixed(2) %>">
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="cheque_sales">Cheque Sales (₹)</label>
+                    <input type="number" step="0.01" id="cheque_sales" name="cheque_sales" class="form-control-modern" value="<%= Number(breakdown ? breakdown.cheque_sales : 0).toFixed(2) %>">
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="credit_sales">Customer Credit / Ledger (₹)</label>
+                    <input type="number" step="0.01" id="credit_sales" name="credit_sales" class="form-control-modern" value="<%= Number(breakdown ? breakdown.credit_sales : 0).toFixed(2) %>">
+                  </div>
+                </div>
+
+                <h3 class="card-title-modern" style="margin: 24px 0 16px;">
+                  <i class="ti ti-cash"></i> 2. Cash Drawer Reconciliation
+                </h3>
+
+                <div class="form-grid-3">
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="cash_expenses">Cash Paid Out / Expenses (₹)</label>
+                    <input type="number" step="0.01" id="cash_expenses" name="cash_expenses" class="form-control-modern" value="<%= Number(expenses || 0).toFixed(2) %>" oninput="calculateExpected()">
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="cash_withdrawal">Cash Banked / Handover (₹)</label>
+                    <input type="number" step="0.01" id="cash_withdrawal" name="cash_withdrawal" class="form-control-modern" value="0.00" oninput="calculateExpected()">
+                  </div>
+
+                  <div class="form-group-modern">
+                    <label class="form-label-modern" for="actual_cash">Actual Cash Counted (₹) <span class="required-dot">*</span></label>
+                    <input type="number" step="0.01" id="actual_cash" name="actual_cash" class="form-control-modern" placeholder="0.00" required oninput="calculateExpected()">
+                  </div>
+                </div>
+
+                <!-- Expected vs Actual Result Box -->
+                <div style="background: white; border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 18px 24px; margin: 20px 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Expected In Drawer (Opening Float + Cash Sales - Expenses - Cash Out):</span>
+                    <span id="expectedCash" style="font-size: 17px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main);">₹0.00</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                    <span style="font-size: 15px; font-weight: 700; color: var(--text-main);">Cash Discrepancy / Variance:</span>
+                    <span id="cashDifference" style="font-size: 18px; font-weight: 800; font-family: var(--font-mono); color: #10b981;">₹0.00</span>
+                  </div>
+                </div>
+
+                <div class="form-group-modern">
+                  <label class="form-label-modern" for="difference_reason">Variance Explanation (If Any)</label>
+                  <input type="text" id="difference_reason" name="difference_reason" class="form-control-modern" placeholder="Reason for cash surplus or shortage...">
+                </div>
+
+                <div class="form-group-modern">
+                  <label class="form-label-modern" for="remarks">Manager Remarks</label>
+                  <textarea id="remarks" name="remarks" class="form-control-modern" rows="2" placeholder="General end of day notes..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                  <a href="/admin/day-end/" class="btn-modern btn-secondary-modern">
+                    <i class="ti ti-x"></i> Cancel
+                  </a>
+                  <button type="submit" class="btn-modern btn-success-modern" id="submitClosingBtn" style="padding: 10px 24px;">
+                    <i class="ti ti-lock"></i> Finalize &amp; Close Register
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const openingCash = <%= parseFloat(closing.opening_cash) || 0 %>;
+    
+    function calculateExpected() {
+      const cashSales = parseFloat(document.getElementById('cash_sales').value) || 0;
+      const cashExpenses = parseFloat(document.getElementById('cash_expenses').value) || 0;
+      const cashWithdrawal = parseFloat(document.getElementById('cash_withdrawal').value) || 0;
+      const actualCash = parseFloat(document.getElementById('actual_cash').value) || 0;
+      
+      const expected = openingCash + cashSales - cashExpenses - cashWithdrawal;
+      const difference = actualCash - expected;
+      
+      document.getElementById('expectedCash').textContent = '₹' + expected.toFixed(2);
+      const diffEl = document.getElementById('cashDifference');
+      
+      if (Math.abs(difference) < 0.01) {
+        diffEl.textContent = '₹0.00 (Balanced)';
+        diffEl.style.color = '#10b981';
+      } else if (difference < 0) {
+        diffEl.textContent = '-₹' + Math.abs(difference).toFixed(2) + ' (Shortage)';
+        diffEl.style.color = '#ef4444';
+      } else {
+        diffEl.textContent = '+₹' + difference.toFixed(2) + ' (Surplus)';
+        diffEl.style.color = '#f59e0b';
+      }
+    }
+    
+    $(document).ready(function() {
+      initFormValidation('#closingForm', {
+        rules: {
+          actual_cash: { required: true, nonNegativeNumber: true }
+        },
+        messages: {
+          actual_cash: { required: 'Please enter counted cash in drawer', nonNegativeNumber: 'Counted cash cannot be negative' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#closing_id').val();
+          const actualCashVal = parseFloat($('#actual_cash').val()) || 0;
+
+          const data = {
+            cash_sales: parseFloat($('#cash_sales').val()) || 0,
+            upi_sales: parseFloat($('#upi_sales').val()) || 0,
+            card_sales: parseFloat($('#card_sales').val()) || 0,
+            cheque_sales: parseFloat($('#cheque_sales').val()) || 0,
+            credit_sales: parseFloat($('#credit_sales').val()) || 0,
+            cash_expenses: parseFloat($('#cash_expenses').val()) || 0,
+            cash_withdrawal: parseFloat($('#cash_withdrawal').val()) || 0,
+            actual_cash: actualCashVal,
+            difference_reason: $('#difference_reason').val().trim(),
+            remarks: $('#remarks').val().trim()
+          };
+
+          const btn = $('#submitClosingBtn');
+          btn.prop('disabled', true);
+          if (typeof showPageLoader === 'function') showPageLoader('Finalizing Day End Closing & Reconciling...');
+
+          fetch('/admin/day-end/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json())
+          .then(resData => {
+            if (resData.success) {
+              return fetch('/admin/day-end/' + id + '/complete', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' }
+              }).then(r => r.json());
+            } else {
+              throw new Error(resData.error || 'Failed to update closing');
+            }
+          })
+          .then(finalData => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            if (finalData.success) {
+              showSuccess('Register Closed', 'Day end register reconciliation finalized successfully!', () => {
+                window.location.href = '/admin/day-end';
+              });
+            } else {
+              btn.prop('disabled', false);
+              showError('Closing Error', finalData.error || 'Could not complete closing');
+            }
+          })
+          .catch(err => {
+            btn.prop('disabled', false);
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            showError('Network Error', err.message || 'Connection failed.');
+          });
+        }
+      });
+
+      calculateExpected();
+    });
+  </script>
+</body>
+</html>

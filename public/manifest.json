@@ -1,0 +1,55 @@
+{
+  "name": "Grocery Billing ERP & POS",
+  "short_name": "Grocery POS",
+  "description": "High-Speed Grocery Store Point of Sale & Enterprise Billing ERP Web App",
+  "start_url": "/admin/dashboard",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#1366d9",
+  "categories": ["business", "finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/assets/images/logos/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/images/logos/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "POS Billing Terminal",
+      "short_name": "POS Billing",
+      "description": "Open High-Speed Retail POS Checkout",
+      "url": "/admin/sales/pos",
+      "icons": [{ "src": "/assets/images/logos/favicon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Invoices & Bills",
+      "short_name": "Invoices",
+      "description": "View & Print Tax Invoices",
+      "url": "/admin/sales/",
+      "icons": [{ "src": "/assets/images/logos/favicon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Products Catalog",
+      "short_name": "Products",
+      "description": "Manage Items, Prices & Inventory",
+      "url": "/admin/master/products",
+      "icons": [{ "src": "/assets/images/logos/favicon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard Overview",
+      "short_name": "Dashboard",
+      "description": "View Store Analytics & Revenue",
+      "url": "/admin/dashboard",
+      "icons": [{ "src": "/assets/images/logos/favicon.png", "sizes": "192x192" }]
+    }
+  ]
+}

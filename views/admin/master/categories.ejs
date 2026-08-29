@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categories - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'master' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-category" style="color: var(--primary);"></i> Product Categories
+              </h1>
+              <p class="page-subheading">Organize inventory items into grocery departments and categories</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <button class="btn-modern btn-primary-modern" onclick="openModal()">
+                <i class="ti ti-plus"></i> Add Category
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Category Name</th>
+                      <th>Description</th>
+                      <th style="text-align: center;">Status</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (categories.length === 0) { %>
+                      <tr>
+                        <td colspan="5" class="table-empty-state">
+                          <i class="ti ti-tags-off icon"></i>
+                          <p>No categories created yet.</p>
+                          <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Create Category
+                          </button>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% categories.forEach(category => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= category.id %></span></td>
+                        <td>
+                          <strong><%= category.name %></strong>
+                        </td>
+                        <td><%= category.description || '-' %></td>
+                        <td style="text-align: center;">
+                          <span class="badge-modern <%= category.is_active ? 'success' : 'secondary' %>">
+                            <%= category.is_active ? 'Active' : 'Inactive' %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern" 
+                            data-id="<%= category.id %>" 
+                            data-name="<%= category.name %>" 
+                            data-description="<%= category.description || '' %>" 
+                            onclick="editCategory(this)" title="Edit category">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="categoryModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern" style="max-width: 520px;">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
+          <i class="ti ti-category" style="color: var(--primary);"></i> Add Category
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeModal()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="categoryForm">
+        <div class="modal-body-modern">
+          <input type="hidden" id="categoryId" name="id">
+          
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="name">Category Name <span class="required-dot">*</span></label>
+            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Dairy & Eggs" required>
+          </div>
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="description">Description</label>
+            <textarea id="description" name="description" class="form-control-modern" rows="3" placeholder="Optional category description..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-modern btn-primary-modern">
+            <i class="ti ti-device-floppy"></i> Save Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      $('#categoryForm').trigger('reset');
+      $('#categoryId').val('');
+      $('#modalTitle').html('<i class="ti ti-category" style="color: var(--primary);"></i> Add Category');
+      $('#categoryModal').addClass('show');
+      setTimeout(() => $('#name').focus(), 100);
+    }
+
+    function closeModal() {
+      $('#categoryModal').removeClass('show');
+      resetFormValidation('#categoryForm');
+    }
+
+    function editCategory(button) {
+      const $btn = $(button);
+      $('#modalTitle').html('<i class="ti ti-edit" style="color: var(--primary);"></i> Edit Category');
+      $('#categoryId').val($btn.data('id') || '');
+      $('#name').val($btn.data('name') || '');
+      $('#description').val($btn.data('description') || '');
+      $('#categoryModal').addClass('show');
+      setTimeout(() => $('#name').focus(), 100);
+    }
+
+    $(document).ready(function() {
+      initFormValidation('#categoryForm', {
+        rules: {
+          name: { required: true, minlength: 2 }
+        },
+        messages: {
+          name: { required: 'Please enter category name', minlength: 'Category name must be at least 2 characters' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#categoryId').val();
+          const data = {
+            name: $('#name').val().trim(),
+            description: $('#description').val().trim()
+          };
+          const url = id ? '/admin/master/categories/' + id : '/admin/master/categories';
+          const method = id ? 'PUT' : 'POST';
+          const saveBtn = $form.find('[type="submit"]');
+          saveBtn.prop('disabled', true);
+          
+          fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          }).then(res => res.json()).then(resData => {
+            saveBtn.prop('disabled', false);
+            if (resData.success) {
+              closeModal();
+              showToast('success', id ? 'Category updated successfully!' : 'Category added successfully!');
+              setTimeout(() => location.reload(), 1100);
+            } else {
+              const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save category');
+              showError('Save Failed', errMsg);
+            }
+          }).catch(err => {
+            saveBtn.prop('disabled', false);
+            showError('Network Error', 'Could not connect to the server.');
+          });
+        }
+      });
+
+      $('#categoryModal').on('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+  </script>
+</body>
+</html>

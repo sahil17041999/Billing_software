@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Summary - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'inventory' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-stack" style="color: var(--primary);"></i> Inventory Stock Valuation
+              </h1>
+              <p class="page-subheading">Live stock on hand, batches, safety stock thresholds, and inventory health</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/inventory/stock/low" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-alert-triangle" style="color: #f59e0b;"></i> Low Stock List
+              </a>
+              <a href="/admin/purchases/new" class="btn-modern btn-primary-modern">
+                <i class="ti ti-truck-loading"></i> Inward Stock Entry
+              </a>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Product Name</th>
+                      <th>SKU Code</th>
+                      <th>Barcode</th>
+                      <th>Batch Number</th>
+                      <th style="text-align: right;">Current Qty</th>
+                      <th style="text-align: center;">Min Level</th>
+                      <th style="text-align: center;">Inventory Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (stocks.length === 0) { %>
+                      <tr>
+                        <td colspan="8" class="table-empty-state">
+                          <i class="ti ti-boxes-off icon"></i>
+                          <p>No stock records found.</p>
+                          <a href="/admin/purchases/new" class="btn-modern btn-primary-modern btn-sm-modern" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Inward First Stock
+                          </a>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% stocks.forEach(stock => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= stock.id %></span></td>
+                        <td>
+                          <strong><%= stock.product ? stock.product.name : '-' %></strong>
+                        </td>
+                        <td><span style="font-family: var(--font-mono); font-size: 12px;"><%= stock.product ? stock.product.sku : '-' %></span></td>
+                        <td><span class="badge-modern secondary"><%= stock.product ? stock.product.barcode : '-' %></span></td>
+                        <td><span class="badge-modern secondary"><%= stock.batch_number || 'Default' %></span></td>
+                        <td style="text-align: right; font-weight: 700; font-size: 15px;" class="amount-cell">
+                          <%= stock.quantity %>
+                        </td>
+                        <td style="text-align: center;">
+                          <span style="color: var(--text-muted);"><%= stock.product ? stock.product.min_stock_level : '-' %></span>
+                        </td>
+                        <td style="text-align: center;">
+                          <% if (stock.quantity <= (stock.product ? stock.product.min_stock_level : 0)) { %>
+                            <span class="badge-modern danger"><i class="ti ti-alert-circle"></i> Low Stock</span>
+                          <% } else if (stock.quantity <= (stock.product ? stock.product.reorder_quantity : 0)) { %>
+                            <span class="badge-modern warning"><i class="ti ti-reload"></i> Reorder</span>
+                          <% } else { %>
+                            <span class="badge-modern success"><i class="ti ti-check"></i> In Stock</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, totalPages) %></strong>
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/inventory/stock?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page < totalPages) { %>
+                    <a href="/admin/inventory/stock?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sign In &bull; Grocery Billing ERP</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.75);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 14px;
+      color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Background Glows */
+    body::before, body::after {
+      content: '';
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 0;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    body::before {
+      top: 5%;
+      left: 10%;
+      background: #4f46e5;
+    }
+
+    body::after {
+      bottom: 5%;
+      right: 10%;
+      background: #06b6d4;
+    }
+
+    .login-container-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 34px 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      animation: fadeInCard 0.4s ease-out;
+    }
+
+    @keyframes fadeInCard {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-brand-header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .login-logo-circle {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      background: var(--primary-gradient);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 28px;
+      margin-bottom: 12px;
+      box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);
+    }
+
+    .login-brand-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .login-brand-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Auth Tab Switcher */
+    .auth-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 9px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--font-main);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .auth-tab-btn i {
+      font-size: 17px;
+    }
+
+    .auth-tab-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Alerts & Banners */
+    .alert-banner {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      margin-bottom: 18px;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.4;
+    }
+
+    .alert-banner.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.38);
+      color: #fca5a5;
+    }
+
+    .alert-banner.success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      color: #6ee7b7;
+    }
+
+    /* Simulated SMS Notification Popup */
+    .sms-simulation-box {
+      display: none;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.25) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      animation: pulseSms 0.4s ease-out;
+    }
+
+    @keyframes pulseSms {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .sms-sim-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .sms-sim-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sms-sim-body {
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+
+    .sms-code-highlight {
+      font-weight: 800;
+      font-size: 17px;
+      color: #ffffff;
+      background: rgba(16, 185, 129, 0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 2px;
+      cursor: pointer;
+    }
+
+    .btn-autofill-otp {
+      background: #10b981;
+      border: none;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Form Fields */
+    .form-group-login {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group-login label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 7px;
+    }
+
+    .login-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .prefix-badge {
+      position: absolute;
+      left: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .prefix-icon {
+      position: absolute;
+      left: 14px;
+      color: #64748b;
+      font-size: 18px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .login-input {
+      width: 100%;
+      height: 48px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-md);
+      padding: 0 14px 0 44px;
+      color: #ffffff;
+      font-size: 14px;
+      font-family: var(--font-main);
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .login-input.phone-input {
+      padding-left: 64px;
+      letter-spacing: 1px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .login-input.otp-input {
+      padding: 0 14px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 8px;
+      height: 52px;
+    }
+
+    .login-input:focus {
+      border-color: #818cf8;
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      padding: 4px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      transition: var(--transition);
+    }
+
+    .password-toggle-btn:hover {
+      color: #818cf8;
+    }
+
+    .field-error-text {
+      color: #f87171;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    /* Submit / Action Buttons */
+    .btn-submit-login {
+      width: 100%;
+      height: 48px;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14.5px;
+      font-weight: 700;
+      font-family: var(--font-main);
+      cursor: pointer;
+      box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-submit-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -5px rgba(79, 70, 229, 0.6);
+    }
+
+    .btn-submit-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit-login:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .otp-resend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-resend-link {
+      background: none;
+      border: none;
+      color: #818cf8;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-main);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .btn-resend-link:disabled {
+      color: #64748b;
+      cursor: not-allowed;
+    }
+
+    .btn-change-number {
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      font-size: 12px;
+      text-decoration: underline;
+      cursor: pointer;
+      font-family: var(--font-main);
+    }
+
+    /* Quick Fill Bar */
+    .quick-creds-container {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .quick-creds-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .quick-creds-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-preset-role {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      color: #cbd5e1;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .btn-preset-role:hover {
+      background: rgba(79, 70, 229, 0.3);
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .btn-preset-role i {
+      font-size: 16px;
+      color: #818cf8;
+    }
+
+    @media (max-width: 480px) {
+      .login-container-card {
+        padding: 24px 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container-card">
+    <!-- Brand Logo -->
+    <div class="login-brand-header">
+      <div class="login-logo-circle">
+        <i class="ti ti-shopping-cart"></i>
+      </div>
+      <h1>Grocery Billing ERP</h1>
+      <p>Store POS &amp; Business Management Login</p>
+    </div>
+
+    <!-- Feedback Alerts -->
+    <div class="alert-banner error" id="jsErrorBanner" style="display: none;">
+      <i class="ti ti-alert-circle fs-5"></i>
+      <span id="jsErrorText"></span>
+    </div>
+
+    <div class="alert-banner success" id="jsSuccessBanner" style="display: none;">
+      <i class="ti ti-circle-check fs-5"></i>
+      <span id="jsSuccessText"></span>
+    </div>
+
+    <!-- Simulated SMS Notification Box -->
+    <div class="sms-simulation-box" id="smsNotificationBox">
+      <div class="sms-sim-header">
+        <span class="sms-sim-title"><i class="ti ti-message-dots"></i> SMS Received</span>
+        <span style="font-size: 10.5px; opacity: 0.8; color: #a7f3d0;">Just Now</span>
+      </div>
+      <div class="sms-sim-body">
+        Your Grocery POS Login OTP is: <span class="sms-code-highlight" id="smsOtpCode">------</span>
+      </div>
+      <button type="button" class="btn-autofill-otp" onclick="autoFillOtp()">
+        <i class="ti ti-bolt"></i> Auto-Fill OTP
+      </button>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MOBILE NUMBER + OTP LOGIN FORM                 -->
+    <!-- ============================================== -->
+    <div id="otpAuthSection">
+      
+      <!-- Step 1: Enter Mobile Number -->
+      <form id="sendOtpForm" onsubmit="handleSendOtp(event)">
+        <div class="form-group-login">
+          <label for="otpPhone">Registered Mobile Number</label>
+          <div class="login-input-wrapper">
+            <span class="prefix-badge"><i class="ti ti-phone"></i> +91</span>
+            <input type="tel" id="otpPhone" class="login-input phone-input" placeholder="9876543210" maxlength="10" inputmode="numeric" required autofocus>
+          </div>
+          <div class="field-error-text" id="phoneError">Please enter a valid 10-digit Indian mobile number.</div>
+        </div>
+
+        <button type="submit" class="btn-submit-login" id="btnSendOtp">
+          <span>Get Verification OTP</span>
+          <i class="ti ti-arrow-right"></i>
+        </button>
+      </form>
+
+      <!-- Step 2: Enter 6-Digit OTP (Initially Hidden) -->
+      <form id="verifyOtpForm" onsubmit="handleVerifyOtp(event)" style="display: none;">
+        <div class="form-group-login">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
+            <label for="otpCode" style="margin-bottom: 0;">Enter 6-Digit OTP</label>
+            <button type="button" class="btn-change-number" onclick="backToPhoneStep()">Change Number</button>
+          </div>
+          <div class="login-input-wrapper">
+            <input type="text" id="otpCode" class="login-input otp-input" placeholder="••••••" maxlength="6" inputmode="numeric" required autocomplete="one-time-code">
+          </div>
+          <div class="field-error-text" id="otpError">Please enter the 6-digit OTP code.</div>
+        </div>
+
+        <button type="submit" class="btn-submit-login" id="btnVerifyOtp">
+          <span>Verify &amp; Sign In</span>
+          <i class="ti ti-shield-check"></i>
+        </button>
+
+        <div class="otp-resend-row">
+          <span id="resendTimerText">Resend in <strong id="resendCount">30</strong>s</span>
+          <button type="button" class="btn-resend-link" id="btnResendOtp" onclick="handleResendOtp()" disabled>Resend OTP</button>
+        </div>
+      </form>
+
+    </div>
+
+    <!-- Quick Role Presets -->
+    <div class="quick-creds-container">
+      <div class="quick-creds-title">Demo Accounts Quick Fill</div>
+      <div class="quick-creds-grid" id="quickCredsOtp">
+        <button type="button" class="btn-preset-role" onclick="quickFillOtp('9999999999')">
+          <i class="ti ti-shield-check"></i>
+          <div>
+            <div style="font-weight: 700;">Admin</div>
+            <div style="font-size: 10.5px; opacity: 0.7;">+91 9999999999</div>
+          </div>
+        </button>
+
+        <button type="button" class="btn-preset-role" onclick="quickFillOtp('8788946164')">
+          <i class="ti ti-device-laptop"></i>
+          <div>
+            <div style="font-weight: 700;">Cashier (POS)</div>
+            <div style="font-size: 10.5px; opacity: 0.7;">+91 8788946164</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- New Store Client Link -->
+    <div style="text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+      <div style="font-size: 12.5px; color: #94a3b8; margin-bottom: 8px;">New retail store or supermarket owner?</div>
+      <a href="/pricing" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; background: rgba(79, 70, 229, 0.2); border: 1px solid rgba(79, 70, 229, 0.4); color: #c7d2fe; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.2s ease;">
+        <i class="ti ti-sparkles" style="color: #f59e0b;"></i>
+        <span>Explore Plans &amp; Buy Subscription &rarr;</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- JQuery & Scripts -->
+  <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+
+  <script>
+    let activePhoneNumber = '';
+    let currentOtpCode = '';
+    let resendTimerInterval = null;
+
+    function showAlert(type, text) {
+      if (type === 'error') {
+        $('#jsErrorText').text(text);
+        $('#jsErrorBanner').slideDown();
+        $('#jsSuccessBanner').hide();
+      } else {
+        $('#jsSuccessText').text(text);
+        $('#jsSuccessBanner').slideDown();
+        $('#jsErrorBanner').hide();
+      }
+    }
+
+    function clearAlerts() {
+      $('#jsErrorBanner').hide();
+      $('#jsSuccessBanner').hide();
+      $('#phoneError').hide();
+      $('#otpError').hide();
+    }
+
+    // Step 1: Send OTP Handler
+    function handleSendOtp(e) {
+      if (e) e.preventDefault();
+      clearAlerts();
+
+      const phone = $('#otpPhone').val().trim().replace(/[^0-9]/g, '');
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        $('#phoneError').text('Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)').show();
+        return;
+      }
+
+      const $btn = $('#btnSendOtp');
+      $btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation: spin 0.8s linear infinite; display: inline-block;"></i> <span>Sending OTP...</span>');
+
+      $.ajax({
+        url: '/admin/auth/send-otp',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ phone: phone }),
+        success: function(response) {
+          $btn.prop('disabled', false).html('<span>Get Verification OTP</span> <i class="ti ti-arrow-right"></i>');
+          if (response.success) {
+            activePhoneNumber = phone;
+            currentOtpCode = response.otp;
+
+            // Show step 2
+            $('#sendOtpForm').hide();
+            $('#verifyOtpForm').slideDown();
+            $('#otpCode').val('').focus();
+
+            // Display simulated SMS toast notification
+            $('#smsOtpCode').text(response.otp);
+            $('#smsNotificationBox').slideDown();
+
+            showAlert('success', `OTP sent to +91 ${phone}! Check the notification above.`);
+            startResendCountdown();
+          } else {
+            showAlert('error', response.error || 'Failed to send OTP');
+          }
+        },
+        error: function(xhr) {
+          $btn.prop('disabled', false).html('<span>Get Verification OTP</span> <i class="ti ti-arrow-right"></i>');
+          const err = xhr.responseJSON ? xhr.responseJSON.error : 'Account not found for this mobile number';
+          showAlert('error', err);
+        }
+      });
+    }
+
+    // Step 2: Verify OTP Handler
+    function handleVerifyOtp(e) {
+      if (e) e.preventDefault();
+      clearAlerts();
+
+      const otp = $('#otpCode').val().trim();
+      if (otp.length !== 6) {
+        $('#otpError').show();
+        return;
+      }
+
+      const $btn = $('#btnVerifyOtp');
+      $btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation: spin 0.8s linear infinite; display: inline-block;"></i> <span>Verifying OTP...</span>');
+
+      $.ajax({
+        url: '/admin/auth/verify-otp',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ phone: activePhoneNumber, otp: otp }),
+        success: function(response) {
+          if (response.success) {
+            showAlert('success', 'OTP Verified! Redirecting to your dashboard...');
+            setTimeout(function() {
+              window.location.href = response.redirectUrl || '/admin/dashboard';
+            }, 600);
+          } else {
+            $btn.prop('disabled', false).html('<span>Verify &amp; Sign In</span> <i class="ti ti-shield-check"></i>');
+            showAlert('error', response.error || 'Invalid OTP code');
+          }
+        },
+        error: function(xhr) {
+          $btn.prop('disabled', false).html('<span>Verify &amp; Sign In</span> <i class="ti ti-shield-check"></i>');
+          const err = xhr.responseJSON ? xhr.responseJSON.error : 'Incorrect or expired OTP';
+          showAlert('error', err);
+        }
+      });
+    }
+
+    // 1-Click Auto-Fill OTP
+    function autoFillOtp() {
+      if (currentOtpCode) {
+        $('#otpCode').val(currentOtpCode);
+        handleVerifyOtp();
+      }
+    }
+
+    // Resend OTP Countdown
+    function startResendCountdown() {
+      let seconds = 30;
+      $('#btnResendOtp').prop('disabled', true);
+      $('#resendTimerText').show();
+      $('#resendCount').text(seconds);
+
+      clearInterval(resendTimerInterval);
+      resendTimerInterval = setInterval(function() {
+        seconds--;
+        $('#resendCount').text(seconds);
+        if (seconds <= 0) {
+          clearInterval(resendTimerInterval);
+          $('#resendTimerText').hide();
+          $('#btnResendOtp').prop('disabled', false);
+        }
+      }, 1000);
+    }
+
+    function handleResendOtp() {
+      handleSendOtp();
+    }
+
+    function backToPhoneStep() {
+      $('#verifyOtpForm').hide();
+      $('#sendOtpForm').slideDown();
+      $('#smsNotificationBox').hide();
+      clearAlerts();
+      $('#otpPhone').focus();
+    }
+
+    // Quick Fill Helpers
+    function quickFillOtp(phone) {
+      $('#otpPhone').val(phone);
+      backToPhoneStep();
+      handleSendOtp();
+    }
+
+    $(document).ready(function() {
+      // Auto-sanitize phone input to 10 digits
+      $('#otpPhone').on('input', function() {
+        let val = $(this).val().replace(/[^0-9]/g, '');
+        if (val.length > 10) val = val.slice(0, 10);
+        $(this).val(val);
+        $('#phoneError').hide();
+      });
+
+      // Auto-submit OTP when 6 characters entered
+      $('#otpCode').on('input', function() {
+        let val = $(this).val().replace(/[^0-9]/g, '');
+        if (val.length > 6) val = val.slice(0, 6);
+        $(this).val(val);
+        if (val.length === 6) {
+          handleVerifyOtp();
+        }
+      });
+    });
+  </script>
+
+  <style>
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+</body>
+</html>

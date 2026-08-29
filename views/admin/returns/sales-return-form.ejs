@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Sales Return - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'returns' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-arrow-back-up" style="color: var(--primary);"></i> Process Customer Return
+              </h1>
+              <p class="page-subheading">Lookup sale invoice and select items/quantities to issue a refund</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/admin/returns/sales" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Back to Returns
+              </a>
+            </div>
+          </div>
+
+          <!-- Invoice Lookup Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <!-- Search invoice -->
+              <div style="display: flex; gap: 12px; max-width: 500px; margin-bottom: 24px;">
+                <div class="search-input-group" style="flex: 1;">
+                  <i class="ti ti-receipt icon"></i>
+                  <input type="text" id="sale_id" placeholder="Enter Sale Invoice ID..." value="<%= (typeof sale !== 'undefined' && sale) ? sale.id : '' %>" onkeydown="if(event.key==='Enter') loadSale()">
+                </div>
+                <button type="button" class="btn-modern btn-primary-modern" onclick="loadSale()">
+                  <i class="ti ti-file-search"></i> Load Invoice
+                </button>
+              </div>
+
+              <% if (sale) { %>
+                <!-- Invoice Info Header -->
+                <div style="background: var(--bg-subtle); padding: 18px 24px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
+                  <div class="grid-3" style="gap: 16px;">
+                    <div>
+                      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Invoice Number</div>
+                      <div style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 4px;">
+                        #<%= sale.invoice_number %>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Customer</div>
+                      <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-top: 4px;">
+                        <%= sale.customer ? sale.customer.name : 'Walk-in Customer' %>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Invoice Date</div>
+                      <div style="font-size: 15px; font-weight: 600; color: var(--text-muted); margin-top: 4px;">
+                        <%= new Date(sale.invoice_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <form id="returnForm">
+                  <input type="hidden" id="sale_id_hidden" value="<%= sale.id %>">
+                  
+                  <div class="table-responsive-wrapper" style="margin-bottom: 20px;">
+                    <table class="table-modern">
+                      <thead>
+                        <tr>
+                          <th>Product Name</th>
+                          <th style="text-align: center;">Qty Sold</th>
+                          <th style="text-align: right;">Unit Price (₹)</th>
+                          <th style="text-align: center; width: 140px;">Return Qty</th>
+                          <th style="text-align: right;">GST Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% sale.saleDetails.forEach(detail => { %>
+                          <tr>
+                            <td>
+                              <strong><%= detail.product ? detail.product.name : 'Product #' + detail.product_id %></strong>
+                            </td>
+                            <td style="text-align: center; font-weight: 600;"><%= detail.quantity %></td>
+                            <td style="text-align: right;" class="amount-cell">₹<%= Number(detail.unit_price).toFixed(2) %></td>
+                            <td style="text-align: center;">
+                              <input type="number" min="0" max="<%= detail.quantity %>" value="0" class="form-control-modern return-qty" style="width: 90px; margin: 0 auto; text-align: center;" data-detail-id="<%= detail.id %>" data-product-id="<%= detail.product_id %>" data-price="<%= detail.unit_price %>" data-tax="<%= (detail.tax_amount / (detail.quantity * detail.unit_price) * 100) || 0 %>">
+                            </td>
+                            <td style="text-align: right;">
+                              <span class="badge-modern info"><%= (((detail.tax_amount / (detail.quantity * detail.unit_price)) * 100) || 0).toFixed(1) %>%</span>
+                            </td>
+                          </tr>
+                        <% }); %>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <a href="/admin/returns/sales" class="btn-modern btn-secondary-modern">Cancel</a>
+                    <button type="submit" class="btn-modern btn-success-modern" style="padding: 10px 24px;">
+                      <i class="ti ti-check fs-5"></i> Process Return &amp; Refund
+                    </button>
+                  </div>
+                </form>
+              <% } else { %>
+                <div class="table-empty-state">
+                  <i class="ti ti-receipt-off icon"></i>
+                  <p>Please enter a Sale ID above to fetch invoice details and line items.</p>
+                </div>
+              <% } %>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadSale() {
+      const saleId = $('#sale_id').val().trim();
+      if (!saleId) {
+        showWarning('Enter Sale ID', 'Please enter a valid Sale ID or Invoice number.');
+        return;
+      }
+      if (typeof showPageLoader === 'function') showPageLoader('Fetching invoice line items...');
+      window.location.href = '/admin/returns/sales/form?saleId=' + encodeURIComponent(saleId);
+    }
+    
+    $(document).ready(function() {
+      const $returnForm = $('#returnForm');
+      if ($returnForm.length) {
+        $returnForm.on('submit', function(e) {
+          e.preventDefault();
+          const returnDetails = [];
+          
+          $('.return-qty').each(function() {
+            const $input = $(this);
+            const qty = parseInt($input.val()) || 0;
+            if (qty > 0) {
+              returnDetails.push({
+                sales_detail_id: $input.data('detail-id'),
+                product_id: $input.data('product-id'),
+                return_quantity: qty,
+                unit_price: parseFloat($input.data('price')) || 0,
+                tax_percent: parseFloat($input.data('tax')) || 0
+              });
+            }
+          });
+          
+          if (returnDetails.length === 0) {
+            showWarning('No Return Quantities', 'Please enter a return quantity (> 0) for at least one item.');
+            return;
+          }
+          
+          const data = {
+            sale_id: $('#sale_id_hidden').val(),
+            return_details: returnDetails
+          };
+
+          const saveBtn = $returnForm.find('[type="submit"]');
+          saveBtn.prop('disabled', true);
+          if (typeof showPageLoader === 'function') showPageLoader('Processing refund & returning stock...');
+          
+          fetch('/admin/returns/sales', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json().then(resData => ({ ok: res.ok, resData })))
+          .then(({ ok, resData }) => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            saveBtn.prop('disabled', false);
+            if (ok && resData.success) {
+              showToast('success', 'Sales return & refund processed successfully!');
+              setTimeout(() => { window.location.href = '/admin/returns/sales'; }, 1100);
+            } else {
+              showError('Return Failed', resData.error || 'Failed to process return');
+            }
+          })
+          .catch(err => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            saveBtn.prop('disabled', false);
+            showError('Network Error', err.message || 'Connection error.');
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

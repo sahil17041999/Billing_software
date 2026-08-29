@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Units of Measurement - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'master' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-ruler" style="color: var(--primary);"></i> Units of Measurement
+              </h1>
+              <p class="page-subheading">Define retail measurement units like KG, Grams, Liters, Packets, and Pieces</p>
+            </div>
+            <div class="page-title-actions">
+              <button class="btn-modern btn-primary-modern" onclick="openModal()">
+                <i class="ti ti-plus"></i> Add Unit
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern" style="max-width: 800px;">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Unit Name</th>
+                      <th>Symbol / Abbreviation</th>
+                      <th style="text-align: center;">Status</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (units.length === 0) { %>
+                      <tr>
+                        <td colspan="5" class="table-empty-state">
+                          <i class="ti ti-ruler-off icon"></i>
+                          <p>No measurement units configured.</p>
+                          <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Add First Unit
+                          </button>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% units.forEach(unit => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= unit.id %></span></td>
+                        <td><strong><%= unit.name %></strong></td>
+                        <td><span class="badge-modern secondary" style="font-family: var(--font-mono);"><%= unit.abbreviation || '-' %></span></td>
+                        <td style="text-align: center;">
+                          <span class="badge-modern <%= unit.is_active ? 'success' : 'secondary' %>">
+                            <%= unit.is_active ? 'Active' : 'Inactive' %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern"
+                            data-id="<%= unit.id %>"
+                            data-name="<%= unit.name %>"
+                            data-abbreviation="<%= unit.abbreviation || '' %>"
+                            onclick="editUnit(this)" title="Edit unit">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="unitModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern" style="max-width: 480px;">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
+          <i class="ti ti-ruler" style="color: var(--primary);"></i> Add Unit
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeModal()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="unitForm" novalidate>
+        <div class="modal-body-modern">
+          <input type="hidden" id="unitId" name="id">
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="unitName">Unit Name <span class="required-dot">*</span></label>
+            <input type="text" id="unitName" name="name" class="form-control-modern" placeholder="e.g. Kilogram" required>
+            <div class="field-error-text" id="unitNameError">Unit name is required.</div>
+          </div>
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="unitAbbr">Symbol / Abbreviation</label>
+            <input type="text" id="unitAbbr" name="abbreviation" class="form-control-modern" placeholder="e.g. KG">
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-modern btn-primary-modern" id="unitSaveBtn">
+            <i class="ti ti-device-floppy"></i> Save Unit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .field-error-text { color: #f87171; font-size: 12px; margin-top: 5px; display: none; }
+    .form-control-modern.is-invalid { border-color: #ef4444 !important; }
+    .form-control-modern.is-invalid ~ .field-error-text { display: block; }
+  </style>
+
+  <script>
+    function openModal() {
+      $('#unitForm').trigger('reset');
+      $('#unitId').val('');
+      $('#modalTitle').html('<i class="ti ti-ruler" style="color: var(--primary);"></i> Add Unit');
+      $('#unitModal').addClass('show');
+      setTimeout(() => $('#unitName').focus(), 100);
+    }
+
+    function closeModal() {
+      $('#unitModal').removeClass('show');
+      resetFormValidation('#unitForm');
+    }
+
+    function editUnit(button) {
+      const $btn = $(button);
+      $('#modalTitle').html('<i class="ti ti-edit" style="color: var(--primary);"></i> Edit Unit');
+      $('#unitId').val($btn.data('id') || '');
+      $('#unitName').val($btn.data('name') || '');
+      $('#unitAbbr').val($btn.data('abbreviation') || '');
+      $('#unitModal').addClass('show');
+      setTimeout(() => $('#unitName').focus(), 100);
+    }
+
+    $(document).ready(function() {
+      initFormValidation('#unitForm', {
+        rules: {
+          name: { required: true, minlength: 1 }
+        },
+        messages: {
+          name: { required: 'Please enter unit name (e.g. Kilogram, Pieces)' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#unitId').val();
+          const data = {
+            name: $('#unitName').val().trim(),
+            abbreviation: $('#unitAbbr').val().trim()
+          };
+          const url = id ? '/admin/master/units/' + id : '/admin/master/units';
+          const method = id ? 'PUT' : 'POST';
+          const saveBtn = $('#unitSaveBtn');
+          saveBtn.prop('disabled', true);
+
+          fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          }).then(res => res.json()).then(resData => {
+            saveBtn.prop('disabled', false);
+            if (resData.success) {
+              closeModal();
+              showToast('success', (id ? 'Unit updated!' : 'Unit added successfully!'));
+              setTimeout(() => location.reload(), 1100);
+            } else {
+              const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save');
+              showError('Save Failed', errMsg);
+            }
+          }).catch(err => {
+            saveBtn.prop('disabled', false);
+            showError('Network Error', 'Could not connect to the server.');
+          });
+        }
+      });
+
+      $('#unitModal').on('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+  </script>
+</body>
+</html>

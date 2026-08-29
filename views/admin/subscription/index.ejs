@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscriptions &amp; Licensing - Grocery Billing ERP</title>
+  <meta name="description" content="Manage store subscription plans, billing cycles, usage quotas, and license upgrades">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/js/validation.js"></script>
+
+  <style>
+    /* ==========================================================
+       SUBSCRIPTIONS & LICENSING ENTERPRISE DESIGN SYSTEM
+       ========================================================== */
+    .sub-hero-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1366d9 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+      box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sub-hero-card::after {
+      content: '';
+      position: absolute;
+      right: -50px;
+      top: -50px;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 116, 255, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .sub-hero-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 900px) {
+      .sub-hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sub-plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 5px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+
+    .sub-hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 6px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sub-hero-meta {
+      color: #cbd5e1;
+      font-size: 13.5px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .sub-hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sub-hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Usage Gauges Grid */
+    .usage-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+
+    .usage-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .usage-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.1);
+    }
+
+    .usage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .usage-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .usage-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .usage-bar-track {
+      height: 8px;
+      background: #f1f5f9;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 10px 0 6px;
+    }
+
+    .usage-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .usage-bar-fill.blue { background: linear-gradient(90deg, #1366d9, #38bdf8); }
+    .usage-bar-fill.green { background: linear-gradient(90deg, #107c41, #34d399); }
+    .usage-bar-fill.purple { background: linear-gradient(90deg, #6366f1, #a855f7); }
+
+    /* Billing Cycle Switcher */
+    .cycle-switcher-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .cycle-switcher-pills {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cycle-pill-btn {
+      padding: 8px 18px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .cycle-pill-btn.active {
+      background: #ffffff;
+      color: #1366d9;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    .discount-ribbon {
+      background: #107c41;
+      color: #ffffff;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Tier Pricing Cards */
+    .plans-pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .plans-pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .plan-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    }
+
+    .plan-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.12);
+      border-color: #cbd5e1;
+    }
+
+    .plan-card.popular {
+      border: 2px solid #1366d9;
+      box-shadow: 0 12px 32px -4px rgba(19, 102, 217, 0.2);
+    }
+
+    .popular-tag {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #1366d9 0%, #3b82f6 100%);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(19, 102, 217, 0.35);
+    }
+
+    .plan-header {
+      margin-bottom: 18px;
+    }
+
+    .plan-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .plan-desc {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.4;
+      min-height: 38px;
+    }
+
+    .plan-price-box {
+      margin: 18px 0 24px;
+      padding: 16px 0;
+      border-top: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .plan-price {
+      font-size: 34px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .plan-period {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .plan-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-grow: 1;
+    }
+
+    .plan-feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    .plan-feature-item i {
+      color: #107c41;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .plan-card-footer {
+      margin-top: auto;
+    }
+
+    .plan-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    /* Comparison Table */
+    .compare-section {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 28px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'subscription' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Title Bar -->
+          <div class="page-title-box" style="margin-bottom: 22px;">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-credit-card" style="color:var(--primary);"></i> Subscriptions &amp; Licensing
+              </h1>
+              <p class="page-subheading">Manage your store subscription plan, quotas, billing cycles, and feature entitlements</p>
+            </div>
+            <div class="page-title-right">
+              <a href="/admin/dashboard" class="btn-modern btn-secondary-modern">
+                <i class="ti ti-arrow-left"></i> Dashboard
+              </a>
+            </div>
+          </div>
+
+          <!-- ==========================================================
+               ACTIVE SUBSCRIPTION HERO BANNER
+               ========================================================== -->
+          <div class="sub-hero-card">
+            <div class="sub-hero-grid">
+              <div>
+                <div class="sub-plan-badge">
+                  <i class="ti ti-sparkles"></i> Active Plan: <%= subscription.plan ? subscription.plan.name : 'Professional Retailer' %>
+                </div>
+                <h2 class="sub-hero-title">
+                  <%= subscription.plan ? subscription.plan.name : 'Professional Retailer' %>
+                  <span class="badge-modern <%= subscription.status === 'active' ? 'success' : 'warning' %>" style="font-size: 12px; vertical-align: middle;">
+                    <%= subscription.status ? subscription.status.toUpperCase() : 'ACTIVE' %>
+                  </span>
+                </h2>
+
+                <div class="sub-hero-meta">
+                  <span><i class="ti ti-calendar-time"></i> Valid Till: <strong><%= new Date(subscription.end_date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) %></strong></span>
+                  <span><i class="ti ti-clock"></i> Remaining: <strong><%= daysRemaining %> Days</strong></span>
+                  <span><i class="ti ti-refresh"></i> Billing Cycle: <strong><%= subscription.billing_cycle === 'yearly' ? 'Annual (20% Off)' : 'Monthly' %></strong></span>
+                  <span><i class="ti ti-receipt"></i> Last Bill: <strong>₹<%= subscription.amount_paid %></strong></span>
+                </div>
+              </div>
+
+              <div class="sub-hero-actions">
+                <button type="button" class="btn-modern btn-primary-modern" onclick="scrollToPlans()" style="background: #ffffff; color: #1366d9; border: none; font-weight: 800;">
+                  <i class="ti ti-arrow-up-right"></i> Upgrade Plan
+                </button>
+                <button type="button" class="btn-modern btn-secondary-modern" onclick="openCheckoutModal('<%= subscription.plan ? subscription.plan.id : 2 %>', '<%= subscription.plan ? subscription.plan.name : 'Professional' %>', <%= subscription.billing_cycle === 'yearly' ? subscription.plan.price_yearly : subscription.plan.price_monthly %>)" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);">
+                  <i class="ti ti-rotate"></i> Renew Now
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================================
+               LIVE RESOURCE USAGE METERS
+               ========================================================== -->
+          <div class="usage-cards-grid">
+            <!-- Active Cashiers / Users -->
+            <div class="usage-box">
+              <div class="usage-header">
+                <span class="usage-title"><i class="ti ti-users" style="color: #1366d9;"></i> Operator Accounts</span>
+                <span class="badge-modern info" style="font-size: 11px;"><%= usage.users.percentage %>% Used</span>
+              </div>
+              <div class="usage-value"><%= usage.users.current %> <span style="font-size: 14px; font-weight: 500; color: #64748b;">/ <%= usage.users.max %> Users</span></div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill blue" style="width: <%= usage.users.percentage %>%;"></div>
+              </div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">
+                <%= Math.max(0, usage.users.max - usage.users.current) %> user slots available on your plan
+              </div>
+            </div>
+
+            <!-- Products in Catalog -->
+            <div class="usage-box">
+              <div class="usage-header">
+                <span class="usage-title"><i class="ti ti-package" style="color: #107c41;"></i> Products Catalog</span>
+                <span class="badge-modern success" style="font-size: 11px;"><%= usage.products.percentage %>% Used</span>
+              </div>
+              <div class="usage-value"><%= usage.products.current.toLocaleString() %> <span style="font-size: 14px; font-weight: 500; color: #64748b;">/ <%= usage.products.max.toLocaleString() %> Items</span></div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill green" style="width: <%= usage.products.percentage %>%;"></div>
+              </div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">
+                <%= Math.max(0, usage.products.max - usage.products.current).toLocaleString() %> product slots remaining
+              </div>
+            </div>
+
+            <!-- Monthly Sales Invoices -->
+            <div class="usage-box">
+              <div class="usage-header">
+                <span class="usage-title"><i class="ti ti-file-invoice" style="color: #6366f1;"></i> Invoices (This Month)</span>
+                <span class="badge-modern info" style="font-size: 11px;"><%= usage.invoices.percentage %>% Quota</span>
+              </div>
+              <div class="usage-value"><%= usage.invoices.current.toLocaleString() %> <span style="font-size: 14px; font-weight: 500; color: #64748b;">/ <%= usage.invoices.max.toLocaleString() %> Bills</span></div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill purple" style="width: <%= usage.invoices.percentage %>%;"></div>
+              </div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 4px;">
+                Resets on 1st of next month
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================================
+               BILLING CYCLE TOGGLE (MONTHLY / ANNUAL)
+               ========================================================== -->
+          <div id="plansAnchor" class="cycle-switcher-wrap">
+            <div class="cycle-switcher-pills">
+              <button type="button" class="cycle-pill-btn active" id="btnCycleMonthly" onclick="switchBillingCycle('monthly')">
+                Monthly Billing
+              </button>
+              <button type="button" class="cycle-pill-btn" id="btnCycleYearly" onclick="switchBillingCycle('yearly')">
+                Annual Billing <span class="discount-ribbon">Save 20%</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==========================================================
+               SUBSCRIPTION TIER CARDS
+               ========================================================== -->
+          <div class="plans-pricing-grid">
+            <% plans.forEach(plan => { %>
+              <% const isCurrentPlan = subscription.plan_id === plan.id; %>
+              <div class="plan-card <%= plan.is_popular ? 'popular' : '' %>">
+                <% if (plan.is_popular) { %>
+                  <div class="popular-tag"><i class="ti ti-star"></i> <%= plan.badge_text || 'MOST POPULAR' %></div>
+                <% } %>
+
+                <div class="plan-header">
+                  <h3 class="plan-name"><%= plan.name %></h3>
+                  <div class="plan-desc"><%= plan.description %></div>
+                </div>
+
+                <div class="plan-price-box">
+                  <div class="plan-price">
+                    <span class="price-val" data-monthly="<%= plan.price_monthly %>" data-yearly="<%= plan.price_yearly %>">
+                      ₹<%= plan.price_monthly %>
+                    </span>
+                    <span class="plan-period">/ month</span>
+                  </div>
+                  <div class="yearly-note" style="font-size: 11px; color: #107c41; font-weight: 700; display: none; margin-top: 2px;">
+                    Billed annually at ₹<%= plan.price_yearly %>/yr (Save 20%)
+                  </div>
+                </div>
+
+                <ul class="plan-features-list">
+                  <% if (plan.features && Array.isArray(plan.features)) { %>
+                    <% plan.features.forEach(feat => { %>
+                      <li class="plan-feature-item">
+                        <i class="ti ti-circle-check-filled"></i>
+                        <span><%= feat %></span>
+                      </li>
+                    <% }); %>
+                  <% } %>
+                </ul>
+
+                <div class="plan-card-footer">
+                  <% if (isCurrentPlan) { %>
+                    <button type="button" class="btn-modern btn-secondary-modern plan-btn" disabled style="background: #f1f5f9; color: #1366d9; font-weight: 800; border-color: #cbd5e1; cursor: default;">
+                      <i class="ti ti-check"></i> Current Active Plan
+                    </button>
+                  <% } else { %>
+                    <button type="button" class="btn-modern <%= plan.is_popular ? 'btn-primary-modern' : 'btn-secondary-modern' %> plan-btn" 
+                            onclick="openCheckoutModal('<%= plan.id %>', '<%= plan.name %>', <%= plan.price_monthly %>)">
+                      <i class="ti ti-sparkles"></i> Switch to <%= plan.name.split(' ')[0] %>
+                    </button>
+                  <% } %>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+
+          <!-- ==========================================================
+               FEATURE COMPARISON MATRIX
+               ========================================================== -->
+          <div class="compare-section">
+            <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+              <i class="ti ti-list-check" style="color: var(--primary);"></i> Complete Feature Entitlements Breakdown
+            </h3>
+
+            <div class="table-responsive-wrapper" style="border: none;">
+              <table class="table-modern">
+                <thead>
+                  <tr>
+                    <th style="width: 40%; text-align: left;">Capabilities &amp; Features</th>
+                    <th style="width: 20%; text-align: center;">Starter Retailer</th>
+                    <th style="width: 20%; text-align: center; color: var(--primary);">Professional Store</th>
+                    <th style="width: 20%; text-align: center;">Enterprise Supermarket</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="font-weight: 600;">Multi-Level &amp; Multi-Cart POS Terminal</td>
+                    <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Automated SMTP Email Invoicing &amp; Presets</td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41;"></i> Basic</td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Full Gateway</td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> High-Volume Relay</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Custom Logo Branding (A4 &amp; Thermal Receipts)</td>
+                    <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Day-End Cash Reconciliation &amp; Closing Audit</td>
+                    <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Operator &amp; Staff Accounts</td>
+                    <td style="text-align: center;">2 Users</td>
+                    <td style="text-align: center; font-weight: 700; color: var(--primary);">6 Users</td>
+                    <td style="text-align: center; font-weight: 700; color: #107c41;">Unlimited</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Role Privileges &amp; Granular Permissions</td>
+                    <td style="text-align: center;">Standard Roles</td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Custom Roles</td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i> Advanced RBAC</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Customer &amp; Supplier Ledger Statements</td>
+                    <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                    <td style="text-align: center;"><i class="ti ti-check" style="color: #107c41; font-weight: 800;"></i></td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: 600;">Customer Support Level</td>
+                    <td style="text-align: center;">Standard Community</td>
+                    <td style="text-align: center; font-weight: 700; color: var(--primary);">Priority Email &amp; Chat</td>
+                    <td style="text-align: center; font-weight: 700; color: #107c41;">Dedicated Manager 24/7</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ==========================================================
+               ADMIN: CLIENT STORES & LICENSE APPROVALS PANEL (SUPER ADMIN ONLY)
+               ========================================================== -->
+          <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
+          <div class="compare-section" style="margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h3 style="font-size: 18px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; margin: 0 0 4px;">
+                  <i class="ti ti-building-store" style="color: var(--primary);"></i> Client Stores &amp; License Approvals
+                </h3>
+                <p style="font-size: 13px; color: #64748b; margin: 0;">Review new client registrations from the public website, approve store login access, and manage subscriptions</p>
+              </div>
+              <a href="/pricing" target="_blank" class="btn-modern btn-secondary-modern" style="font-size: 12.5px;">
+                <i class="ti ti-external-link"></i> Preview Public Storefront
+              </a>
+            </div>
+
+            <div class="table-responsive-wrapper" style="border: none;">
+              <table class="table-modern" id="clientStoresTable">
+                <thead>
+                  <tr>
+                    <th style="width: 25%;">Store / Company</th>
+                    <th style="width: 20%;">Owner / Login ID</th>
+                    <th style="width: 15%;">Subscribed Plan</th>
+                    <th style="width: 12%;">Billing &amp; Price</th>
+                    <th style="width: 13%;">Approval Status</th>
+                    <th style="width: 15%; text-align: right;">License Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (typeof clientStores !== 'undefined' && clientStores && clientStores.length > 0) { %>
+                    <% clientStores.forEach(store => { %>
+                      <% 
+                        const owner = store.users && store.users.length > 0 ? store.users[0] : null;
+                        const sub = store.subscription;
+                        const isPending = store.is_active === 0 || store.is_active === false;
+                      %>
+                      <tr>
+                        <td>
+                          <div style="font-weight: 800; color: #0f172a;"><%= store.name %></div>
+                          <div style="font-size: 11.5px; color: #64748b;"><i class="ti ti-map-pin"></i> <%= store.city || 'Not Specified' %></div>
+                        </td>
+                        <td>
+                          <div style="font-weight: 700; color: #334155;"><%= owner ? (owner.first_name + ' ' + (owner.last_name || '')) : 'N/A' %></div>
+                          <div style="font-size: 12px; color: #1366d9; font-weight: 700;"><i class="ti ti-phone"></i> +91 <%= store.phone || (owner ? owner.phone : 'N/A') %></div>
+                        </td>
+                        <td>
+                          <div style="font-weight: 700; color: #0f172a;">
+                            <%= sub && sub.plan ? sub.plan.name : 'Professional Store' %>
+                          </div>
+                          <div style="font-size: 11.5px; color: #64748b;">
+                            Valid till: <%= sub ? new Date(sub.end_date).toLocaleDateString('en-IN') : 'N/A' %>
+                          </div>
+                        </td>
+                        <td>
+                          <div style="font-weight: 800; color: #0f172a;">₹<%= sub ? sub.amount_paid : '0.00' %></div>
+                          <div style="font-size: 11px; text-transform: uppercase; color: #64748b;"><%= sub ? sub.billing_cycle : 'Monthly' %></div>
+                        </td>
+                        <td>
+                          <% if (isPending) { %>
+                            <span class="badge-modern warning" style="font-size: 11px;">
+                              <i class="ti ti-clock-pause"></i> Pending Approval
+                            </span>
+                          <% } else { %>
+                            <span class="badge-modern success" style="font-size: 11px;">
+                              <i class="ti ti-circle-check"></i> Active &amp; Licensed
+                            </span>
+                          <% } %>
+                        </td>
+                        <td style="text-align: right;">
+                          <div style="display: inline-flex; gap: 6px;">
+                            <% if (isPending) { %>
+                              <button type="button" class="btn-modern btn-primary-modern" style="padding: 4px 10px; font-size: 11.5px;" onclick="approveStore('<%= store.id %>', '<%= store.name %>')" title="Approve and Grant Login Access">
+                                <i class="ti ti-user-check"></i> Approve Login
+                              </button>
+                            <% } else { %>
+                              <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px;" onclick="extendStoreLicense('<%= store.id %>', '<%= store.name %>')" title="Add +30 Days">
+                                <i class="ti ti-calendar-plus"></i> +30 Days
+                              </button>
+                              <button type="button" class="btn-modern btn-secondary-modern" style="padding: 4px 8px; font-size: 11.5px;" onclick="toggleStoreStatus('<%= store.id %>', '<%= store.name %>')" title="Suspend / Activate">
+                                <i class="ti ti-power"></i>
+                              </button>
+                            <% } %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">
+                        No client stores registered yet. Share the <a href="/pricing" target="_blank" style="color: #1366d9; font-weight: 700;">public pricing link</a> to register new store clients!
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <% } %>
+
+        </main>
+
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================
+       PLAN ACTIVATION & CHECKOUT MODAL
+       ========================================================== -->
+  <div id="checkoutModal" class="modal-backdrop-modern" onclick="if(event.target===this)closeCheckoutModal()">
+    <div class="modal-dialog-modern" style="max-width: 520px;">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern">
+          <i class="ti ti-sparkles" style="color: var(--primary);"></i> Confirm Subscription Upgrade
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeCheckoutModal()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body-modern" style="padding: 20px 24px;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 14px; font-weight: 700; color: #0f172a;" id="modalPlanName">Professional Store</span>
+            <span class="badge-modern info" id="modalCycleBadge">Monthly Plan</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12px; color: #64748b;">Billing Amount:</span>
+            <span style="font-size: 26px; font-weight: 800; color: var(--primary);" id="modalTotalAmount">₹999.00</span>
+          </div>
+        </div>
+
+        <div class="form-group-modern" style="margin-bottom: 18px;">
+          <label class="form-label-modern" style="font-weight: 700;">Select Payment Method</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <button type="button" class="btn-modern btn-secondary-modern pay-method-btn active" data-method="UPI" onclick="selectPayMethod(this, 'UPI')">
+              <i class="ti ti-qrcode"></i> UPI / QR
+            </button>
+            <button type="button" class="btn-modern btn-secondary-modern pay-method-btn" data-method="Card" onclick="selectPayMethod(this, 'Card')">
+              <i class="ti ti-credit-card"></i> Card
+            </button>
+            <button type="button" class="btn-modern btn-secondary-modern pay-method-btn" data-method="NetBanking" onclick="selectPayMethod(this, 'NetBanking')">
+              <i class="ti ti-building-bank"></i> Net Banking
+            </button>
+          </div>
+        </div>
+
+        <div id="upiPreviewBox" style="background: #ffffff; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Instant activation via UPI QR Code / Auto-Debit</div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 13px;">GPay, PhonePe, Paytm or Any BHIM UPI App</div>
+        </div>
+      </div>
+
+      <div class="modal-footer-modern">
+        <button type="button" class="btn-modern btn-secondary-modern" onclick="closeCheckoutModal()">
+          Cancel
+        </button>
+        <button type="button" class="btn-modern btn-primary-modern" id="btnConfirmUpgrade" onclick="executePlanUpgrade()">
+          <i class="ti ti-shield-check"></i> Pay &amp; Activate Plan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSelectedCycle = 'monthly';
+    let checkoutTargetPlanId = null;
+    let selectedPaymentMethod = 'UPI';
+
+    function scrollToPlans() {
+      const el = document.getElementById('plansAnchor');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function switchBillingCycle(cycle) {
+      currentSelectedCycle = cycle;
+      const isYearly = cycle === 'yearly';
+
+      $('#btnCycleMonthly').toggleClass('active', !isYearly);
+      $('#btnCycleYearly').toggleClass('active', isYearly);
+
+      $('.price-val').each(function() {
+        const m = $(this).data('monthly');
+        const y = $(this).data('yearly');
+        if (isYearly) {
+          const monthlyEq = Math.round(y / 12);
+          $(this).text('₹' + monthlyEq);
+        } else {
+          $(this).text('₹' + m);
+        }
+      });
+
+      $('.yearly-note').toggle(isYearly);
+    }
+
+    function selectPayMethod(btn, method) {
+      $('.pay-method-btn').removeClass('active');
+      $(btn).addClass('active');
+      selectedPaymentMethod = method;
+    }
+
+    function openCheckoutModal(planId, planName, price) {
+      checkoutTargetPlanId = planId;
+      $('#modalPlanName').text(planName);
+
+      const isYearly = currentSelectedCycle === 'yearly';
+      $('#modalCycleBadge').text(isYearly ? 'Annual (20% Off)' : 'Monthly Plan');
+
+      // Find price from card or calculate
+      const targetCard = $(`.plan-card`).has(`button[onclick*="'${planId}'"]`);
+      let amount = price;
+      if (targetCard.length) {
+        const priceEl = targetCard.find('.price-val');
+        amount = isYearly ? priceEl.data('yearly') : priceEl.data('monthly');
+      }
+
+      $('#modalTotalAmount').text('₹' + Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+      $('#checkoutModal').addClass('show');
+    }
+
+    function closeCheckoutModal() {
+      $('#checkoutModal').removeClass('show');
+    }
+
+    function executePlanUpgrade() {
+      const btn = $('#btnConfirmUpgrade');
+      const origHtml = btn.html();
+      btn.prop('disabled', true);
+      btn.html('<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite; display:inline-block;"></i> Activating...');
+
+      fetch('/admin/subscription/upgrade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          plan_id: checkoutTargetPlanId,
+          billing_cycle: currentSelectedCycle,
+          payment_method: selectedPaymentMethod
+        })
+      })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        btn.prop('disabled', false);
+        btn.html(origHtml);
+
+        if (!ok || !data.success) {
+          if (typeof showError === 'function') {
+            showError('Activation Failed', data.error || 'Could not upgrade plan.');
+          } else {
+            alert(data.error || 'Could not upgrade plan.');
+          }
+        } else {
+          closeCheckoutModal();
+          if (typeof showSuccess === 'function') {
+            showSuccess('Plan Activated!', data.message || 'Your subscription is now active.', function() {
+              window.location.reload();
+            });
+          } else {
+            alert(data.message || 'Plan activated successfully!');
+            window.location.reload();
+          }
+        }
+      })
+      .catch(err => {
+        btn.prop('disabled', false);
+        btn.html(origHtml);
+        if (typeof showError === 'function') {
+          showError('Network Error', 'Could not complete subscription request.');
+        }
+      });
+    }
+
+    // =============================================
+    // ADMIN: CLIENT STORE APPROVAL & LICENSE CONTROLS
+    // =============================================
+    function approveStore(companyId, storeName) {
+      if (typeof showConfirm === 'function') {
+        showConfirm('Approve Client Store?', `Grant immediate login access to "${storeName}" and activate their license?`, 'Yes, Approve Store')
+          .then(res => {
+            if (res && res.isConfirmed) executeApprove(companyId);
+          });
+      } else {
+        if (confirm(`Approve store "${storeName}" and grant login access?`)) {
+          executeApprove(companyId);
+        }
+      }
+    }
+
+    function executeApprove(companyId) {
+      if (typeof showPageLoader === 'function') showPageLoader('Activating client store...');
+      fetch(`/admin/subscription/clients/${companyId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          if (typeof showSuccess === 'function') {
+            showSuccess('Store Approved!', data.message, function() { window.location.reload(); });
+          } else {
+            alert(data.message);
+            window.location.reload();
+          }
+        } else {
+          if (typeof showError === 'function') showError('Error', data.error);
+          else alert(data.error);
+        }
+      })
+      .catch(() => {
+        if (typeof showError === 'function') showError('Error', 'Could not complete request.');
+      });
+    }
+
+    function extendStoreLicense(companyId, storeName) {
+      if (confirm(`Extend subscription for "${storeName}" by +30 days?`)) {
+        if (typeof showPageLoader === 'function') showPageLoader('Extending validity...');
+        fetch(`/admin/subscription/clients/${companyId}/extend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ days: 30 })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            if (typeof showSuccess === 'function') {
+              showSuccess('Validity Extended!', data.message, function() { window.location.reload(); });
+            } else {
+              alert(data.message);
+              window.location.reload();
+            }
+          } else {
+            alert(data.error || 'Failed to extend validity');
+          }
+        });
+      }
+    }
+
+    function toggleStoreStatus(companyId, storeName) {
+      if (confirm(`Toggle active/suspended status for "${storeName}"?`)) {
+        fetch(`/admin/subscription/clients/${companyId}/toggle`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+            window.location.reload();
+          } else {
+            alert(data.error || 'Failed to toggle status');
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>

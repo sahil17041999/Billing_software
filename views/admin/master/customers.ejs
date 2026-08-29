@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/js/indian-states-cities.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'master' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-users" style="color: var(--primary);"></i> Customer Directory
+              </h1>
+              <p class="page-subheading">Manage retail and wholesale customer accounts, contacts, and credit balances</p>
+            </div>
+            
+            <div class="page-title-actions">
+              <button class="btn-modern btn-primary-modern" onclick="openModal()">
+                <i class="ti ti-plus"></i> Add New Customer
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern">
+            <div class="card-body-modern">
+              
+              <!-- Toolbar -->
+              <div class="toolbar-modern">
+                <div class="search-input-group">
+                  <i class="ti ti-search icon"></i>
+                  <input type="text" id="searchInput" placeholder="Search by customer name, phone, or email..." onkeydown="if(event.key==='Enter') searchCustomers()">
+                </div>
+                <button class="btn-modern btn-secondary-modern" onclick="searchCustomers()">
+                  <i class="ti ti-search"></i> Search
+                </button>
+              </div>
+
+              <!-- Data Table -->
+              <div class="table-responsive-wrapper">
+                <table class="table-modern" id="customersTable">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Customer Name</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                      <th>City</th>
+                      <th>Type</th>
+                      <th style="text-align: right;">Outstanding Balance</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (customers.length === 0) { %>
+                      <tr>
+                        <td colspan="8" class="table-empty-state">
+                          <i class="ti ti-user-off icon"></i>
+                          <p>No customers found.</p>
+                          <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Add First Customer
+                          </button>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% customers.forEach(customer => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= customer.id %></span></td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
+                              <%= customer.name.charAt(0).toUpperCase() %>
+                            </div>
+                            <strong><%= customer.name %></strong>
+                          </div>
+                        </td>
+                        <td><%= customer.phone || '-' %></td>
+                        <td><%= customer.email || '-' %></td>
+                        <td><%= customer.city || '-' %></td>
+                        <td>
+                          <span class="badge-modern <%= customer.customer_type === 'wholesale' ? 'warning' : 'info' %>">
+                            <%= customer.customer_type ? customer.customer_type.toUpperCase() : 'RETAIL' %>
+                          </span>
+                        </td>
+                        <td style="text-align: right;" class="amount-cell">
+                          <span style="color: <%= Number(customer.outstanding_amount) > 0 ? '#ef4444' : '#10b981' %>;">
+                            ₹<%= Number(customer.outstanding_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern" 
+                            data-id="<%= customer.id %>" 
+                            data-name="<%= customer.name %>" 
+                            data-phone="<%= customer.phone || '' %>" 
+                            data-email="<%= customer.email || '' %>" 
+                            data-address="<%= customer.address || '' %>"
+                            data-city="<%= customer.city || '' %>" 
+                            data-state="<%= customer.state || '' %>"
+                            data-postal="<%= customer.postal_code || '' %>"
+                            data-gstin="<%= customer.gstin || '' %>"
+                            data-credit="<%= customer.credit_limit || 0 %>"
+                            data-type="<%= customer.customer_type || 'retail' %>" 
+                            onclick="editCustomer(this)" title="Edit customer">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination-modern">
+                <span style="font-size: 13px; color: var(--text-muted);">
+                  Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, Math.ceil(total / limit)) %></strong> (<%= total %> total customers)
+                </span>
+                <div class="pagination-controls">
+                  <% if (page > 1) { %>
+                    <a href="/admin/master/customers?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </a>
+                  <% } %>
+                  <% if (page * limit < total) { %>
+                    <a href="/admin/master/customers?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="customerModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
+          <i class="ti ti-user-plus" style="color: var(--primary);"></i> Add Customer
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeModal()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="customerForm">
+        <div class="modal-body-modern">
+          <input type="hidden" id="customerId" name="id">
+          
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="name">Customer Full Name <span class="required-dot">*</span></label>
+            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Ramesh Kumar" required>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="phone">Phone Number</label>
+              <input type="text" id="phone" name="phone" class="form-control-modern" placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="email">Email Address</label>
+              <input type="email" id="email" name="email" class="form-control-modern" placeholder="customer@example.com">
+            </div>
+          </div>
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="address">Street Address</label>
+            <textarea id="address" name="address" class="form-control-modern" rows="2" placeholder="Address lines..."></textarea>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="state">State</label>
+              <select id="state" name="state" class="form-control-modern">
+                <option value="">-- Select State --</option>
+              </select>
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="city">City / District</label>
+              <select id="city" name="city" class="form-control-modern">
+                <option value="">-- Select City --</option>
+              </select>
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="postal_code">Postal Code (PIN)</label>
+              <input type="text" id="postal_code" name="postal_code" class="form-control-modern" placeholder="e.g. 700001" maxlength="6">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="customer_type">Customer Type</label>
+              <select id="customer_type" name="customer_type" class="form-control-modern">
+                <option value="retail">Retail</option>
+                <option value="wholesale">Wholesale</option>
+                <option value="distributor">Distributor</option>
+              </select>
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="gstin">GSTIN (Optional)</label>
+              <input type="text" id="gstin" name="gstin" class="form-control-modern" placeholder="GST Number">
+            </div>
+            <div class="form-group-modern">
+              <label class="form-label-modern" for="credit_limit">Credit Limit (₹)</label>
+              <input type="number" step="0.01" id="credit_limit" name="credit_limit" class="form-control-modern" value="0.00">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal()">
+            <i class="ti ti-x"></i> Cancel
+          </button>
+          <button type="submit" class="btn-modern btn-primary-modern" id="modalSubmitBtn">
+            <i class="ti ti-device-floppy" id="modalSubmitIcon"></i>
+            <span id="modalSubmitText">Save Customer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById('customerForm').reset();
+      document.getElementById('customerId').value = '';
+      document.getElementById('modalTitle').innerHTML = '<i class="ti ti-user-plus" style="color: var(--primary);"></i> Add Customer';
+      document.getElementById('modalSubmitIcon').className = 'ti ti-device-floppy';
+      document.getElementById('modalSubmitText').textContent = 'Save Customer';
+      
+      // Initialize dynamic State and City
+      if (typeof setupDynamicStateCity === 'function') {
+        setupDynamicStateCity('state', 'city', '', '');
+      }
+
+      document.getElementById('customerModal').classList.add('show');
+      setTimeout(() => document.getElementById('name').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('customerModal').classList.remove('show');
+    }
+
+    function editCustomer(button) {
+      document.getElementById('modalTitle').innerHTML = '<i class="ti ti-edit" style="color: var(--primary);"></i> Edit Customer';
+      document.getElementById('modalSubmitIcon').className = 'ti ti-check';
+      document.getElementById('modalSubmitText').textContent = 'Update Customer';
+      
+      document.getElementById('customerId').value = button.getAttribute('data-id') || '';
+      document.getElementById('name').value = button.getAttribute('data-name') || '';
+      document.getElementById('phone').value = button.getAttribute('data-phone') || '';
+      document.getElementById('email').value = button.getAttribute('data-email') || '';
+      document.getElementById('address').value = button.getAttribute('data-address') || '';
+      
+      const st = button.getAttribute('data-state') || '';
+      const ct = button.getAttribute('data-city') || '';
+      if (typeof setupDynamicStateCity === 'function') {
+        setupDynamicStateCity('state', 'city', st, ct);
+      } else {
+        document.getElementById('state').value = st;
+        document.getElementById('city').value = ct;
+      }
+
+      document.getElementById('postal_code').value = button.getAttribute('data-postal') || '';
+      document.getElementById('gstin').value = button.getAttribute('data-gstin') || '';
+      document.getElementById('credit_limit').value = button.getAttribute('data-credit') || '0';
+      document.getElementById('customer_type').value = button.getAttribute('data-type') || 'retail';
+      document.getElementById('customerModal').classList.add('show');
+      setTimeout(() => document.getElementById('name').focus(), 100);
+    }
+
+    function searchCustomers() {
+      const search = $('#searchInput').val().trim();
+      if (typeof showPageLoader === 'function') showPageLoader('Searching customers...');
+      window.location.href = '/admin/master/customers?search=' + encodeURIComponent(search);
+    }
+
+    $(document).ready(function() {
+      initFormValidation('#customerForm', {
+        rules: {
+          name: { required: true, minlength: 2 },
+          phone: { phoneIN: true },
+          email: { email: true },
+          gstin: { gstin: true },
+          postal_code: { pincode: true },
+          credit_limit: { nonNegativeNumber: true }
+        },
+        messages: {
+          name: { required: 'Please enter customer full name', minlength: 'Name must be at least 2 characters' },
+          phone: { phoneIN: 'Please enter a valid 10-digit mobile number' },
+          email: { email: 'Please enter a valid email address' },
+          gstin: { gstin: 'Please enter a valid 15-character GSTIN' },
+          postal_code: { pincode: 'Please enter a valid 6-digit pincode' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#customerId').val();
+          const data = {
+            name: $('#name').val().trim(),
+            phone: $('#phone').val().trim(),
+            email: $('#email').val().trim(),
+            address: $('#address').val().trim(),
+            city: $('#city').val().trim(),
+            state: $('#state').val().trim(),
+            postal_code: $('#postal_code').val().trim(),
+            gstin: $('#gstin').val().trim().toUpperCase(),
+            credit_limit: parseFloat($('#credit_limit').val()) || 0,
+            customer_type: $('#customer_type').val()
+          };
+          
+          const url = id ? '/admin/master/customers/' + id : '/admin/master/customers';
+          const method = id ? 'PUT' : 'POST';
+          const saveBtn = $('#modalSubmitBtn');
+          saveBtn.prop('disabled', true);
+          if (typeof showPageLoader === 'function') showPageLoader(id ? 'Updating Customer...' : 'Saving Customer...');
+          
+          fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json().then(json => ({ ok: res.ok, json })))
+          .then(({ ok, json }) => {
+            saveBtn.prop('disabled', false);
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            if (ok && json.success) {
+              closeModal();
+              showToast('success', id ? 'Customer updated successfully!' : 'Customer added successfully!');
+              setTimeout(() => location.reload(), 1100);
+            } else {
+              const errMsg = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.error || 'Failed to save customer');
+              showError('Save Failed', errMsg);
+            }
+          })
+          .catch(err => {
+            saveBtn.prop('disabled', false);
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            showError('Network Error', err.message || 'Could not connect to the server.');
+          });
+        }
+      });
+
+      $('#customerModal').on('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+
+      // Auto initialize DataTables
+      if ($('#customersTable tbody tr').length > 0 && !$('#customersTable tbody td.table-empty-state').length) {
+        initStandardDataTable('#customersTable', {
+          order: [[0, 'desc']]
+        });
+      }
+    });
+  </script>
+</body>
+</html>

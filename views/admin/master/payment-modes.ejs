@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Modes - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'master' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Header -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-credit-card" style="color: var(--primary);"></i> Payment Modes
+              </h1>
+              <p class="page-subheading">Enabled payment channels for POS checkout and billing (Cash, UPI, Card, etc.)</p>
+            </div>
+            <div class="page-title-actions">
+              <button class="btn-modern btn-primary-modern" onclick="openModal()">
+                <i class="ti ti-plus"></i> Add Payment Mode
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Table Card -->
+          <div class="card-modern" style="max-width: 800px;">
+            <div class="card-body-modern">
+              
+              <div class="table-responsive-wrapper">
+                <table class="table-modern">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">ID</th>
+                      <th>Payment Channel</th>
+                      <th style="text-align: center;">Status</th>
+                      <th style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (paymentModes.length === 0) { %>
+                      <tr>
+                        <td colspan="4" class="table-empty-state">
+                          <i class="ti ti-credit-card-off icon"></i>
+                          <p>No payment channels configured.</p>
+                          <button class="btn-modern btn-primary-modern btn-sm-modern" onclick="openModal()" style="margin-top: 8px;">
+                            <i class="ti ti-plus"></i> Add Payment Mode
+                          </button>
+                        </td>
+                      </tr>
+                    <% } %>
+                    <% paymentModes.forEach(mode => { %>
+                      <tr>
+                        <td><span style="font-family: var(--font-mono); color: var(--text-light); font-weight: 600;">#<%= mode.id %></span></td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                              <i class="ti ti-credit-card"></i>
+                            </div>
+                            <strong><%= mode.name %></strong>
+                          </div>
+                        </td>
+                        <td style="text-align: center;">
+                          <span class="badge-modern <%= mode.is_active ? 'success' : 'secondary' %>">
+                            <%= mode.is_active ? 'Active' : 'Inactive' %>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <button class="btn-modern btn-secondary-modern btn-sm-modern"
+                            data-id="<%= mode.id %>"
+                            data-name="<%= mode.name %>"
+                            onclick="editMode(this)" title="Edit payment mode">
+                            <i class="ti ti-edit"></i> Edit
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Footer -->
+        <%- include('../../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="modeModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern" style="max-width: 460px;">
+      <div class="modal-header-modern">
+        <h2 class="modal-title-modern" id="modalTitle">
+          <i class="ti ti-credit-card" style="color: var(--primary);"></i> Add Payment Mode
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeModal()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="modeForm" novalidate>
+        <div class="modal-body-modern">
+          <input type="hidden" id="modeId" name="id">
+
+          <div class="form-group-modern">
+            <label class="form-label-modern" for="modeName">Payment Mode Name <span class="required-dot">*</span></label>
+            <input type="text" id="modeName" name="name" class="form-control-modern" placeholder="e.g. Cash / UPI / Card" required>
+            <div class="field-error-text" id="modeNameError">Payment mode name is required.</div>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn-modern btn-secondary-modern" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-modern btn-primary-modern" id="modeSaveBtn">
+            <i class="ti ti-device-floppy"></i> Save Mode
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .field-error-text { color: #f87171; font-size: 12px; margin-top: 5px; display: none; }
+    .form-control-modern.is-invalid { border-color: #ef4444 !important; }
+    .form-control-modern.is-invalid ~ .field-error-text { display: block; }
+  </style>
+
+  <script>
+    function openModal() {
+      $('#modeForm').trigger('reset');
+      $('#modeId').val('');
+      $('#modalTitle').html('<i class="ti ti-credit-card" style="color: var(--primary);"></i> Add Payment Mode');
+      $('#modeModal').addClass('show');
+      setTimeout(() => $('#modeName').focus(), 100);
+    }
+
+    function closeModal() {
+      $('#modeModal').removeClass('show');
+      resetFormValidation('#modeForm');
+    }
+
+    function editMode(button) {
+      const $btn = $(button);
+      $('#modalTitle').html('<i class="ti ti-edit" style="color: var(--primary);"></i> Edit Payment Mode');
+      $('#modeId').val($btn.data('id') || '');
+      $('#modeName').val($btn.data('name') || '');
+      $('#modeModal').addClass('show');
+      setTimeout(() => $('#modeName').focus(), 100);
+    }
+
+    $(document).ready(function() {
+      initFormValidation('#modeForm', {
+        rules: {
+          name: { required: true, minlength: 2 }
+        },
+        messages: {
+          name: { required: 'Please enter payment mode name (e.g. UPI, NetBanking, Credit)' }
+        },
+        onSubmit: function(form, $form) {
+          const id = $('#modeId').val();
+          const name = $('#modeName').val().trim();
+          const url = id ? '/admin/master/payment-modes/' + id : '/admin/master/payment-modes';
+          const method = id ? 'PUT' : 'POST';
+          const saveBtn = $('#modeSaveBtn');
+          saveBtn.prop('disabled', true);
+
+          fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ name })
+          }).then(res => res.json()).then(resData => {
+            saveBtn.prop('disabled', false);
+            if (resData.success) {
+              closeModal();
+              showToast('success', id ? 'Payment mode updated!' : 'Payment mode added!');
+              setTimeout(() => location.reload(), 1100);
+            } else {
+              const errMsg = resData.errors ? Object.values(resData.errors).flat().join(', ') : (resData.error || 'Failed to save');
+              showError('Save Failed', errMsg);
+            }
+          }).catch(() => {
+            saveBtn.prop('disabled', false);
+            showError('Network Error', 'Could not connect to the server.');
+          });
+        }
+      });
+
+      $('#modeModal').on('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+
+      $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+  </script>
+</body>
+</html>
