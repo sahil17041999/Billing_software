@@ -117,8 +117,11 @@
                 <td style="text-align: center;">
                   ${row.quantity <= (row.product ? row.product.min_stock_level : 0) ? '<span class="badge-modern danger"><i class="ti ti-alert-circle"></i> Low Stock</span>' : '<span class="badge-modern success"><i class="ti ti-check"></i> In Stock</span>'}
                 </td>
-              </tr>
             `).join('');
+
+            if (typeof initStandardDataTable === 'function') {
+              initStandardDataTable('.table-modern');
+            }
           }
           
           document.getElementById('kpiProducts').textContent = data.summary.totalProducts || 0;

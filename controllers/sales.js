@@ -104,7 +104,7 @@ exports.getPOS = async (req, res) => {
     // Payment Modes, Categories, Units & Taxes
     // --------------------------------------------------------
 
-    const [paymentModes, categories, units, taxes] = await Promise.all([
+    const [paymentModes, categories, units, taxes, brands, company, nextInvoiceNumber] = await Promise.all([
       PaymentMode.findAll({
         where: { company_id: companyId, is_active: 1 },
         order: [['name', 'ASC']]
@@ -120,7 +120,13 @@ exports.getPOS = async (req, res) => {
       Tax.findAll({
         where: { company_id: companyId, is_active: 1 },
         order: [['rate', 'ASC']]
-      })
+      }),
+      Brand.findAll({
+        where: { company_id: companyId, is_active: 1 },
+        order: [['name', 'ASC']]
+      }),
+      Company.findByPk(companyId),
+      generateInvoiceNumber(companyId)
     ]);
 
     // --------------------------------------------------------
@@ -134,6 +140,9 @@ exports.getPOS = async (req, res) => {
       categories,
       units,
       taxes,
+      brands,
+      company,
+      nextInvoiceNumber,
       user: req.user
     });
 
@@ -480,7 +489,11 @@ exports.createSale = async (req, res) => {
       // If no product found or custom loose item, find or create generic product
       if (!product) {
         const itemName = (item.name || 'Custom Loose Item').substring(0, 100);
-        let defaultUnit = await Unit.findOne({ where: { company_id: companyId }, transaction });
+        const [defaultUnit, defaultCategory, defaultTax] = await Promise.all([
+          Unit.findOne({ where: { company_id: companyId }, transaction }),
+          Category.findOne({ where: { company_id: companyId }, transaction }),
+          Tax.findOne({ where: { company_id: companyId }, transaction })
+        ]);
         [product] = await Product.findOrCreate({
           where: {
             company_id: companyId,
@@ -489,6 +502,8 @@ exports.createSale = async (req, res) => {
           defaults: {
             company_id: companyId,
             name: itemName,
+            category_id: defaultCategory ? defaultCategory.id : 1,
+            tax_id: defaultTax ? defaultTax.id : 1,
             selling_price: parseFloat(item.unit_price) || 0,
             unit_id: defaultUnit ? defaultUnit.id : 1,
             is_active: 1
@@ -690,7 +705,10 @@ exports.createSale = async (req, res) => {
           'completed',
 
         cashier_id:
-          userId
+          userId,
+
+        notes:
+          req.body.notes || null
 
       }, {
         transaction
@@ -1112,40 +1130,37 @@ exports.searchProductByBarcode = async (req, res) => {
     // Product
     // ========================================================
 
-    const product =
-      await Product.findOne({
+    const cleanCode = String(barcode).trim();
+    let product = await Product.findOne({
+      where: {
+        company_id: companyId,
+        barcode: cleanCode,
+        is_active: 1
+      },
+      include: [
+        { model: Category, as: 'category', required: false },
+        { model: Unit, as: 'unit', required: false },
+        { model: Tax, as: 'tax', required: false }
+      ]
+    });
 
+    if (!product) {
+      product = await Product.findOne({
         where: {
-
-          company_id:
-            companyId,
-
-          barcode:
-            barcode,
-
-          is_active:
-            1
-
+          company_id: companyId,
+          is_active: 1,
+          [Op.or]: [
+            { sku: cleanCode },
+            { name: cleanCode }
+          ]
         },
-
         include: [
-          {
-            model: Category,
-            as: 'category',
-            required: false
-          },
-          {
-            model: Unit,
-            as: 'unit',
-            required: false
-          },
-          {
-            model: Tax,
-            as: 'tax',
-            required: false
-          }
+          { model: Category, as: 'category', required: false },
+          { model: Unit, as: 'unit', required: false },
+          { model: Tax, as: 'tax', required: false }
         ]
       });
+    }
 
 
     if (!product) {

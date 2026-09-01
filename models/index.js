@@ -30,6 +30,7 @@ const SmtpSetting = require('./SmtpSetting');
 const SubscriptionPlan = require('./SubscriptionPlan');
 const CompanySubscription = require('./CompanySubscription');
 const SubscriptionInvoice = require('./SubscriptionInvoice');
+const Notification = require('./Notification');
 
 // Define associations (idempotent guard)
 let associationsSetup = false;
@@ -201,6 +202,12 @@ const setupAssociations = () => {
   SubscriptionInvoice.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
   SubscriptionInvoice.belongsTo(SubscriptionPlan, { foreignKey: 'plan_id', as: 'plan' });
   Company.hasMany(SubscriptionInvoice, { foreignKey: 'company_id', as: 'subscriptionInvoices' });
+
+  // Notification associations
+  Company.hasMany(Notification, { foreignKey: 'company_id', as: 'notifications' });
+  Notification.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
+  User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications' });
+  Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 };
 
 // Run associations immediately
@@ -239,6 +246,7 @@ module.exports = {
   SubscriptionPlan,
   CompanySubscription,
   SubscriptionInvoice,
+  Notification,
   setupAssociations,
   seedSubscriptionPlans
 };
@@ -248,80 +256,83 @@ module.exports = {
  */
 async function seedSubscriptionPlans() {
   try {
-    const count = await SubscriptionPlan.count();
-    if (count === 0) {
-      await SubscriptionPlan.bulkCreate([
-        {
-          name: 'Starter Retailer',
-          code: 'starter',
-          description: 'Essential billing and inventory tools for small grocery shops and single counters.',
-          price_monthly: 499.00,
-          price_yearly: 4790.00, // 20% discount
-          currency: '₹',
-          max_users: 2,
-          max_products: 1000,
-          max_invoices_per_month: 2000,
-          badge_text: 'ESSENTIALS',
-          is_popular: false,
-          is_active: true,
-          features: [
-            'Single Counter Quick POS Billing',
-            'Barcode & Thermal 80mm Printing',
-            'Standard A4 Invoicing & GST Matrix',
-            'Product & Category Catalog (1,000 items)',
-            'Daily Sales Reports & Summaries',
-            'Basic Email Receipts via SMTP'
-          ]
-        },
-        {
-          name: 'Professional Store',
-          code: 'pro',
-          description: 'Comprehensive ERP with multi-cart POS, automated SMTP, and inventory control.',
-          price_monthly: 999.00,
-          price_yearly: 9590.00, // 20% discount
-          currency: '₹',
-          max_users: 6,
-          max_products: 10000,
-          max_invoices_per_month: 15000,
-          badge_text: 'MOST POPULAR',
-          is_popular: true,
-          is_active: true,
-          features: [
-            'Multi-Level & Multi-Cart POS Terminal',
-            'High-Speed Barcode Scanning & Audio Feedback',
-            'Automated SMTP Email Dispatch & Presets',
-            'Custom Logo Branding on Invoices & POS',
-            'Day-End Cash Reconciliation & Register Audits',
-            'Stock Ledger, Reorder Alerts & Purchase Tracking',
-            'Full Customer & Supplier Ledger Accounting',
-            'Priority Email & Chat Support'
-          ]
-        },
-        {
-          name: 'Enterprise Supermarket',
-          code: 'enterprise',
-          description: 'Unlimited capacity for multi-counter supermarkets and enterprise retail chains.',
-          price_monthly: 1999.00,
-          price_yearly: 19190.00, // 20% discount
-          currency: '₹',
-          max_users: 999,
-          max_products: 999999,
-          max_invoices_per_month: 999999,
-          badge_text: 'UNLIMITED',
-          is_popular: false,
-          is_active: true,
-          features: [
-            'Unlimited Users, Counters & Cashiers',
-            'Unlimited Products & Invoices per month',
-            'Role Privileges & Granular Access Control',
-            'Multi-Branch & Warehouse Stock Transfers',
-            'Advanced Sales Analytics & Profit Margins',
-            'Custom Domain & Dedicated Support Manager',
-            'Automated Cloud Backups & Zero Downtime SLA'
-          ]
-        }
-      ]);
-      console.log('✓ Default subscription plans seeded successfully');
+    const defaultPlans = [
+      {
+        name: 'Starter Retailer',
+        code: 'starter',
+        description: 'Essential billing and inventory tools for small grocery shops and single counters.',
+        price_monthly: 499.00,
+        price_yearly: 4790.00, // 20% discount
+        currency: '₹',
+        max_users: 2,
+        max_products: 1000,
+        max_invoices_per_month: 2000,
+        badge_text: 'ESSENTIALS',
+        is_popular: false,
+        is_active: true,
+        features: [
+          'Single Counter Quick POS Billing',
+          'Barcode & Thermal 80mm Printing',
+          'Standard A4 Invoicing & GST Matrix',
+          'Product & Category Catalog (1,000 items)',
+          'Daily Sales Reports & Summaries',
+          'Basic Email Receipts via SMTP'
+        ]
+      },
+      {
+        name: 'Professional Store',
+        code: 'pro',
+        description: 'Comprehensive ERP with multi-cart POS, automated SMTP, and inventory control.',
+        price_monthly: 999.00,
+        price_yearly: 9590.00, // 20% discount
+        currency: '₹',
+        max_users: 6,
+        max_products: 10000,
+        max_invoices_per_month: 15000,
+        badge_text: 'MOST POPULAR',
+        is_popular: true,
+        is_active: true,
+        features: [
+          'Multi-Level & Multi-Cart POS Terminal',
+          'High-Speed Barcode Scanning & Audio Feedback',
+          'Automated SMTP Email Dispatch & Presets',
+          'Custom Logo Branding on Invoices & POS',
+          'Day-End Cash Reconciliation & Register Audits',
+          'Stock Ledger, Reorder Alerts & Purchase Tracking',
+          'Full Customer & Supplier Ledger Accounting',
+          'Priority Email & Chat Support'
+        ]
+      },
+      {
+        name: 'Enterprise Supermarket',
+        code: 'enterprise',
+        description: 'Unlimited capacity for multi-counter supermarkets and enterprise retail chains.',
+        price_monthly: 1999.00,
+        price_yearly: 19190.00, // 20% discount
+        currency: '₹',
+        max_users: 999,
+        max_products: 999999,
+        max_invoices_per_month: 999999,
+        badge_text: 'UNLIMITED',
+        is_popular: false,
+        is_active: true,
+        features: [
+          'Unlimited Users, Counters & Cashiers',
+          'Unlimited Products & Invoices per month',
+          'Role Privileges & Granular Access Control',
+          'Multi-Branch & Warehouse Stock Transfers',
+          'Advanced Sales Analytics & Profit Margins',
+          'Custom Domain & Dedicated Support Manager',
+          'Automated Cloud Backups & Zero Downtime SLA'
+        ]
+      }
+    ];
+
+    for (const p of defaultPlans) {
+      const existing = await SubscriptionPlan.findOne({ where: { code: p.code } });
+      if (!existing) {
+        await SubscriptionPlan.create(p);
+      }
     }
   } catch (err) {
     console.error('Error seeding subscription plans:', err.message);

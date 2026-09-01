@@ -13,6 +13,16 @@ if (!fs.existsSync(AVATAR_UPLOAD_DIR)) {
   try { fs.mkdirSync(AVATAR_UPLOAD_DIR, { recursive: true }); } catch (e) {}
 }
 
+const SIGNATURE_UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads', 'signatures');
+if (!fs.existsSync(SIGNATURE_UPLOAD_DIR)) {
+  try { fs.mkdirSync(SIGNATURE_UPLOAD_DIR, { recursive: true }); } catch (e) {}
+}
+
+const STAMP_UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads', 'stamps');
+if (!fs.existsSync(STAMP_UPLOAD_DIR)) {
+  try { fs.mkdirSync(STAMP_UPLOAD_DIR, { recursive: true }); } catch (e) {}
+}
+
 // ============================================================
 // LIST USERS
 // ============================================================
@@ -449,7 +459,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.session.userId;
-    const { email, first_name, last_name, phone } = req.body;
+    const { email, first_name, last_name, phone, signatory_name, signatory_designation } = req.body;
 
     // Email uniqueness check
     if (email) {
@@ -462,12 +472,25 @@ exports.updateProfile = async (req, res) => {
     }
 
     const currentUser = await User.findByPk(userId);
-    await currentUser.update({
-      email: email || null,
-      first_name: first_name || null,
-      last_name: last_name || null,
-      phone: phone || null
-    });
+    if (!currentUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const updateFields = {};
+    if (email !== undefined) updateFields.email = email ? email.trim() : null;
+    if (first_name !== undefined) updateFields.first_name = first_name ? first_name.trim() : null;
+    if (last_name !== undefined) updateFields.last_name = last_name ? last_name.trim() : null;
+    if (phone !== undefined && phone !== null && String(phone).trim() !== '') {
+      updateFields.phone = String(phone).trim();
+    }
+    if (signatory_name !== undefined) {
+      updateFields.signatory_name = signatory_name ? signatory_name.trim() : null;
+    }
+    if (signatory_designation !== undefined) {
+      updateFields.signatory_designation = signatory_designation ? signatory_designation.trim() : 'Authorized Signatory';
+    }
+
+    await currentUser.update(updateFields);
 
     return res.json({
       success: true,
@@ -476,7 +499,9 @@ exports.updateProfile = async (req, res) => {
         first_name: currentUser.first_name,
         last_name: currentUser.last_name,
         email: currentUser.email,
-        phone: currentUser.phone
+        phone: currentUser.phone,
+        signatory_name: currentUser.signatory_name,
+        signatory_designation: currentUser.signatory_designation
       }
     });
 
@@ -565,6 +590,177 @@ exports.removeAvatar = async (req, res) => {
     });
   } catch (error) {
     console.error('Error removing avatar:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ============================================================
+// OWN PROFILE - UPLOAD AUTHORIZED SIGNATURE
+// ============================================================
+exports.uploadSignature = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { signatureData, signatureUrl } = req.body;
+
+    let savedPath = '';
+
+    if (signatureData && signatureData.startsWith('data:image/')) {
+      const matches = signatureData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ success: false, error: 'Invalid image format' });
+      }
+
+      let ext = matches[1].toLowerCase();
+      if (ext === 'svg+xml') ext = 'svg';
+      if (ext === 'jpeg') ext = 'jpg';
+
+      const buffer = Buffer.from(matches[2], 'base64');
+      const filename = `signatory-${userId}-${Date.now()}.${ext}`;
+      const fullPath = path.join(SIGNATURE_UPLOAD_DIR, filename);
+
+      fs.writeFileSync(fullPath, buffer);
+      savedPath = `/uploads/signatures/${filename}`;
+    } else if (signatureUrl && (signatureUrl.startsWith('/') || signatureUrl.startsWith('http'))) {
+      savedPath = signatureUrl.trim();
+    } else {
+      return res.status(400).json({ success: false, error: 'Please provide a valid signature image file.' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (user) {
+      if (user.signature_image && user.signature_image.startsWith('/uploads/signatures/')) {
+        const oldFile = path.join(__dirname, '..', 'public', user.signature_image);
+        if (fs.existsSync(oldFile)) {
+          try { fs.unlinkSync(oldFile); } catch (e) {}
+        }
+      }
+      await user.update({ signature_image: savedPath });
+    }
+
+    return res.json({
+      success: true,
+      signature_image: savedPath,
+      message: 'Authorized Signatory signature updated successfully!'
+    });
+  } catch (error) {
+    console.error('Error uploading signature:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ============================================================
+// OWN PROFILE - REMOVE AUTHORIZED SIGNATURE
+// ============================================================
+exports.removeSignature = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const user = await User.findByPk(userId);
+
+    if (user && user.signature_image) {
+      if (user.signature_image.startsWith('/uploads/signatures/')) {
+        const oldFile = path.join(__dirname, '..', 'public', user.signature_image);
+        if (fs.existsSync(oldFile)) {
+          try { fs.unlinkSync(oldFile); } catch (e) {}
+        }
+      }
+      await user.update({ signature_image: null });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Authorized Signatory signature removed successfully.'
+    });
+  } catch (error) {
+    console.error('Error removing signature:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ============================================================
+// OWN PROFILE - UPLOAD OFFICIAL COMPANY STAMP
+// ============================================================
+exports.uploadStamp = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { stampData, stampUrl } = req.body;
+
+    let savedPath = '';
+
+    if (stampData && stampData.startsWith('data:image/')) {
+      const matches = stampData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ success: false, error: 'Invalid image format' });
+      }
+
+      let ext = matches[1].toLowerCase();
+      if (ext === 'svg+xml') ext = 'svg';
+      if (ext === 'jpeg') ext = 'jpg';
+
+      const buffer = Buffer.from(matches[2], 'base64');
+      const filename = `stamp-${userId}-${Date.now()}.${ext}`;
+      const fullPath = path.join(STAMP_UPLOAD_DIR, filename);
+
+      fs.writeFileSync(fullPath, buffer);
+      savedPath = `/uploads/stamps/${filename}`;
+    } else if (stampUrl && (stampUrl.startsWith('/') || stampUrl.startsWith('http'))) {
+      savedPath = stampUrl.trim();
+    } else {
+      return res.status(400).json({ success: false, error: 'Please provide a valid stamp image file.' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (user) {
+      if (user.stamp_image && user.stamp_image.startsWith('/uploads/stamps/')) {
+        const oldFile = path.join(__dirname, '..', 'public', user.stamp_image);
+        if (fs.existsSync(oldFile)) {
+          try { fs.unlinkSync(oldFile); } catch (e) {}
+        }
+      }
+      await user.update({ stamp_image: savedPath });
+
+      if (user.company_id) {
+        await Company.update({ stamp_image: savedPath }, { where: { id: user.company_id } });
+      }
+    }
+
+    return res.json({
+      success: true,
+      stamp_image: savedPath,
+      message: 'Official Company Stamp updated successfully!'
+    });
+  } catch (error) {
+    console.error('Error uploading stamp:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ============================================================
+// OWN PROFILE - REMOVE OFFICIAL COMPANY STAMP
+// ============================================================
+exports.removeStamp = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const user = await User.findByPk(userId);
+
+    if (user && user.stamp_image) {
+      if (user.stamp_image.startsWith('/uploads/stamps/')) {
+        const oldFile = path.join(__dirname, '..', 'public', user.stamp_image);
+        if (fs.existsSync(oldFile)) {
+          try { fs.unlinkSync(oldFile); } catch (e) {}
+        }
+      }
+      await user.update({ stamp_image: null });
+      if (user.company_id) {
+        await Company.update({ stamp_image: null }, { where: { id: user.company_id } });
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: 'Official Company Stamp removed successfully.'
+    });
+  } catch (error) {
+    console.error('Error removing stamp:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
 };

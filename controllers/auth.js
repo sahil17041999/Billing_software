@@ -9,6 +9,9 @@ exports.getLogin = (req, res) => {
     if (req.session.role === 'cashier') {
       return res.redirect('/admin/sales/pos');
     }
+    if (req.session.companyId > 1) {
+      return res.redirect('/subscriber/dashboard');
+    }
     return res.redirect('/admin/dashboard');
   }
   res.render('admin/login', { message: null, error: null });
@@ -52,6 +55,14 @@ exports.postLogin = async (req, res) => {
       });
     }
 
+    // Block subscribers from using admin panel login
+    if (user.company_id > 1) {
+      return res.render('admin/login', {
+        error: 'Access Denied: You are a registered Store Subscriber. Please log in at the Subscriber Portal (/subscriber/login).',
+        message: null
+      });
+    }
+
     // Check if store / company is pending admin approval
     if (user.company && (user.company.is_active === 0 || user.company.is_active === false || user.company.is_active === '0')) {
       return res.render('admin/login', { 
@@ -84,9 +95,12 @@ exports.postLogin = async (req, res) => {
     req.session.role = roleName;
     req.session.companyId = user.company_id || (user.company ? user.company.id : 1);
 
-    // Role-based redirection: Cashier goes straight to POS terminal, Admin goes to Dashboard
+    // Role & Subscription-based redirection:
     if (req.session.role === 'cashier') {
       return res.redirect('/admin/sales/pos');
+    }
+    if (req.session.companyId > 1) {
+      return res.redirect('/subscriber/dashboard');
     }
 
     return res.redirect('/admin/dashboard');
@@ -142,6 +156,13 @@ exports.apiLogin = async (req, res) => {
 
     if (!user || user.is_active === 0 || user.is_active === false) {
       return res.status(401).json({ error: 'No active account found for this mobile number or account is pending approval' });
+    }
+
+    // Block subscribers from using admin panel login API
+    if (user.company_id > 1) {
+      return res.status(403).json({
+        error: 'Access Denied: You are a registered Store Subscriber. Please use the Subscriber Portal (/subscriber/login) to access your store.'
+      });
     }
 
     let roleName = user.role ? user.role.name : 'staff';
@@ -219,6 +240,14 @@ exports.sendLoginOtp = async (req, res) => {
       return res.status(404).json({
         success: false,
         error: `No registered account found with mobile number: ${cleanPhone}`
+      });
+    }
+
+    // Block subscribers from requesting OTP on admin portal
+    if (user.company_id > 1) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access Denied: You are a registered Store Subscriber. Please request your OTP on the Subscriber Portal at /subscriber/login.'
       });
     }
 
@@ -338,6 +367,15 @@ exports.verifyLoginOtp = async (req, res) => {
       });
     }
 
+    // Block subscribers from verifying OTP on admin login
+    if (user.company_id > 1) {
+      delete req.session.loginOtp;
+      return res.status(403).json({
+        success: false,
+        error: 'Access Denied: Store Subscribers must log in at the Subscriber Portal (/subscriber/login).'
+      });
+    }
+
     let roleName = user.role ? user.role.name : 'staff';
     if (!user.role && user.role_id) {
       const r = await Role.findByPk(user.role_id);
@@ -353,7 +391,12 @@ exports.verifyLoginOtp = async (req, res) => {
 
     delete req.session.loginOtp;
 
-    const redirectUrl = (roleName === 'cashier') ? '/admin/sales/pos' : '/admin/dashboard';
+    let redirectUrl = '/admin/dashboard';
+    if (roleName === 'cashier') {
+      redirectUrl = '/admin/sales/pos';
+    } else if (req.session.companyId > 1) {
+      redirectUrl = '/subscriber/dashboard';
+    }
 
     console.log(`✅ [LOGIN SUCCESS] ${user.username} (${roleName}) logged in via Mobile OTP! Redirecting: ${redirectUrl}`);
 

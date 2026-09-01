@@ -1,0 +1,137 @@
+<!-- views/subscriber/partials/sidebar.ejs -->
+<aside class="sidebar" id="adminSidebar" style="background: #090d16; border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; width: 260px; min-height: 100vh; position: fixed; left: 0; top: 0; bottom: 0; z-index: 1030; transition: all 0.3s ease;">
+  
+  <!-- Store Brand Header -->
+  <div class="sidebar-header" style="padding: 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between;">
+    <a href="/subscriber/dashboard" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; box-shadow: 0 4px 14px rgba(79,70,229,0.4);">
+        <i class="ti ti-building-store"></i>
+      </div>
+      <div>
+        <div style="font-weight: 800; font-size: 15px; color: #ffffff; letter-spacing: -0.3px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <%= (typeof company !== 'undefined' && company && company.name) ? company.name : 'Store Portal' %>
+        </div>
+        <div style="font-size: 11px; color: #818cf8; font-weight: 600;">Subscriber ERP</div>
+      </div>
+    </a>
+    <button class="sidebar-toggle-btn d-lg-none" type="button" aria-label="Close sidebar" onclick="window.closeMobileSidebar && window.closeMobileSidebar();" style="background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">
+      <i class="ti ti-x"></i>
+    </button>
+  </div>
+
+  <!-- Navigation Menu Links -->
+  <div class="sidebar-nav-container" style="padding: 16px 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+    
+    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; padding: 8px 12px 4px;">Store Center</div>
+
+    <a href="/subscriber/dashboard" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-dashboard') ? 'active' : '' %>" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-dashboard') ? '#ffffff' : '#94a3b8' %>; background: <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-dashboard') ? '#4f46e5' : 'transparent' %>; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-layout-dashboard fs-5"></i>
+      <span>Store Dashboard</span>
+    </a>
+
+    <a href="/admin/sales/pos" class="nav-item-link" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: #34d399; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); text-decoration: none; font-weight: 700; font-size: 13.5px; margin: 4px 0; transition: all 0.2s;">
+      <i class="ti ti-device-laptop fs-5"></i>
+      <span>POS Terminal</span>
+      <span style="margin-left: auto; font-size: 10px; background: #10b981; color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800;">COUNTER</span>
+    </a>
+
+    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; padding: 14px 12px 4px;">Store Modules</div>
+
+    <a href="/admin/sales" class="nav-item-link" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-file-invoice fs-5"></i>
+      <span>Invoices &amp; Bills</span>
+    </a>
+
+    <a href="/admin/master/products" class="nav-item-link" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-package fs-5"></i>
+      <span>Products Catalog</span>
+    </a>
+
+    <a href="/admin/inventory/stock" class="nav-item-link" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-stack fs-5"></i>
+      <span>Stock &amp; Inventory</span>
+    </a>
+
+    <a href="/admin/master/customers" class="nav-item-link" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-users fs-5"></i>
+      <span>Customers</span>
+    </a>
+
+    <a href="/admin/reports/sales" class="nav-item-link" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-chart-bar fs-5"></i>
+      <span>Sales Reports</span>
+    </a>
+
+    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; padding: 14px 12px 4px;">Subscription &amp; Store</div>
+
+    <a href="/subscriber/invoices" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-invoices') ? 'active' : '' %>" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-invoices') ? '#ffffff' : '#94a3b8' %>; background: <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-invoices') ? '#4f46e5' : 'transparent' %>; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-receipt fs-5"></i>
+      <span>Subscription Invoices</span>
+    </a>
+
+    <a href="/subscriber/notifications" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'notifications') ? 'active' : '' %>" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: <%= (typeof currentPage !== 'undefined' && currentPage === 'notifications') ? '#ffffff' : '#94a3b8' %>; background: <%= (typeof currentPage !== 'undefined' && currentPage === 'notifications') ? '#4f46e5' : 'transparent' %>; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-bell fs-5"></i>
+      <span>Notification Center</span>
+    </a>
+
+    <a href="/subscriber/profile" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-profile') ? 'active' : '' %>" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-profile') ? '#ffffff' : '#94a3b8' %>; background: <%= (typeof currentPage !== 'undefined' && currentPage === 'subscriber-profile') ? '#4f46e5' : 'transparent' %>; text-decoration: none; font-weight: 600; font-size: 13.5px; transition: all 0.2s;">
+      <i class="ti ti-settings fs-5"></i>
+      <span>Store Profile</span>
+    </a>
+
+  </div>
+
+  <!-- Sidebar Footer -->
+  <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.06); background: rgba(15,23,42,0.4);">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="/assets/images/profile/user-1.jpg" alt="Avatar" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
+        <div>
+          <div style="font-weight: 700; font-size: 13px; color: #fff; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <%= (typeof user !== 'undefined' && user) ? (user.first_name || user.username) : 'Store Owner' %>
+          </div>
+          <div style="font-size: 11px; color: #10b981;">Active License</div>
+        </div>
+      </div>
+      <a href="/admin/logout" title="Sign Out" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(239,68,68,0.1); color: #f87171; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; transition: background 0.2s;">
+        <i class="ti ti-power"></i>
+      </a>
+    </div>
+  </div>
+
+</aside>
+
+<!-- Mobile Overlay Backdrop -->
+<div id="subscriberBackdrop" onclick="window.closeMobileSidebar && window.closeMobileSidebar();" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.7); z-index: 1025; backdrop-filter: blur(4px);"></div>
+
+<script>
+  (function() {
+    const sidebar = document.getElementById('adminSidebar');
+    const backdrop = document.getElementById('subscriberBackdrop');
+
+    window.openMobileSidebar = function() {
+      if (sidebar) sidebar.style.transform = 'translateX(0)';
+      if (backdrop) backdrop.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeMobileSidebar = function() {
+      if (sidebar && window.innerWidth < 992) sidebar.style.transform = 'translateX(-100%)';
+      if (backdrop) backdrop.style.display = 'none';
+      document.body.style.overflow = '';
+    };
+
+    function handleResize() {
+      if (window.innerWidth >= 992) {
+        if (sidebar) sidebar.style.transform = 'none';
+        if (backdrop) backdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      } else {
+        if (sidebar) sidebar.style.transform = 'translateX(-100%)';
+      }
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+  })();
+</script>

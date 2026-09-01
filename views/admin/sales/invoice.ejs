@@ -1298,8 +1298,18 @@
 
         <div class="sign-box">
           <div class="sign-company">For <%= company ? company.name : 'Grocery Store' %></div>
-          <div class="sign-space"></div>
-          <div class="sign-label">Authorized Signatory</div>
+          <div class="sign-space" style="position: relative; display: flex; align-items: center; justify-content: center; min-height: 52px; margin-bottom: 2px;">
+            <% if ((user && user.stamp_image) || (company && company.stamp_image)) { %>
+              <img src="<%= (user && user.stamp_image) || (company && company.stamp_image) %>" alt="Official Stamp" style="position: absolute; max-height: 58px; max-width: 58px; object-fit: contain; opacity: 0.88; transform: rotate(-5deg); z-index: 1; pointer-events: none;" />
+            <% } %>
+            <% if (user && user.signature_image) { %>
+              <img src="<%= user.signature_image %>" alt="Authorized Signature" style="position: relative; z-index: 2; max-height: 46px; max-width: 140px; object-fit: contain;" />
+            <% } %>
+          </div>
+          <% if (user && user.signatory_name) { %>
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; line-height: 1.2;"><%= user.signatory_name %></div>
+          <% } %>
+          <div class="sign-label"><%= (user && user.signatory_designation) ? user.signatory_designation : 'AUTHORIZED SIGNATORY' %></div>
         </div>
       </div>
 

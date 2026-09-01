@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification Center - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+
+  <style>
+    .notif-filter-tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color, #e2e8f0);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    .notif-filter-btn {
+      padding: 8px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      border: 1px solid var(--border-color, #e2e8f0);
+      background: #ffffff;
+      color: var(--text-muted, #64748b);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .notif-filter-btn:hover {
+      background: #f8fafc;
+      color: var(--primary, #1366d9);
+      border-color: #cbd5e1;
+    }
+
+    .notif-filter-btn.active {
+      background: var(--primary-light, #eef5ff);
+      color: var(--primary, #1366d9);
+      border-color: var(--primary, #1366d9);
+      font-weight: 700;
+    }
+
+    .notif-item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      background: #ffffff;
+      border: 1px solid var(--border-color, #e2e8f0);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+    }
+
+    .notif-item-row:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-color: #cbd5e1;
+    }
+
+    .notif-item-row.unread {
+      background: #f8faff;
+      border-left: 4px solid var(--primary, #1366d9);
+      border-color: #dbeafe;
+    }
+
+    .notif-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .severity-info { background: #eff6ff; color: #2563eb; }
+    .severity-warning { background: #fffbeb; color: #d97706; }
+    .severity-danger { background: #fef2f2; color: #dc2626; }
+    .severity-success { background: #f0fdf4; color: #059669; }
+
+    .btn-notif-action {
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Shared Unified Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'notifications' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Shared Unified Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-bell" style="color: var(--primary);"></i> Notification Center
+              </h1>
+              <p class="page-subheading">
+                Real-time inventory alerts, store order approvals, and system notifications.
+              </p>
+            </div>
+            
+            <div class="page-title-actions">
+              <button type="button" onclick="markAllNotificationsRead()" class="btn-modern btn-outline-modern">
+                <i class="ti ti-check-all"></i> Mark All as Read
+              </button>
+              <button type="button" onclick="clearReadNotifications()" class="btn-modern btn-outline-modern">
+                <i class="ti ti-trash"></i> Clear Read
+              </button>
+            </div>
+          </div>
+
+          <!-- Notification Stats Strip (Zoho/Admin Style) -->
+          <% 
+            const totalNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.length : 0;
+            const unreadNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.filter(n => !n.is_read).length : 0;
+            const stockNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.filter(n => n.type === 'stock').length : 0;
+            const subNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.filter(n => n.type === 'subscription' || n.type === 'approval').length : 0;
+          %>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Alerts</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-bell"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a;"><%= totalNotifs %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">In notification history</div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Unread Notices</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: <%= unreadNotifs > 0 ? '#fef2f2' : '#f0fdf4' %>; color: <%= unreadNotifs > 0 ? '#dc2626' : '#059669' %>; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-alert-circle"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: <%= unreadNotifs > 0 ? '#dc2626' : '#059669' %>;"><%= unreadNotifs %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= unreadNotifs === 0 ? 'All caught up' : 'Pending review' %></div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Low Stock Items</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-alert-triangle"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #d97706;"><%= stockNotifs %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Restock triggers</div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Store &amp; Licenses</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #faf5ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-crown"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #7c3aed;"><%= subNotifs %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Subscription events</div>
+            </div>
+
+          </div>
+
+          <!-- Main Notification Card -->
+          <div class="card-modern" style="padding: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+            
+            <!-- Filter Tabs -->
+            <div class="notif-filter-tabs">
+              <button class="notif-filter-btn active" onclick="filterNotifs('all', this)">
+                <i class="ti ti-bell"></i> All Alerts (<%= totalNotifs %>)
+              </button>
+              <button class="notif-filter-btn" onclick="filterNotifs('stock', this)">
+                <i class="ti ti-alert-triangle" style="color: #d97706;"></i> Low Stock (<%= stockNotifs %>)
+              </button>
+              <button class="notif-filter-btn" onclick="filterNotifs('subscription', this)">
+                <i class="ti ti-sparkles" style="color: #7c3aed;"></i> Subscriptions
+              </button>
+              <button class="notif-filter-btn" onclick="filterNotifs('approval', this)">
+                <i class="ti ti-user-check" style="color: #2563eb;"></i> Store Orders
+              </button>
+            </div>
+
+            <!-- Notifications List -->
+            <div id="notifContainer">
+              <% if (notifications && notifications.length > 0) { %>
+                <% notifications.forEach(function(n) { %>
+                  <div class="notif-item-row <%= !n.is_read ? 'unread' : '' %>" data-type="<%= n.type %>">
+                    <div class="notif-icon-box severity-<%= n.severity || 'info' %>">
+                      <i class="ti <%= n.icon || 'ti-bell' %>"></i>
+                    </div>
+
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <strong style="font-size: 15px; color: #0f172a;"><%= n.title %></strong>
+                          <% if (!n.is_read) { %>
+                            <span style="font-size: 11px; background: var(--primary, #1366d9); color: #fff; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.5px;">NEW</span>
+                          <% } %>
+                        </div>
+                        <span style="font-size: 12px; color: #64748b; font-weight: 500;">
+                          <i class="ti ti-clock me-1"></i><%= n.time_ago || 'recent' %>
+                        </span>
+                      </div>
+
+                      <p style="color: #475569; font-size: 13.5px; margin: 0 0 12px 0; line-height: 1.5;">
+                        <%= n.message %>
+                      </p>
+
+                      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <% if (n.link) { %>
+                          <a href="<%= n.link %>" class="btn-notif-action" style="background: var(--primary-light, #eef5ff); color: var(--primary, #1366d9); border: 1px solid rgba(19,102,217,0.2);">
+                            <span>Open Related Page</span>
+                            <i class="ti ti-arrow-right"></i>
+                          </a>
+                        <% } %>
+
+                        <% if (!n.is_read) { %>
+                          <button type="button" onclick="markSingleRead(<%= n.id %>, this)" style="background: none; border: none; color: #64748b; font-size: 12.5px; cursor: pointer; text-decoration: underline; padding: 4px 8px;">
+                            <i class="ti ti-check me-1"></i> Mark as read
+                          </button>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div style="text-align: center; padding: 60px 16px; color: #64748b;">
+                  <div style="width: 60px; height: 60px; border-radius: 16px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin-bottom: 14px;">
+                    <i class="ti ti-bell-off"></i>
+                  </div>
+                  <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">No notifications found</h3>
+                  <p style="font-size: 13.5px; color: #64748b; margin: 0;">Everything is up-to-date and running smoothly.</p>
+                </div>
+              <% } %>
+            </div>
+
+          </div>
+
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function filterNotifs(type, btn) {
+      document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const rows = document.querySelectorAll('.notif-item-row');
+      rows.forEach(r => {
+        if (type === 'all' || r.getAttribute('data-type') === type) {
+          r.style.display = 'flex';
+        } else {
+          r.style.display = 'none';
+        }
+      });
+    }
+
+    function markSingleRead(id, btn) {
+      fetch(`/api/notifications/${id}/read`, { method: 'POST' })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            const row = btn.closest('.notif-item-row');
+            if (row) {
+              row.classList.remove('unread');
+              const newBadge = row.querySelector('span[style*="background: var(--primary"]');
+              if (newBadge) newBadge.remove();
+              btn.remove();
+            }
+          }
+        });
+    }
+
+    function markAllNotificationsRead() {
+      fetch('/api/notifications/mark-all-read', { method: 'POST' })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            window.location.reload();
+          }
+        });
+    }
+
+    function clearReadNotifications() {
+      if (confirm('Clear all read notifications from your history?')) {
+        fetch('/api/notifications/clear', { method: 'POST' })
+          .then(res => res.json())
+          .then(res => {
+            if (res.success) {
+              window.location.reload();
+            }
+          });
+      }
+    }
+  </script>
+
+</body>
+</html>

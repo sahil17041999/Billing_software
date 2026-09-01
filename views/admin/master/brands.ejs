@@ -118,12 +118,12 @@
 
           <div class="form-group-modern">
             <label class="form-label-modern" for="name">Brand Name <span class="required-dot">*</span></label>
-            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Nestle / Fortune" required>
+            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Nestle / Fortune" maxlength="60" required>
           </div>
 
           <div class="form-group-modern">
             <label class="form-label-modern" for="description">Description</label>
-            <textarea id="description" name="description" class="form-control-modern" rows="3" placeholder="Optional notes..."></textarea>
+            <textarea id="description" name="description" class="form-control-modern" rows="3" maxlength="255" placeholder="Optional notes..."></textarea>
           </div>
         </div>
 
@@ -143,7 +143,7 @@
       $('#brandId').val('');
       $('#modalTitle').html('<i class="ti ti-tags" style="color: var(--primary);"></i> Add Product Brand');
       $('#brandModal').addClass('show');
-      setTimeout(() => $('#name').focus(), 100);
+      setTimeout(() => $('#name').focus(), 120);
     }
 
     function closeModal() {
@@ -158,17 +158,21 @@
       $('#name').val($btn.data('name') || '');
       $('#description').val($btn.data('description') || '');
       $('#brandModal').addClass('show');
-      setTimeout(() => $('#name').focus(), 100);
+      setTimeout(() => $('#name').focus(), 120);
     }
 
     $(document).ready(function() {
+      const checkDupUrl = (window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin') + '/master/check-duplicate';
       initFormValidation('#brandForm', {
+        entityName: 'Brand',
         rules: {
           name: {
             required: true,
             minlength: 2,
+            maxlength: 60,
+            validName: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'brand',
@@ -182,6 +186,8 @@
           name: {
             required: 'Please enter brand name',
             minlength: 'Brand name must be at least 2 characters',
+            maxlength: 'Brand name cannot exceed 60 characters',
+            validName: 'Please enter a valid name (at least 2 letters, no random gibberish or pure numbers)',
             remote: 'This brand name already exists in your database'
           }
         },
@@ -191,7 +197,8 @@
             name: $('#name').val().trim(),
             description: $('#description').val().trim()
           };
-          const url = id ? '/admin/master/brands/' + id : '/admin/master/brands';
+          const apiBase = window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin';
+          const url = id ? `${apiBase}/master/brands/${id}` : `${apiBase}/master/brands`;
           const method = id ? 'PUT' : 'POST';
           const saveBtn = $form.find('[type="submit"]');
           saveBtn.prop('disabled', true);

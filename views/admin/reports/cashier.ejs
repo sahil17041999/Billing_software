@@ -91,6 +91,10 @@
       if (toDate) params.push('toDate=' + toDate);
       url += params.join('&');
       
+      if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('.table-modern')) {
+        $('.table-modern').DataTable().destroy();
+      }
+
       fetch(url)
         .then(res => res.json())
         .then(data => {
@@ -116,6 +120,10 @@
                   <td style="text-align: right;" class="amount-cell">₹${parseFloat(row.tax || 0).toFixed(2)}</td>
                 </tr>
               `).join('');
+
+              if (typeof initStandardDataTable === 'function') {
+                initStandardDataTable('.table-modern');
+              }
             }
           }
         });

@@ -15,6 +15,10 @@ router.get('/profile', usersController.getProfile);
 router.post('/profile', usersController.updateProfile);
 router.post('/profile/avatar', usersController.uploadAvatar);
 router.delete('/profile/avatar', usersController.removeAvatar);
+router.post('/profile/signature', usersController.uploadSignature);
+router.delete('/profile/signature', usersController.removeSignature);
+router.post('/profile/stamp', usersController.uploadStamp);
+router.delete('/profile/stamp', usersController.removeStamp);
 router.post('/profile/password', validate(schemas.changeOwnPassword), usersController.changeOwnPassword);
 
 // ── User List (admin only) ───────────────────────────────────

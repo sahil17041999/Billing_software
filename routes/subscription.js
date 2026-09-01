@@ -29,4 +29,11 @@ router.post('/clients/:companyId/impersonate', isSuperAdmin, subscriptionControl
 router.post('/clients/:companyId/regenerate-license', isSuperAdmin, subscriptionController.regenerateLicenseKey);
 router.get('/impersonate/exit', subscriptionController.exitImpersonation);
 
+// Subscription Plans Catalog Management (Only Super Admin - Platform Founder)
+router.get('/plans', isSuperAdmin, subscriptionController.getSubscriptionPlans);
+router.post('/plans', isSuperAdmin, subscriptionController.createSubscriptionPlan);
+router.post('/plans/:id/edit', isSuperAdmin, subscriptionController.updateSubscriptionPlan);
+router.post('/plans/:id/toggle', isSuperAdmin, subscriptionController.toggleSubscriptionPlan);
+router.post('/plans/:id/delete', isSuperAdmin, subscriptionController.deleteSubscriptionPlan);
+
 module.exports = router;

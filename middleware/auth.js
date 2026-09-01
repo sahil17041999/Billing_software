@@ -28,20 +28,48 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
-// Check if user is Super Administrator (Platform Owner)
+// Check if user is Super Administrator (Platform Owner / Founder)
 const isSuperAdmin = (req, res, next) => {
   if (!req.session.userId) {
     return res.redirect('/admin/login');
   }
   if (!req.isSuperAdmin) {
     if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
-      return res.status(403).json({ success: false, error: 'Access denied. Super Administrator privileges required.' });
+      return res.status(403).json({ success: false, error: 'Access denied. Super Administrator / Founder privileges required.' });
     }
     return res.status(403).render('error', {
       error: 'Access Denied',
-      message: 'This section is reserved for the Super Administrator.',
+      message: 'This section is reserved for the Platform Founder & Super Administrator.',
       backUrl: '/admin/dashboard'
     });
+  }
+  next();
+};
+
+// Guard: Only Platform Admin / Founder (Company 1) allowed in Admin Panel
+const requirePlatformAdmin = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.redirect('/admin/login');
+  }
+  if (req.session.companyId > 1) {
+    if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
+      return res.status(403).json({ error: 'Access denied. Subscribers must use the Subscriber Panel (/subscriber/dashboard).' });
+    }
+    return res.redirect('/subscriber/dashboard');
+  }
+  next();
+};
+
+// Guard: Only Store Subscribers (Company > 1) allowed in Subscriber Panel
+const requireSubscriber = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.redirect('/subscriber/login');
+  }
+  if (req.session.companyId === 1 || req.isSuperAdmin) {
+    if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
+      return res.status(403).json({ error: 'Access denied. Platform Administrators must use the Admin Dashboard (/admin/dashboard).' });
+    }
+    return res.redirect('/admin/dashboard');
   }
   next();
 };
@@ -186,30 +214,34 @@ const attachUser = async (req, res, next) => {
         req.user = user;
         res.locals.user = user;
 
-        // Super Admin Identification:
+        // Super Admin / Founder Identification:
         // Platform owner (Company 1 + admin role or user ID 1 or username admin)
         const isSuperAdminFlag = (user.company_id === 1 && user.role && user.role.name === 'admin') || (user.id === 1 && user.phone === '9999999999');
         req.isSuperAdmin = isSuperAdminFlag;
         res.locals.isSuperAdmin = isSuperAdminFlag;
+        req.isFounder = isSuperAdminFlag;
+        res.locals.isFounder = isSuperAdminFlag;
 
-        // Fetch company subscription
+        // Admin does not have plans because he is the founder! Only subscribers have plans:
         let companySub = null;
-        try {
-          companySub = await CompanySubscription.findOne({
-            where: { company_id: user.company_id },
-            include: [{ model: SubscriptionPlan, as: 'plan' }]
-          });
-        } catch (subErr) {
-          console.error('Subscription fetch error in attachUser:', subErr.message);
+        if (!isSuperAdminFlag && user.company_id > 1) {
+          try {
+            companySub = await CompanySubscription.findOne({
+              where: { company_id: user.company_id },
+              include: [{ model: SubscriptionPlan, as: 'plan' }]
+            });
+          } catch (subErr) {
+            console.error('Subscription fetch error in attachUser:', subErr.message);
+          }
         }
 
-        const planCode = isSuperAdminFlag ? 'enterprise' : (companySub && companySub.plan ? companySub.plan.code : 'starter');
-        req.currentSubscription = companySub;
-        res.locals.currentSubscription = companySub;
+        const planCode = isSuperAdminFlag ? 'founder' : (companySub && companySub.plan ? companySub.plan.code : 'starter');
+        req.currentSubscription = isSuperAdminFlag ? null : companySub;
+        res.locals.currentSubscription = isSuperAdminFlag ? null : companySub;
         req.subscriptionPlanCode = planCode;
         res.locals.subscriptionPlanCode = planCode;
 
-        // Feature Entitlement Check (Billing privileges as per subscription)
+        // Feature Entitlement Check (Founder has unrestricted access, subscribers check plans)
         const canAccessFeature = (feature) => {
           if (isSuperAdminFlag) return true;
           if (planCode === 'enterprise' || planCode === 'pro') return true;
@@ -259,6 +291,8 @@ module.exports = {
   isAdminOrManager,
   requirePermission,
   requirePlanFeature,
+  requirePlatformAdmin,
+  requireSubscriber,
   hasRole,
   attachUser,
   errorHandler

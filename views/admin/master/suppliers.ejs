@@ -131,12 +131,12 @@
                 </span>
                 <div class="pagination-controls">
                   <% if (page > 1) { %>
-                    <a href="/admin/master/suppliers?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                    <a href="?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
                       <i class="ti ti-chevron-left"></i> Previous
                     </a>
                   <% } %>
                   <% if (page * limit < total) { %>
-                    <a href="/admin/master/suppliers?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                    <a href="?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
                       Next <i class="ti ti-chevron-right"></i>
                     </a>
                   <% } %>
@@ -307,13 +307,17 @@
     }
 
     $(document).ready(function() {
+      const checkDupUrl = (window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin') + '/master/check-duplicate';
       initFormValidation('#supplierForm', {
+        entityName: 'Supplier',
         rules: {
           name: {
             required: true,
             minlength: 2,
+            maxlength: 80,
+            validName: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'supplier',
@@ -325,7 +329,7 @@
           phone: {
             phoneIN: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'supplier',
@@ -337,7 +341,7 @@
           email: {
             email: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'supplier',
@@ -349,7 +353,7 @@
           gstin: {
             gstin: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'supplier',
@@ -365,6 +369,8 @@
           name: {
             required: 'Please enter supplier or vendor name',
             minlength: 'Name must be at least 2 characters',
+            maxlength: 'Name cannot exceed 80 characters',
+            validName: 'Please enter a valid vendor name (at least 2 letters, no random numbers or gibberish)',
             remote: 'This supplier name already exists in your database'
           },
           phone: {
@@ -399,7 +405,8 @@
             ifsc_code: $('#ifsc_code').val().trim()
           };
           
-          const url = id ? '/admin/master/suppliers/' + id : '/admin/master/suppliers';
+          const apiBase = window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin';
+          const url = id ? apiBase + '/master/suppliers/' + id : apiBase + '/master/suppliers';
           const method = id ? 'PUT' : 'POST';
           const saveBtn = $('#modalSubmitBtn');
           saveBtn.prop('disabled', true);

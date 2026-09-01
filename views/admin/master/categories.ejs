@@ -118,12 +118,12 @@
           
           <div class="form-group-modern">
             <label class="form-label-modern" for="name">Category Name <span class="required-dot">*</span></label>
-            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Dairy & Eggs" required>
+            <input type="text" id="name" name="name" class="form-control-modern" placeholder="e.g. Dairy & Eggs" maxlength="60" required>
           </div>
 
           <div class="form-group-modern">
             <label class="form-label-modern" for="description">Description</label>
-            <textarea id="description" name="description" class="form-control-modern" rows="3" placeholder="Optional category description..."></textarea>
+            <textarea id="description" name="description" class="form-control-modern" rows="3" maxlength="255" placeholder="Optional category description..."></textarea>
           </div>
         </div>
 
@@ -143,7 +143,7 @@
       $('#categoryId').val('');
       $('#modalTitle').html('<i class="ti ti-category" style="color: var(--primary);"></i> Add Category');
       $('#categoryModal').addClass('show');
-      setTimeout(() => $('#name').focus(), 100);
+      setTimeout(() => $('#name').focus(), 120);
     }
 
     function closeModal() {
@@ -158,17 +158,21 @@
       $('#name').val($btn.data('name') || '');
       $('#description').val($btn.data('description') || '');
       $('#categoryModal').addClass('show');
-      setTimeout(() => $('#name').focus(), 100);
+      setTimeout(() => $('#name').focus(), 120);
     }
 
     $(document).ready(function() {
+      const checkDupUrl = (window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin') + '/master/check-duplicate';
       initFormValidation('#categoryForm', {
+        entityName: 'Category',
         rules: {
           name: {
             required: true,
             minlength: 2,
+            maxlength: 60,
+            validName: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'category',
@@ -182,6 +186,8 @@
           name: {
             required: 'Please enter category name',
             minlength: 'Category name must be at least 2 characters',
+            maxlength: 'Category name cannot exceed 60 characters',
+            validName: 'Please enter a valid name (at least 2 letters, no random gibberish or pure numbers)',
             remote: 'This category name already exists in your database'
           }
         },
@@ -191,7 +197,8 @@
             name: $('#name').val().trim(),
             description: $('#description').val().trim()
           };
-          const url = id ? '/admin/master/categories/' + id : '/admin/master/categories';
+          const apiBase = window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin';
+          const url = id ? `${apiBase}/master/categories/${id}` : `${apiBase}/master/categories`;
           const method = id ? 'PUT' : 'POST';
           const saveBtn = $form.find('[type="submit"]');
           saveBtn.prop('disabled', true);

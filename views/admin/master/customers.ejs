@@ -132,12 +132,12 @@
                 </span>
                 <div class="pagination-controls">
                   <% if (page > 1) { %>
-                    <a href="/admin/master/customers?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                    <a href="?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
                       <i class="ti ti-chevron-left"></i> Previous
                     </a>
                   <% } %>
                   <% if (page * limit < total) { %>
-                    <a href="/admin/master/customers?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
+                    <a href="?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
                       Next <i class="ti ti-chevron-right"></i>
                     </a>
                   <% } %>
@@ -300,13 +300,15 @@
     }
 
     $(document).ready(function() {
+      const checkDupUrl = (window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin') + '/master/check-duplicate';
       initFormValidation('#customerForm', {
+        entityName: 'Customer',
         rules: {
-          name: { required: true, minlength: 2 },
+          name: { required: true, minlength: 2, maxlength: 70, validPersonName: true },
           phone: {
             phoneIN: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'customer',
@@ -318,7 +320,7 @@
           email: {
             email: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'customer',
@@ -332,7 +334,12 @@
           credit_limit: { nonNegativeNumber: true }
         },
         messages: {
-          name: { required: 'Please enter customer full name', minlength: 'Name must be at least 2 characters' },
+          name: {
+            required: 'Please enter customer full name',
+            minlength: 'Name must be at least 2 characters',
+            maxlength: 'Name cannot exceed 70 characters',
+            validPersonName: 'Please enter a valid person name containing letters only (no numbers or symbols)'
+          },
           phone: {
             phoneIN: 'Please enter a valid 10-digit mobile number',
             remote: 'This mobile number is already registered in your database'
@@ -359,7 +366,8 @@
             customer_type: $('#customer_type').val()
           };
           
-          const url = id ? '/admin/master/customers/' + id : '/admin/master/customers';
+          const apiBase = window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin';
+          const url = id ? apiBase + '/master/customers/' + id : apiBase + '/master/customers';
           const method = id ? 'PUT' : 'POST';
           const saveBtn = $('#modalSubmitBtn');
           saveBtn.prop('disabled', true);

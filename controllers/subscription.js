@@ -1,4 +1,4 @@
-const { SubscriptionPlan, CompanySubscription, SubscriptionInvoice, Company, User, Product, Sale, seedSubscriptionPlans } = require('../models');
+const { SubscriptionPlan, CompanySubscription, SubscriptionInvoice, Company, User, Product, Sale, Notification, seedSubscriptionPlans } = require('../models');
 const { Op } = require('sequelize');
 const crypto = require('crypto');
 
@@ -533,6 +533,23 @@ exports.orderSubscription = async (req, res) => {
       paid_at: now
     });
 
+    // 8. Create Super Admin Notification
+    try {
+      if (Notification) {
+        await Notification.create({
+          company_id: 1,
+          type: 'approval',
+          title: `New Store Registration: ${company.name}`,
+          message: `${(owner_name || '').trim() || store_name} has placed a ${billing_cycle} order for ${targetPlan.name} (${cleanPhone}). Awaiting admin verification.`,
+          icon: 'ti-shopping-cart-plus',
+          severity: 'info',
+          link: '/admin/subscription#client-stores-section'
+        });
+      }
+    } catch (notifErr) {
+      console.error('Error creating order notification:', notifErr.message);
+    }
+
     return res.status(201).json({
       success: true,
       order_id: orderId,
@@ -944,6 +961,23 @@ exports.approveClientStore = async (req, res) => {
         end_date: newExpiry,
         next_billing_date: newExpiry
       });
+    }
+
+    // 4. Send Approval Notification to Store Owner
+    try {
+      if (Notification) {
+        await Notification.create({
+          company_id: company.id,
+          type: 'approval',
+          title: 'Store License Approved & Activated! 🎉',
+          message: `Congratulations! Your store "${company.name}" has been approved by the platform administrator. All POS billing and store modules are now active!`,
+          icon: 'ti-circle-check',
+          severity: 'success',
+          link: '/subscriber/dashboard'
+        });
+      }
+    } catch (notifErr) {
+      console.error('Error creating approval notification:', notifErr.message);
     }
 
     return res.json({
@@ -1399,5 +1433,231 @@ exports.getEntitlementsApi = async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
+
+/**
+ * ============================================================
+ * SUBSCRIPTION PLANS MANAGEMENT (Super Admin / Platform Founder)
+ * ============================================================
+ */
+
+// 1. GET /admin/subscription/plans - Render Plans Management UI
+exports.getSubscriptionPlans = async (req, res) => {
+  try {
+    const plans = await SubscriptionPlan.findAll({
+      include: [
+        {
+          model: CompanySubscription,
+          as: 'subscriptions',
+          attributes: ['id', 'status', 'company_id']
+        }
+      ],
+      order: [['price_monthly', 'ASC']]
+    });
+
+    // Calculate plan statistics
+    const totalPlans = plans.length;
+    const activePlans = plans.filter(p => p.is_active).length;
+    const popularPlan = plans.find(p => p.is_popular) || plans[0] || null;
+    const minPrice = plans.length > 0 ? Math.min(...plans.map(p => Number(p.price_monthly))) : 0;
+
+    res.render('admin/subscription/plans', {
+      plans,
+      stats: {
+        totalPlans,
+        activePlans,
+        popularPlan,
+        minPrice
+      },
+      currentPage: 'subscription-plans'
+    });
+
+  } catch (error) {
+    console.error('Error rendering subscription plans:', error);
+    res.status(500).render('error', { error: 'Error loading subscription plans' });
+  }
+};
+
+// 2. POST /admin/subscription/plans - Create a New Plan
+exports.createSubscriptionPlan = async (req, res) => {
+  try {
+    const {
+      name,
+      code,
+      description,
+      price_monthly,
+      price_yearly,
+      max_users,
+      max_products,
+      max_invoices_per_month,
+      badge_text,
+      is_popular,
+      is_active,
+      features
+    } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Plan name is required.' });
+    }
+
+    const cleanCode = (code || name.toLowerCase().replace(/[^a-z0-9]/g, '-')).trim();
+
+    // Check duplicate code
+    const existing = await SubscriptionPlan.findOne({ where: { code: cleanCode } });
+    if (existing) {
+      return res.status(400).json({ success: false, error: `Plan code '${cleanCode}' is already in use. Choose another code.` });
+    }
+
+    // Process features
+    let featureList = [];
+    if (Array.isArray(features)) {
+      featureList = features.filter(f => f && String(f).trim() !== '');
+    } else if (typeof features === 'string') {
+      featureList = features.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean);
+    }
+
+    const newPlan = await SubscriptionPlan.create({
+      name: name.trim(),
+      code: cleanCode,
+      description: description ? description.trim() : '',
+      price_monthly: parseFloat(price_monthly) || 0.00,
+      price_yearly: parseFloat(price_yearly) || ((parseFloat(price_monthly) || 0.00) * 10),
+      currency: '₹',
+      max_users: parseInt(max_users) || 2,
+      max_products: parseInt(max_products) || 1000,
+      max_invoices_per_month: parseInt(max_invoices_per_month) || 2000,
+      badge_text: badge_text ? badge_text.trim().toUpperCase() : null,
+      is_popular: is_popular === true || is_popular === 'true' || is_popular === 'on' || is_popular === 1,
+      is_active: is_active !== false && is_active !== 'false' && is_active !== 0,
+      features: featureList
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Subscription plan "${newPlan.name}" created successfully!`,
+      plan: newPlan
+    });
+
+  } catch (error) {
+    console.error('Error creating subscription plan:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 3. POST /admin/subscription/plans/:id/edit - Update an Existing Plan
+exports.updateSubscriptionPlan = async (req, res) => {
+  try {
+    const planId = req.params.id;
+    const plan = await SubscriptionPlan.findByPk(planId);
+
+    if (!plan) {
+      return res.status(404).json({ success: false, error: 'Subscription plan not found.' });
+    }
+
+    const {
+      name,
+      description,
+      price_monthly,
+      price_yearly,
+      max_users,
+      max_products,
+      max_invoices_per_month,
+      badge_text,
+      is_popular,
+      is_active,
+      features
+    } = req.body;
+
+    const updates = {};
+    if (name) updates.name = name.trim();
+    if (description !== undefined) updates.description = description ? description.trim() : '';
+    if (price_monthly !== undefined) updates.price_monthly = parseFloat(price_monthly) || 0.00;
+    if (price_yearly !== undefined) updates.price_yearly = parseFloat(price_yearly) || 0.00;
+    if (max_users !== undefined) updates.max_users = parseInt(max_users) || 1;
+    if (max_products !== undefined) updates.max_products = parseInt(max_products) || 100;
+    if (max_invoices_per_month !== undefined) updates.max_invoices_per_month = parseInt(max_invoices_per_month) || 500;
+    if (badge_text !== undefined) updates.badge_text = badge_text ? badge_text.trim().toUpperCase() : null;
+    if (is_popular !== undefined) updates.is_popular = (is_popular === true || is_popular === 'true' || is_popular === 'on' || is_popular === 1);
+    if (is_active !== undefined) updates.is_active = (is_active === true || is_active === 'true' || is_active === 'on' || is_active === 1);
+
+    if (features !== undefined) {
+      if (Array.isArray(features)) {
+        updates.features = features.filter(f => f && String(f).trim() !== '');
+      } else if (typeof features === 'string') {
+        updates.features = features.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean);
+      }
+    }
+
+    await plan.update(updates);
+
+    return res.json({
+      success: true,
+      message: `Plan "${plan.name}" updated successfully!`,
+      plan
+    });
+
+  } catch (error) {
+    console.error('Error updating subscription plan:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 4. POST /admin/subscription/plans/:id/toggle - Toggle Active Status
+exports.toggleSubscriptionPlan = async (req, res) => {
+  try {
+    const plan = await SubscriptionPlan.findByPk(req.params.id);
+    if (!plan) {
+      return res.status(404).json({ success: false, error: 'Subscription plan not found.' });
+    }
+
+    plan.is_active = !plan.is_active;
+    await plan.save();
+
+    return res.json({
+      success: true,
+      message: `Plan "${plan.name}" is now ${plan.is_active ? 'Active' : 'Inactive'}.`,
+      is_active: plan.is_active
+    });
+
+  } catch (error) {
+    console.error('Error toggling subscription plan:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 5. POST /admin/subscription/plans/:id/delete - Delete or Deactivate Plan
+exports.deleteSubscriptionPlan = async (req, res) => {
+  try {
+    const plan = await SubscriptionPlan.findByPk(req.params.id, {
+      include: [{ model: CompanySubscription, as: 'subscriptions' }]
+    });
+
+    if (!plan) {
+      return res.status(404).json({ success: false, error: 'Subscription plan not found.' });
+    }
+
+    const activeSubs = plan.subscriptions ? plan.subscriptions.filter(s => s.status === 'active').length : 0;
+    if (activeSubs > 0) {
+      // Deactivate instead of deleting to protect data integrity
+      plan.is_active = false;
+      await plan.save();
+      return res.json({
+        success: true,
+        deactivated: true,
+        message: `Plan has ${activeSubs} active subscriber store(s). It has been deactivated instead of deleted to protect billing history.`
+      });
+    }
+
+    await plan.destroy();
+    return res.json({
+      success: true,
+      message: `Subscription plan "${plan.name}" deleted successfully!`
+    });
+
+  } catch (error) {
+    console.error('Error deleting subscription plan:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 
 

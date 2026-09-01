@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
   <link rel="stylesheet" href="/assets/css/admin-theme.css" />
   <script src="/assets/js/validation.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
     /* ==========================================================
@@ -394,8 +395,10 @@
                 </h2>
                 <div class="profile-username">@<%= profile.username %></div>
 
-                <div class="profile-role-badge">
-                  <i class="ti ti-shield-check"></i> <%= profile.role ? profile.role.name : 'Staff Member' %>
+                <% const isSub = (profile && profile.company_id > 1); %>
+                <div class="profile-role-badge" style="<%= isSub ? 'background: rgba(79, 70, 229, 0.1); color: #4f46e5; border: 1px solid rgba(79, 70, 229, 0.25);' : '' %>">
+                  <i class="ti <%= isSub ? 'ti-crown' : 'ti-shield-check' %>"></i>
+                  <%= isSub ? 'Store Owner (Subscriber)' : (profile.role ? profile.role.name : 'Staff Member') %>
                 </div>
 
                 <!-- Avatar Actions -->
@@ -438,10 +441,22 @@
                   <div class="meta-list-item">
                     <div class="item-icon"><i class="ti ti-building-store"></i></div>
                     <div class="item-content">
-                      <span class="item-label">Assigned Store</span>
+                      <span class="item-label"><%= isSub ? 'Store Business' : 'Assigned Store' %></span>
                       <span class="item-value"><%= profile.company ? profile.company.name : 'Master Store' %></span>
                     </div>
                   </div>
+
+                  <% if (isSub) { %>
+                  <div class="meta-list-item">
+                    <div class="item-icon"><i class="ti ti-sparkles" style="color: #4f46e5;"></i></div>
+                    <div class="item-content">
+                      <span class="item-label">Subscription Plan</span>
+                      <span class="item-value" style="color: #4f46e5; font-weight: 700;">
+                        <%= (typeof currentSubscription !== 'undefined' && currentSubscription && currentSubscription.plan) ? currentSubscription.plan.name : 'Active Store License' %>
+                      </span>
+                    </div>
+                  </div>
+                  <% } %>
 
                   <div class="meta-list-item">
                     <div class="item-icon"><i class="ti ti-calendar"></i></div>
@@ -549,6 +564,294 @@
                 </div>
               </div>
 
+              <% if (isSub && profile.company) { %>
+              <!-- ==========================================================
+                   STORE & BUSINESS PROFILE CARD (FOR SUBSCRIBERS)
+                   ========================================================== -->
+              <div class="card-profile-section" id="storeDetailsSection">
+                <div class="card-profile-header">
+                  <h3 class="card-profile-title">
+                    <i class="ti ti-building-store" style="color: #1366d9;"></i> Store &amp; GST Business Details
+                  </h3>
+                  <span class="badge-modern primary" style="font-size: 11px;">
+                    <i class="ti ti-check"></i> Registered Store #<%= profile.company.id %>
+                  </span>
+                </div>
+
+                <div class="card-profile-body">
+                  <form id="storeBusinessForm" novalidate onsubmit="handleSaveStoreBusiness(event)">
+                    
+                    <div class="form-grid-2" style="margin-bottom: 20px;">
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="store_name" style="font-weight: 700;">
+                          Store / Trade Name <span style="color:#ef4444;">*</span>
+                        </label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="text" id="store_name" name="name" 
+                                 value="<%= profile.company.name || '' %>" placeholder="Store Name" required>
+                          <i class="ti ti-building-store input-icon-left"></i>
+                        </div>
+                      </div>
+
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="store_gstin" style="font-weight: 700;">
+                          GSTIN / Tax Registration ID
+                        </label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="text" id="store_gstin" name="gstin" 
+                                 value="<%= profile.company.gstin || '' %>" placeholder="27ABCDE1234F1Z5">
+                          <i class="ti ti-file-certificate input-icon-left"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-bottom: 20px;">
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="store_phone" style="font-weight: 700;">
+                          Store Contact Phone
+                        </label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="tel" id="store_phone" name="phone" 
+                                 value="<%= profile.company.phone || '' %>" placeholder="Store phone">
+                          <i class="ti ti-phone input-icon-left"></i>
+                        </div>
+                      </div>
+
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="store_email" style="font-weight: 700;">
+                          Store Email
+                        </label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="email" id="store_email" name="email" 
+                                 value="<%= profile.company.email || '' %>" placeholder="store@domain.com">
+                          <i class="ti ti-mail input-icon-left"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group-modern" style="margin-bottom: 20px;">
+                      <label class="form-label-modern" for="store_address" style="font-weight: 700;">
+                        Store Address (Printed on Customer Receipts)
+                      </label>
+                      <div class="profile-input-group">
+                        <input class="form-control-modern" type="text" id="store_address" name="address" 
+                               value="<%= profile.company.address || '' %>" placeholder="Shop / Building, Road, Locality">
+                        <i class="ti ti-map-pin input-icon-left"></i>
+                      </div>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-bottom: 24px;">
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="store_city" style="font-weight: 700;">City</label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="text" id="store_city" name="city" 
+                                 value="<%= profile.company.city || '' %>" placeholder="City">
+                          <i class="ti ti-map input-icon-left"></i>
+                        </div>
+                      </div>
+
+                      <div class="form-group-modern">
+                        <label class="form-label-modern" for="store_state" style="font-weight: 700;">State</label>
+                        <div class="profile-input-group">
+                          <input class="form-control-modern" type="text" id="store_state" name="state" 
+                                 value="<%= profile.company.state || '' %>" placeholder="State">
+                          <i class="ti ti-map-pin input-icon-left"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                      <button type="submit" class="btn-modern btn-primary-modern" id="saveStoreBtn" style="padding: 10px 24px; font-size: 14px; font-weight: 700;">
+                        <i class="ti ti-building-store"></i> Update Store Details
+                      </button>
+                      <span id="saveStoreStatusHint" style="font-size: 12.5px; color: #059669; font-weight: 600; display: none;">✓ Store details saved!</span>
+                    </div>
+
+                  </form>
+                </div>
+              </div>
+              <% } %>
+
+              <!-- ==========================================================
+                   AUTHORIZED SIGNATORY & DIGITAL SIGNATURE SECTION
+                   ========================================================== -->
+              <div class="card-profile-section" id="signatorySection">
+                <div class="card-profile-header">
+                  <h3 class="card-profile-title">
+                    <i class="ti ti-signature" style="color: #4f46e5;"></i> Authorized Signatory &amp; Invoice Signature
+                  </h3>
+                  <span class="badge-modern <%= profile.signature_image ? 'success' : 'secondary' %>" id="signatoryStatusBadge" style="font-size: 11px;">
+                    <i class="ti ti-<%= profile.signature_image ? 'circle-check' : 'info-circle' %>"></i>
+                    <%= profile.signature_image ? 'Signature Active' : 'No Signature Set' %>
+                  </span>
+                </div>
+
+                <div class="card-profile-body">
+                  <p style="font-size: 13px; color: #64748b; margin-top: 0; margin-bottom: 20px;">
+                    Configure your official signatory details and signature. When configured, this signature and designation will automatically be printed on all official Tax Invoices, Bills, and POS receipts.
+                  </p>
+
+                  <div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start;">
+                    <!-- Left: Signatory Inputs & Signature Pad / Upload -->
+                    <div>
+                      <form id="signatoryForm" novalidate onsubmit="handleSaveSignatory(event)">
+                        <!-- Signatory Name -->
+                        <div class="form-group-modern" style="margin-bottom: 16px;">
+                          <label class="form-label-modern" for="p_signatory_name" style="font-weight: 700;">
+                            Authorized Signatory Full Name
+                            <span style="font-size: 11px; font-weight: 500; color: #64748b;">(Printed below signature line)</span>
+                          </label>
+                          <div class="profile-input-group">
+                            <input class="form-control-modern" type="text" id="p_signatory_name" name="signatory_name" 
+                                   value="<%= profile.signatory_name || '' %>" 
+                                   placeholder="e.g. <%= profile.first_name ? (profile.first_name + ' ' + (profile.last_name || '')) : profile.username %>"
+                                   oninput="updateSignatoryPreview()">
+                            <i class="ti ti-user-check input-icon-left"></i>
+                          </div>
+                        </div>
+
+                        <!-- Signatory Designation -->
+                        <div class="form-group-modern" style="margin-bottom: 20px;">
+                          <label class="form-label-modern" for="p_signatory_designation" style="font-weight: 700;">
+                            Signatory Designation / Title <span style="color:#ef4444;">*</span>
+                          </label>
+                          <div class="profile-input-group">
+                            <input class="form-control-modern" type="text" id="p_signatory_designation" name="signatory_designation" 
+                                   value="<%= profile.signatory_designation || 'Authorized Signatory' %>" 
+                                   placeholder="e.g. Authorized Signatory, Proprietor, Partner, Director"
+                                   required oninput="updateSignatoryPreview()">
+                            <i class="ti ti-badge input-icon-left"></i>
+                          </div>
+                        </div>
+
+                        <!-- Signature Method Tabs (Upload or Draw) -->
+                        <div style="margin-bottom: 16px;">
+                          <label class="form-label-modern" style="font-weight: 700; margin-bottom: 8px; display: block;">
+                            1. Digital Handwritten Signature
+                          </label>
+
+                          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                            <button type="button" class="btn-modern btn-sm-modern active" id="btnTabUploadSign" onclick="switchSignatureTab('upload')" style="font-weight: 700;">
+                              <i class="ti ti-upload"></i> Upload Signature
+                            </button>
+                            <button type="button" class="btn-modern btn-sm-modern" id="btnTabDrawSign" onclick="switchSignatureTab('draw')" style="font-weight: 700; background: #f1f5f9; color: #475569;">
+                              <i class="ti ti-pencil"></i> Draw on Screen
+                            </button>
+                            <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" id="removeSignatureBtn" onclick="handleRemoveSignature()" 
+                                    style="<%= profile.signature_image ? '' : 'display: none;' %> font-weight: 700; color: #ef4444; margin-left: auto;">
+                              <i class="ti ti-trash"></i> Remove Signature
+                            </button>
+                          </div>
+
+                          <!-- Tab Pane 1: Upload Image -->
+                          <div id="tabPaneUploadSign" style="padding: 16px; border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; text-align: center;">
+                            <i class="ti ti-writing" style="font-size: 30px; color: #4f46e5; display: block; margin-bottom: 4px;"></i>
+                            <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 2px;">Upload Signature Image</div>
+                            <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Transparent PNG, JPG, or WebP (Max 3MB)</div>
+                            <input type="file" id="signatureFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display: none;" onchange="handleSignatureFileSelect(this)">
+                            <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" onclick="document.getElementById('signatureFileInput').click()">
+                              <i class="ti ti-folder-open"></i> Browse Signature File
+                            </button>
+                          </div>
+
+                          <!-- Tab Pane 2: Draw on Screen -->
+                          <div id="tabPaneDrawSign" style="display: none; padding: 14px; border: 1.5px solid #cbd5e1; border-radius: 12px; background: #ffffff;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                              <span style="font-size: 12px; font-weight: 700; color: #475569;">
+                                <i class="ti ti-writing"></i> Sign inside the box below:
+                              </span>
+                              <div style="display: flex; gap: 6px;">
+                                <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" onclick="clearSignaturePad()" title="Clear signature">
+                                  <i class="ti ti-eraser"></i> Clear
+                                </button>
+                                <button type="button" class="btn-modern btn-success-modern btn-sm-modern" onclick="applyDrawnSignature()" title="Use this drawn signature">
+                                  <i class="ti ti-check"></i> Apply Signature
+                                </button>
+                              </div>
+                            </div>
+                            <div style="background: #fafafa; border: 1px dashed #94a3b8; border-radius: 8px; overflow: hidden; position: relative; height: 110px;">
+                              <canvas id="signPadCanvas" width="500" height="110" style="width: 100%; height: 110px; cursor: crosshair; touch-action: none;"></canvas>
+                              <div style="position: absolute; bottom: 6px; right: 10px; font-size: 10px; color: #94a3b8; pointer-events: none;">
+                                Draw with mouse, stylus or touch
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 2. Official Rubber Stamp / Seal Section -->
+                        <div style="margin-bottom: 20px; padding: 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; background: #fdfefe;">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label class="form-label-modern" style="font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;">
+                              <i class="ti ti-stamp" style="color: #7c3aed; font-size: 18px;"></i> 2. Official Store Rubber Stamp / Seal
+                            </label>
+                            <span class="badge-modern <%= profile.stamp_image ? 'success' : 'secondary' %>" id="stampStatusBadge" style="font-size: 10.5px;">
+                              <%= profile.stamp_image ? 'Stamp Active' : 'No Stamp Set' %>
+                            </span>
+                          </div>
+                          <p style="font-size: 11.5px; color: #64748b; margin-top: 0; margin-bottom: 12px;">
+                            Upload your official circular/rectangular store stamp image, or generate an authentic digital ink stamp with one click.
+                          </p>
+
+                          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                            <input type="file" id="stampFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display: none;" onchange="handleStampFileSelect(this)">
+                            <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" onclick="document.getElementById('stampFileInput').click()">
+                              <i class="ti ti-upload"></i> Upload Stamp Image
+                            </button>
+                            <button type="button" class="btn-modern btn-success-modern btn-sm-modern" onclick="autoGenerateStoreStamp()" title="Auto-create circular rubber stamp">
+                              <i class="ti ti-wand"></i> Auto-Generate Digital Stamp
+                            </button>
+                            <button type="button" class="btn-modern btn-secondary-modern btn-sm-modern" id="removeStampBtn" onclick="handleRemoveStamp()" 
+                                    style="<%= profile.stamp_image ? '' : 'display: none;' %> color: #ef4444; font-weight: 700;">
+                              <i class="ti ti-trash"></i> Remove Stamp
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Buttons: Save -->
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 18px;">
+                          <button type="submit" class="btn-modern btn-primary-modern" id="saveSignatoryBtn" style="font-weight: 700; padding: 9px 24px;">
+                            <i class="ti ti-device-floppy"></i> Save Signatory Details
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+
+                    <!-- Right: Authentic Invoice Sign-Box Preview (With Stamp & Signature Layered) -->
+                    <div>
+                      <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="ti ti-file-invoice" style="color: var(--primary);"></i> Invoice Footer Preview:
+                      </div>
+                      <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 18px 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); text-align: center;">
+                        <div style="font-size: 11.5px; font-weight: 800; color: #334155; margin-bottom: 6px;">
+                          For <%= profile.company ? profile.company.name : 'Sample Store' %>
+                        </div>
+                        <div id="previewSignContainer" style="position: relative; height: 72px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border-bottom: 1.5px dashed #94a3b8; padding-bottom: 4px;">
+                          <!-- Layer 1: Official Stamp -->
+                          <img id="previewStampImg" src="<%= profile.stamp_image || '' %>" alt="Stamp Preview" 
+                               style="<%= profile.stamp_image ? 'position: absolute; max-height: 64px; max-width: 64px; object-fit: contain; opacity: 0.88; transform: rotate(-5deg); z-index: 1; pointer-events: none;' : 'display: none;' %>" />
+                          <!-- Layer 2: Signature -->
+                          <img id="previewSignatureImg" src="<%= profile.signature_image || '' %>" alt="Signature Preview" 
+                               style="<%= profile.signature_image ? 'position: relative; z-index: 2; max-height: 52px; max-width: 170px; object-fit: contain;' : 'display: none;' %>" />
+                          <!-- Layer 3: Placeholder if neither exists -->
+                          <span id="previewSignEmpty" style="<%= (profile.signature_image || profile.stamp_image) ? 'display: none;' : 'color: #94a3b8; font-size: 11px; font-style: italic;' %>">
+                            (Signature &amp; Stamp Line)
+                          </span>
+                        </div>
+                        <div id="previewSignName" style="font-size: 12.5px; font-weight: 800; color: #0f172a; line-height: 1.2;">
+                          <%= profile.signatory_name || (profile.first_name ? (profile.first_name + ' ' + (profile.last_name || '')) : profile.username) %>
+                        </div>
+                        <div id="previewSignDesignation" style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                          <%= profile.signatory_designation || 'AUTHORIZED SIGNATORY' %>
+                        </div>
+                      </div>
+                      <div style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 8px; line-height: 1.3;">
+                        Both signature &amp; stamp will print together on official tax invoices and POS receipts.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- System Account & Role Overview Card -->
               <div class="card-profile-section">
                 <div class="card-profile-header">
@@ -580,7 +883,7 @@
                       <div class="system-stat-meta">
                         <div class="stat-label">System Role</div>
                         <div class="stat-value">
-                          <span class="badge-modern info"><%= profile.role ? profile.role.name.toUpperCase() : 'STAFF' %></span>
+                          <span class="badge-modern <%= isSub ? 'primary' : 'info' %>"><%= isSub ? 'STORE OWNER (SUBSCRIBER)' : (profile.role ? profile.role.name.toUpperCase() : 'STAFF') %></span>
                         </div>
                       </div>
                     </div>
@@ -614,6 +917,49 @@
      SCRIPTS & JQUERY VALIDATION ENGINE
      ========================================================== -->
 <script>
+function handleSaveStoreBusiness(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveStoreBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader rotate"></i> Saving...';
+
+  const data = {
+    name: document.getElementById('store_name').value,
+    gstin: document.getElementById('store_gstin').value,
+    phone: document.getElementById('store_phone').value,
+    email: document.getElementById('store_email').value,
+    address: document.getElementById('store_address').value,
+    city: document.getElementById('store_city').value,
+    state: document.getElementById('store_state').value
+  };
+
+  fetch('/subscriber/profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(result => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-building-store"></i> Update Store Details';
+    if (result.success) {
+      showAlert('Store details updated successfully!', 'success');
+      const hint = document.getElementById('saveStoreStatusHint');
+      if (hint) {
+        hint.style.display = 'inline';
+        setTimeout(() => { hint.style.display = 'none'; }, 3000);
+      }
+    } else {
+      showAlert(result.error || 'Failed to update store details', 'danger');
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-building-store"></i> Update Store Details';
+    showAlert('Error saving store details', 'danger');
+  });
+}
+
 function showAlert(msg, type) {
   const el = document.getElementById('profileAlert');
   if (!el) return;
@@ -774,6 +1120,553 @@ function executeRemoveAvatar() {
 }
 
 // ==========================================================
+// AUTHORIZED SIGNATORY & SIGNATURE CONTROLLER
+// ==========================================================
+function updateSignatoryPreview() {
+  const nameVal = $('#p_signatory_name').val().trim();
+  const defaultName = $('#heroProfileName').text().trim() || 'Staff Name';
+  $('#previewSignName').text(nameVal || defaultName);
+
+  const desigVal = $('#p_signatory_designation').val().trim();
+  $('#previewSignDesignation').text(desigVal || 'AUTHORIZED SIGNATORY');
+}
+
+function switchSignatureTab(tab) {
+  if (tab === 'upload') {
+    $('#tabPaneUploadSign').show();
+    $('#tabPaneDrawSign').hide();
+    $('#btnTabUploadSign').addClass('active').css({ background: '#1366d9', color: '#ffffff' });
+    $('#btnTabDrawSign').removeClass('active').css({ background: '#f1f5f9', color: '#475569' });
+  } else {
+    $('#tabPaneUploadSign').hide();
+    $('#tabPaneDrawSign').show();
+    $('#btnTabDrawSign').addClass('active').css({ background: '#1366d9', color: '#ffffff' });
+    $('#btnTabUploadSign').removeClass('active').css({ background: '#f1f5f9', color: '#475569' });
+    initSignaturePad();
+  }
+}
+
+// Handle File Selection
+function handleSignatureFileSelect(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid File Format',
+      text: 'Please upload a PNG, JPG, or WebP image.',
+      confirmButtonColor: '#ef4444'
+    });
+    input.value = '';
+    return;
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'File Too Large',
+      text: 'Signature image must be less than 3MB.',
+      confirmButtonColor: '#4f46e5'
+    });
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result;
+    executeUploadSignature(base64Data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function executeUploadSignature(base64Data) {
+  if (typeof showPageLoader === 'function') showPageLoader('Uploading signature...');
+
+  fetch('/admin/users/profile/signature', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({ signatureData: base64Data })
+  })
+  .then(res => res.json().then(data => ({ ok: res.ok, data })))
+  .then(({ ok, data }) => {
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+    if (ok && data.success) {
+      $('#previewSignatureImg').attr('src', data.signature_image).show();
+      $('#previewSignEmpty').hide();
+      $('#removeSignatureBtn').show();
+      $('#signatoryStatusBadge').removeClass('secondary').addClass('success').html('<i class="ti ti-circle-check"></i> Signature Active');
+      $('#leftSignatoryStatusText').text('Signature Active');
+      Swal.fire({
+        icon: 'success',
+        title: 'Signature Activated!',
+        text: 'Your digital signature will now appear on all printed and digital invoices.',
+        confirmButtonColor: '#4f46e5',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Upload Failed',
+        text: data.error || 'Failed to upload signature.',
+        confirmButtonColor: '#ef4444'
+      });
+    }
+  })
+  .catch(err => {
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+    Swal.fire({
+      icon: 'error',
+      title: 'Network Error',
+      text: 'Failed to upload signature due to a network error.',
+      confirmButtonColor: '#ef4444'
+    });
+  });
+}
+
+// Remove Signature
+function handleRemoveSignature() {
+  Swal.fire({
+    title: 'Remove Signature?',
+    text: 'Are you sure you want to remove your digital signature? It will no longer appear on invoices.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: '<i class="ti ti-trash"></i> Yes, Remove Signature',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) executeRemoveSignature();
+  });
+}
+
+function executeRemoveSignature() {
+  if (typeof showPageLoader === 'function') showPageLoader('Removing signature...');
+
+  fetch('/admin/users/profile/signature', {
+    method: 'DELETE',
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(res => res.json().then(data => ({ ok: res.ok, data })))
+  .then(({ ok, data }) => {
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+    if (ok && data.success) {
+      $('#previewSignatureImg').hide().attr('src', '');
+      $('#previewSignEmpty').show();
+      $('#removeSignatureBtn').hide();
+      $('#signatureFileInput').val('');
+      $('#signatoryStatusBadge').removeClass('success').addClass('secondary').html('<i class="ti ti-info-circle"></i> No Signature Set');
+      $('#leftSignatoryStatusText').text('Not Set');
+      Swal.fire({
+        icon: 'success',
+        title: 'Signature Removed',
+        text: 'Your digital signature has been removed from invoices.',
+        confirmButtonColor: '#4f46e5',
+        timer: 1800,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error || 'Failed to remove signature.',
+        confirmButtonColor: '#ef4444'
+      });
+    }
+  })
+  .catch(() => {
+    if (typeof hidePageLoader === 'function') hidePageLoader();
+    Swal.fire({
+      icon: 'error',
+      title: 'Network Error',
+      text: 'Failed to communicate with server.',
+      confirmButtonColor: '#ef4444'
+    });
+  });
+}
+
+// ==========================================================
+// STORE RUBBER STAMP & SEAL CONTROLLER
+// ==========================================================
+function handleStampFileSelect(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid File Format',
+      text: 'Please upload a PNG, JPG, or WebP image.',
+      confirmButtonColor: '#ef4444'
+    });
+    input.value = '';
+    return;
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'File Too Large',
+      text: 'Stamp image must be less than 3MB.',
+      confirmButtonColor: '#4f46e5'
+    });
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Data = e.target.result;
+    executeUploadStamp(base64Data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function executeUploadStamp(base64Data) {
+  Swal.fire({
+    title: 'Uploading Store Stamp...',
+    text: 'Saving official stamp image for invoices',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  fetch('/admin/users/profile/stamp', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({ stampData: base64Data })
+  })
+  .then(res => res.json().then(data => ({ ok: res.ok, data })))
+  .then(({ ok, data }) => {
+    if (ok && data.success) {
+      $('#previewStampImg').attr('src', data.stamp_image).show();
+      $('#previewSignEmpty').hide();
+      $('#removeStampBtn').show();
+      $('#stampStatusBadge').removeClass('secondary').addClass('success').text('Stamp Active');
+      Swal.fire({
+        icon: 'success',
+        title: 'Official Stamp Activated!',
+        text: 'Your official store stamp will now be printed on all invoices along with your signature.',
+        confirmButtonColor: '#4f46e5',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Upload Failed',
+        text: data.error || 'Failed to upload stamp.',
+        confirmButtonColor: '#ef4444'
+      });
+    }
+  })
+  .catch(() => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Network Error',
+      text: 'Failed to upload stamp image.',
+      confirmButtonColor: '#ef4444'
+    });
+  });
+}
+
+function handleRemoveStamp() {
+  Swal.fire({
+    title: 'Remove Store Stamp?',
+    text: 'Are you sure you want to remove the rubber stamp? Invoices will only show the signature line.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: '<i class="ti ti-trash"></i> Yes, Remove Stamp',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) executeRemoveStamp();
+  });
+}
+
+function executeRemoveStamp() {
+  fetch('/admin/users/profile/stamp', {
+    method: 'DELETE',
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(res => res.json().then(data => ({ ok: res.ok, data })))
+  .then(({ ok, data }) => {
+    if (ok && data.success) {
+      $('#previewStampImg').hide().attr('src', '');
+      $('#removeStampBtn').hide();
+      $('#stampFileInput').val('');
+      $('#stampStatusBadge').removeClass('success').addClass('secondary').text('No Stamp Set');
+      if (!$('#previewSignatureImg').is(':visible')) {
+        $('#previewSignEmpty').show();
+      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Stamp Removed',
+        text: 'Official store stamp has been removed.',
+        timer: 1800,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error || 'Failed to remove stamp.',
+        confirmButtonColor: '#ef4444'
+      });
+    }
+  })
+  .catch(() => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Network Error',
+      text: 'Failed to communicate with server.',
+      confirmButtonColor: '#ef4444'
+    });
+  });
+}
+
+// ----------------------------------------------------
+// 1-CLICK AUTO-GENERATE CIRCULAR RUBBER STAMP
+// ----------------------------------------------------
+function autoGenerateStoreStamp() {
+  const storeName = '<%= (profile.company && profile.company.name) ? profile.company.name : "SAMPLE STORE" %>';
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = 240;
+  canvas.height = 240;
+  const ctx = canvas.getContext('2d');
+  const cx = 120, cy = 120;
+  const stampInk = '#3730a3';
+
+  ctx.clearRect(0, 0, 240, 240);
+
+  // Outer circle border
+  ctx.save();
+  ctx.strokeStyle = stampInk;
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 108, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Inner dashed circle
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, 98, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Second inner solid circle
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 72, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Top curved text (Store Name)
+  ctx.fillStyle = stampInk;
+  ctx.font = 'bold 12px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const textTop = `★ ${storeName.toUpperCase()} ★`;
+  const radiusTop = 86;
+  const anglePerChar = 0.12;
+  const startAngle = -Math.PI / 2 - ((textTop.length - 1) * anglePerChar) / 2;
+
+  for (let i = 0; i < textTop.length; i++) {
+    const angle = startAngle + i * anglePerChar;
+    ctx.save();
+    ctx.translate(cx + radiusTop * Math.cos(angle), cy + radiusTop * Math.sin(angle));
+    ctx.rotate(angle + Math.PI / 2);
+    ctx.fillText(textTop[i], 0, 0);
+    ctx.restore();
+  }
+
+  // Center Content
+  ctx.font = '900 11px Arial, sans-serif';
+  ctx.fillText('OFFICIAL SEAL', cx, cy - 16);
+  ctx.font = 'bold 13px Arial, sans-serif';
+  ctx.fillText('★ ★ ★', cx, cy - 2);
+  ctx.font = '900 9.5px Arial, sans-serif';
+  ctx.fillText('AUTHORIZED', cx, cy + 12);
+  ctx.fillText('SIGNATORY', cx, cy + 24);
+
+  // Subtle ink texture speckles
+  ctx.fillStyle = stampInk;
+  for (let i = 0; i < 45; i++) {
+    const rx = cx + (Math.random() - 0.5) * 200;
+    const ry = cy + (Math.random() - 0.5) * 200;
+    if (Math.hypot(rx - cx, ry - cy) < 108) {
+      ctx.globalAlpha = Math.random() * 0.25;
+      ctx.fillRect(rx, ry, Math.random() * 2 + 0.5, Math.random() * 2 + 0.5);
+    }
+  }
+  ctx.restore();
+
+  const stampDataUrl = canvas.toDataURL('image/png');
+  executeUploadStamp(stampDataUrl);
+}
+
+// Save Signatory Name and Designation Execution
+function executeSaveSignatory() {
+  const btn = $('#saveSignatoryBtn');
+  const originalHtml = btn.html();
+  btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:loaderSpin 0.75s linear infinite; display:inline-block;"></i> Saving...');
+
+  const signatoryName = $('#p_signatory_name').val().trim();
+  const signatoryDesignation = $('#p_signatory_designation').val().trim();
+
+  Swal.fire({
+    title: 'Saving Signatory Details...',
+    text: 'Updating official invoice signatory information',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  fetch('/admin/users/profile', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      signatory_name: signatoryName,
+      signatory_designation: signatoryDesignation
+    })
+  })
+  .then(res => res.json().then(data => ({ ok: res.ok, data })))
+  .then(({ ok, data }) => {
+    btn.prop('disabled', false).html(originalHtml);
+    if (ok && data.success) {
+      updateSignatoryPreview();
+      const defaultName = $('#heroProfileName').text().trim() || 'Staff Name';
+      Swal.fire({
+        icon: 'success',
+        title: 'Signatory Details Updated!',
+        html: `
+          <div style="font-size: 14px; color: #334155; line-height: 1.5;">
+            Official invoice signatory set to: <strong style="color:#0f172a;">${escapeHtml(signatoryName || defaultName)}</strong><br>
+            <span style="color: #64748b; font-size: 12.5px; font-weight: 700; text-transform: uppercase;">(${escapeHtml(signatoryDesignation)})</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 12px; color: #16a34a; background: #f0fdf4; padding: 6px 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
+            <i class="ti ti-check"></i> Automatically applies to all POS bills and Tax Invoices!
+          </div>
+        `,
+        confirmButtonColor: '#4f46e5',
+        confirmButtonText: '<i class="ti ti-check"></i> Done'
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Signatory Update Failed',
+        text: data.error || 'Failed to save signatory details.',
+        confirmButtonColor: '#ef4444'
+      });
+    }
+  })
+  .catch((err) => {
+    btn.prop('disabled', false).html(originalHtml);
+    Swal.fire({
+      icon: 'error',
+      title: 'Network Error',
+      text: 'Could not connect to the server. Please try again.',
+      confirmButtonColor: '#ef4444'
+    });
+  });
+}
+
+function handleSaveSignatory(e) {
+  if (e) e.preventDefault();
+  if ($('#signatoryForm').valid()) {
+    executeSaveSignatory();
+  }
+  return false;
+}
+
+// ----------------------------------------------------
+// CANVAS DIGITAL SIGNATURE PAD
+// ----------------------------------------------------
+let signCanvas, signCtx, isDrawing = false, hasDrawn = false;
+
+function initSignaturePad() {
+  signCanvas = document.getElementById('signPadCanvas');
+  if (!signCanvas) return;
+  signCtx = signCanvas.getContext('2d');
+
+  signCtx.strokeStyle = '#0f172a';
+  signCtx.lineWidth = 2.5;
+  signCtx.lineCap = 'round';
+  signCtx.lineJoin = 'round';
+
+  function getPos(e) {
+    const rect = signCanvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (signCanvas.width / rect.width),
+      y: (clientY - rect.top) * (signCanvas.height / rect.height)
+    };
+  }
+
+  function startDraw(e) {
+    isDrawing = true;
+    hasDrawn = true;
+    const pos = getPos(e);
+    signCtx.beginPath();
+    signCtx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    const pos = getPos(e);
+    signCtx.lineTo(pos.x, pos.y);
+    signCtx.stroke();
+  }
+
+  function stopDraw() {
+    isDrawing = false;
+  }
+
+  signCanvas.onmousedown = startDraw;
+  signCanvas.onmousemove = draw;
+  window.addEventListener('mouseup', stopDraw);
+
+  signCanvas.ontouchstart = function(e) { e.preventDefault(); startDraw(e); };
+  signCanvas.ontouchmove = function(e) { e.preventDefault(); draw(e); };
+  signCanvas.ontouchend = stopDraw;
+}
+
+function clearSignaturePad() {
+  if (!signCanvas || !signCtx) return;
+  signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
+  hasDrawn = false;
+}
+
+function applyDrawnSignature() {
+  if (!signCanvas || !hasDrawn) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Canvas is Empty',
+      text: 'Please draw your signature inside the box first before applying.',
+      confirmButtonColor: '#4f46e5'
+    });
+    return;
+  }
+  const dataUrl = signCanvas.toDataURL('image/png');
+  executeUploadSignature(dataUrl);
+}
+
+// ==========================================================
 // JQUERY FORM VALIDATION INITIALIZATION
 // ==========================================================
 $(document).ready(function() {
@@ -895,6 +1788,49 @@ $(document).ready(function() {
         showAlert('Network error occurred. Please try again.', 'error');
       });
 
+      return false;
+    }
+  });
+
+  // Initialize jQuery Validate on #signatoryForm
+  $('#signatoryForm').validate({
+    errorElement: 'span',
+    errorClass: 'invalid-feedback-custom',
+    rules: {
+      signatory_name: {
+        minlength: 2
+      },
+      signatory_designation: {
+        required: true,
+        minlength: 2
+      }
+    },
+    messages: {
+      signatory_name: {
+        minlength: '<i class="ti ti-alert-circle"></i> Signatory name must be at least 2 characters'
+      },
+      signatory_designation: {
+        required: '<i class="ti ti-alert-circle"></i> Please enter signatory designation (e.g. Authorized Signatory, Proprietor)',
+        minlength: '<i class="ti ti-alert-circle"></i> Designation must be at least 2 characters'
+      }
+    },
+    errorPlacement: function(error, element) {
+      error.addClass('field-error-text');
+      if (element.parent('.profile-input-group').length) {
+        error.insertAfter(element.parent());
+      } else {
+        error.insertAfter(element);
+      }
+    },
+    highlight: function(element) {
+      $(element).addClass('is-invalid').removeClass('is-valid');
+    },
+    unhighlight: function(element) {
+      $(element).removeClass('is-invalid').addClass('is-valid');
+    },
+    submitHandler: function(form, e) {
+      if (e) e.preventDefault();
+      executeSaveSignatory();
       return false;
     }
   });

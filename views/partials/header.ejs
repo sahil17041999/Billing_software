@@ -1,3 +1,9 @@
+<!-- Favicon & Modern Icon System -->
+<link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+<link rel="icon" type="image/png" href="/assets/images/logos/favicon.png" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
 <!-- Standard Website Font-Family: Plus Jakarta Sans & Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -522,15 +528,21 @@
   });
 
   // =============================================
-  // GLOBAL PAGE LOADER UTILITIES
+  // GLOBAL PAGE LOADER UTILITIES (Add / Update / Delete)
   // =============================================
-  function showPageLoader(msg) {
+  function showPageLoader(title, subtitle, iconClass) {
     startTurboProgress();
     const overlay = document.getElementById('pageLoaderOverlay');
+    const titleEl = document.getElementById('pageLoaderTitle');
     const msgEl = document.getElementById('pageLoaderMsg');
+    const subEl = document.getElementById('pageLoaderSubtitle');
+    const iconEl = document.getElementById('pageLoaderIcon');
     if (overlay) {
+      if (titleEl) titleEl.textContent = title || 'Processing...';
+      if (msgEl) msgEl.textContent = title || 'Processing...';
+      if (subEl) subEl.textContent = subtitle || 'Please wait while we update your store';
+      if (iconEl && iconClass) iconEl.className = iconClass;
       overlay.style.display = 'flex';
-      if (msgEl) msgEl.textContent = msg || 'Loading...';
     }
   }
 
@@ -554,6 +566,7 @@
   // GLOBAL SWEETALERT2 HELPERS
   // =============================================
   function showSuccess(title, text, then) {
+    hidePageLoader();
     if (!window.Swal) { alert(title + ': ' + (text || '')); return Promise.resolve(); }
     return Swal.fire({
       icon: 'success',
@@ -566,6 +579,7 @@
   }
 
   function showError(title, text) {
+    hidePageLoader();
     if (!window.Swal) { alert('Error: ' + (text || title)); return; }
     return Swal.fire({
       icon: 'error',
@@ -576,6 +590,7 @@
   }
 
   function showWarning(title, text) {
+    hidePageLoader();
     if (!window.Swal) { alert('Warning: ' + (text || title)); return; }
     return Swal.fire({
       icon: 'warning',
@@ -640,14 +655,24 @@
     const $table = $(tableSelector);
     if (!$table.length) return;
 
-    if ($.fn.DataTable.isDataTable(tableSelector)) {
+    if ($.fn.DataTable.isDataTable($table[0])) {
       $table.DataTable().destroy();
     }
+
+    // Auto-detect action columns to disable sorting
+    const noSortCols = [];
+    $table.find('thead th').each(function (idx) {
+      const txt = $(this).text().trim().toLowerCase();
+      if (txt.includes('action') || $(this).hasClass('no-sort')) {
+        noSortCols.push(idx);
+      }
+    });
 
     const defaultOptions = {
       responsive: true,
       pageLength: 15,
       lengthMenu: [[10, 15, 25, 50, 100, -1], [10, 15, 25, 50, 100, "All"]],
+      columnDefs: noSortCols.length > 0 ? [{ targets: noSortCols, orderable: false }] : [],
       language: {
         search: "_INPUT_",
         searchPlaceholder: "Search records...",
@@ -673,6 +698,31 @@
 
     return $table.DataTable($.extend(true, {}, defaultOptions, customOptions));
   }
+
+  // Universal Auto-Initializer for all sections
+  $(document).ready(function () {
+    $('table.table-modern').each(function () {
+      const $t = $(this);
+      if (
+        $t.data('no-datatable') ||
+        $t.hasClass('no-datatable') ||
+        $t.hasClass('items-table') ||
+        $t.attr('id') === 'entitlementsTable' ||
+        $t.attr('id') === 'cartTableElement' ||
+        $t.closest('.pos-main-container').length > 0 ||
+        $t.closest('.pos-cart-scroll-table').length > 0 ||
+        $t.closest('#clientCheckoutModal').length > 0 ||
+        $t.find('tbody td.table-empty-state').length > 0
+      ) {
+        return;
+      }
+      if ($t.find('thead th').length > 0 && $t.find('tbody tr').length > 0) {
+        if (!$.fn.DataTable.isDataTable(this)) {
+          initStandardDataTable(this);
+        }
+      }
+    });
+  });
 </script>
 
 <% if (typeof session !== 'undefined' && session && session.isImpersonating) { %>
@@ -686,6 +736,21 @@
   </a>
 </div>
 <% } %>
+
+<!-- Advanced Enterprise Page Loader Overlay -->
+<div id="pageLoaderOverlay" class="advanced-page-loader" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center;">
+  <div style="background: rgba(255, 255, 255, 0.98); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; padding: 32px 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 380px; animation: loaderPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="position: relative; width: 68px; height: 68px; margin-bottom: 18px;">
+      <div style="position: absolute; inset: 0; border: 4px solid #e2e8f0; border-top-color: #1366d9; border-radius: 50%; animation: loaderSpin 0.85s linear infinite;"></div>
+      <div style="position: absolute; inset: 6px; border: 3px solid transparent; border-top-color: #06b6d4; border-radius: 50%; animation: loaderSpin 1.2s linear infinite reverse;"></div>
+      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #1366d9; font-size: 24px;">
+        <i class="ti ti-loader-2" id="pageLoaderIcon" style="animation: loaderSpin 1s linear infinite;"></i>
+      </div>
+    </div>
+    <div id="pageLoaderTitle" style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 4px; font-family: 'Plus Jakarta Sans', sans-serif;">Processing...</div>
+    <div id="pageLoaderSubtitle" style="font-size: 13px; color: #64748b; font-weight: 500;">Please wait a moment</div>
+  </div>
+</div>
 
 <!-- Modern Admin Top Header -->
 <header class="app-header">
@@ -701,35 +766,102 @@
     </button>
 
     <div class="header-search-bar" style="position: relative;">
+      <% const isHeaderSubscriber = (typeof user !== 'undefined' && user && user.company_id > 1); %>
+      <% const hpfx = isHeaderSubscriber ? '/subscriber' : '/admin'; %>
       <i class="ti ti-search search-icon"></i>
       <input type="text" id="globalHeaderSearch" placeholder="Search products, invoices, customers... (Ctrl + K)" autocomplete="off">
 
       <!-- Quick Command & Search Dropdown Palette -->
       <div id="quickSearchPalette" class="quick-search-palette" style="display: none;">
         <div class="palette-group-title">Quick Actions &amp; Navigation</div>
-        <a href="/admin/sales/pos" class="palette-item"><span class="palette-icon"><i class="ti ti-device-laptop"></i></span><span>Open POS Terminal</span><kbd>F2</kbd></a>
-        <a href="/admin/master/products" class="palette-item"><span class="palette-icon"><i class="ti ti-package"></i></span><span>Products Catalog</span><kbd>F4</kbd></a>
-        <a href="/admin/sales/" class="palette-item"><span class="palette-icon"><i class="ti ti-file-invoice"></i></span><span>Invoices &amp; Bills</span><kbd>Sales</kbd></a>
-        <a href="/admin/master/customers" class="palette-item"><span class="palette-icon"><i class="ti ti-users"></i></span><span>Customers Directory</span><kbd>F8</kbd></a>
-        <a href="/admin/reports/sales" class="palette-item"><span class="palette-icon"><i class="ti ti-chart-bar"></i></span><span>Sales Analytics</span><kbd>Reports</kbd></a>
-        <a href="/admin/subscription" class="palette-item"><span class="palette-icon"><i class="ti ti-sparkles"></i></span><span>Subscriptions &amp; Plans</span><kbd>Pro</kbd></a>
-        <a href="/admin/day-end/form" class="palette-item"><span class="palette-icon"><i class="ti ti-calendar-time"></i></span><span>Day End Register</span><kbd>F9</kbd></a>
-        <a href="/admin/settings/smtp" class="palette-item"><span class="palette-icon"><i class="ti ti-mail-cog"></i></span><span>SMTP Settings &amp; Logo</span><kbd>Settings</kbd></a>
+        <a href="<%= hpfx %>/sales/pos" class="palette-item"><span class="palette-icon"><i class="ti ti-device-laptop"></i></span><span>Open POS Terminal</span><kbd>F2</kbd></a>
+        <a href="<%= hpfx %>/master/products" class="palette-item"><span class="palette-icon"><i class="ti ti-package"></i></span><span>Products Catalog</span><kbd>F4</kbd></a>
+        <a href="<%= hpfx %>/sales/" class="palette-item"><span class="palette-icon"><i class="ti ti-file-invoice"></i></span><span>Invoices &amp; Bills</span><kbd>Sales</kbd></a>
+        <a href="<%= hpfx %>/master/customers" class="palette-item"><span class="palette-icon"><i class="ti ti-users"></i></span><span>Customers Directory</span><kbd>F8</kbd></a>
+        <a href="<%= hpfx %>/reports/sales" class="palette-item"><span class="palette-icon"><i class="ti ti-chart-bar"></i></span><span>Sales Analytics</span><kbd>Reports</kbd></a>
+        <a href="<%= isHeaderSubscriber ? '/subscriber/dashboard#my-plan-section' : '/admin/subscription' %>" class="palette-item"><span class="palette-icon"><i class="ti ti-sparkles"></i></span><span>Subscriptions &amp; Plans</span><kbd>Pro</kbd></a>
+        <a href="<%= hpfx %>/day-end/form" class="palette-item"><span class="palette-icon"><i class="ti ti-calendar-time"></i></span><span>Day End Register</span><kbd>F9</kbd></a>
+        <a href="<%= hpfx %>/settings/smtp" class="palette-item"><span class="palette-icon"><i class="ti ti-mail-cog"></i></span><span>SMTP Settings &amp; Logo</span><kbd>Settings</kbd></a>
       </div>
     </div>
   </div>
 
   <div class="header-right">
-    <!-- Subscription Status Badge -->
-    <a href="/admin/subscription" class="header-subscription-badge" title="Manage Subscription & License">
-      <i class="ti ti-sparkles"></i>
-      <span class="sub-plan-text">PRO PLAN</span>
-    </a>
+    <!-- Quick Action "+ Quick Add" Dropdown (Easy & Fast) -->
+    <div style="position: relative;">
+      <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" id="headerQuickAddBtn" style="padding: 6px 14px; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(19, 102, 217, 0.28);" title="Quick Create New (Alt + N)">
+        <i class="ti ti-plus" style="font-size: 15px;"></i>
+        <span>Quick Add</span>
+      </button>
+      <div id="headerQuickAddMenu" class="dropdown-menu-custom" style="display: none; width: 220px; top: calc(100% + 8px); right: 0; box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16); border-radius: 14px; padding: 6px; z-index: 1060;">
+        <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 6px 12px 4px; letter-spacing: 0.05em;">Instant Actions</div>
+        <a href="<%= hpfx %>/sales/pos" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+          <span style="width: 26px; height: 26px; border-radius: 6px; background: #edf5ff; color: #1366d9; display: flex; align-items: center; justify-content: center;"><i class="ti ti-device-laptop"></i></span>
+          <span>New POS Bill</span>
+          <kbd style="margin-left: auto; font-size: 10px; padding: 1px 5px; background: #f1f5f9; border-radius: 4px; color: #64748b;">F2</kbd>
+        </a>
+        <a href="<%= hpfx %>/master/products" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+          <span style="width: 26px; height: 26px; border-radius: 6px; background: #ecfdf5; color: #107c41; display: flex; align-items: center; justify-content: center;"><i class="ti ti-package"></i></span>
+          <span>Add Product</span>
+          <kbd style="margin-left: auto; font-size: 10px; padding: 1px 5px; background: #f1f5f9; border-radius: 4px; color: #64748b;">F4</kbd>
+        </a>
+        <a href="<%= hpfx %>/master/customers" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+          <span style="width: 26px; height: 26px; border-radius: 6px; background: #fff5eb; color: #f2994a; display: flex; align-items: center; justify-content: center;"><i class="ti ti-user-plus"></i></span>
+          <span>Add Customer</span>
+        </a>
+        <a href="<%= hpfx %>/expenses" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+          <span style="width: 26px; height: 26px; border-radius: 6px; background: #fde7e9; color: #d83b01; display: flex; align-items: center; justify-content: center;"><i class="ti ti-receipt"></i></span>
+          <span>Record Expense</span>
+        </a>
+      </div>
+    </div>
+    <!-- Subscription / Founder Badge -->
+    <% if (isHeaderSubscriber) { %>
+      <a href="/subscriber/dashboard#my-plan-section" class="header-subscription-badge" title="Manage Store Subscription Plan" style="background: rgba(79, 70, 229, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); color: #4f46e5;">
+        <i class="ti ti-sparkles" style="color: #4f46e5;"></i>
+        <span class="sub-plan-text" style="color: #4f46e5; font-weight: 800;">
+          <%= (typeof currentSubscription !== 'undefined' && currentSubscription && currentSubscription.plan) ? currentSubscription.plan.name.toUpperCase() : 'STORE PLAN' %>
+        </span>
+      </a>
+    <% } else { %>
+      <a href="/admin/subscription" class="header-subscription-badge" title="Platform Founder & Super Administrator" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: #ca8a04;">
+        <i class="ti ti-crown" style="color: #eab308;"></i>
+        <span class="sub-plan-text" style="color: #ca8a04; font-weight: 800;">FOUNDER</span>
+      </a>
+    <% } %>
 
     <!-- Notification Bell -->
-    <div class="header-icon-btn" id="notificationDropdownBtn" title="Notifications">
-      <i class="ti ti-bell fs-5"></i>
-      <span class="notification-dot"></span>
+    <div style="position: relative;">
+      <div class="header-icon-btn" id="notificationDropdownBtn" title="Notifications" style="position: relative; cursor: pointer;">
+        <i class="ti ti-bell fs-5"></i>
+        <span class="notification-dot" id="headerNotifDot" style="display: none;"></span>
+        <span id="headerNotifBadge" style="display: none; position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; align-items: center; justify-content: center; line-height: 1;">0</span>
+      </div>
+
+      <!-- Notification Dropdown Panel -->
+      <div id="headerNotifMenu" class="dropdown-menu-custom" style="display: none; width: 360px; max-width: 90vw; padding: 0; right: 0; top: calc(100% + 8px); box-shadow: 0 15px 35px rgba(0,0,0,0.25); border-radius: 16px; overflow: hidden; z-index: 1060;">
+        <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: var(--bg-hover, #f8fafc);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <strong style="font-size: 14px; color: var(--text-color, #0f172a);">Notifications</strong>
+            <span id="headerNotifUnreadCount" style="font-size: 11px; background: rgba(79, 70, 229, 0.1); color: #4f46e5; padding: 2px 8px; border-radius: 999px; font-weight: 700;">0 New</span>
+          </div>
+          <button type="button" id="headerMarkAllReadBtn" style="background: none; border: none; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">Mark all read</button>
+        </div>
+
+        <div id="headerNotifList" style="max-height: 320px; overflow-y: auto; padding: 6px 0;">
+          <div style="text-align: center; padding: 28px 16px; color: #94a3b8; font-size: 13px;">
+            <i class="ti ti-bell-off fs-1" style="display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+            Loading notifications...
+          </div>
+        </div>
+
+        <div style="padding: 10px 16px; border-top: 1px solid var(--border-color, #e2e8f0); text-align: center; background: var(--bg-hover, #f8fafc);">
+          <a href="<%= hpfx %>/notifications" style="color: #4f46e5; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            <span>Open Notification Center</span>
+            <i class="ti ti-arrow-right"></i>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- User Profile Dropdown -->
@@ -745,11 +877,13 @@
                   <% } %>
           </div>
           <div class="role">
-            <% if (typeof user !=='undefined' && user && user.role) { %>
+            <% if (isHeaderSubscriber) { %>
+              Store Owner
+            <% } else if (typeof user !=='undefined' && user && user.role) { %>
               <%= user.role.name || 'Admin' %>
-                <% } else { %>
-                  Super Admin
-                  <% } %>
+            <% } else { %>
+              Platform Founder
+            <% } %>
           </div>
         </div>
         <i class="ti ti-chevron-down fs-3 text-muted ms-1 header-user-chevron"></i>
@@ -775,23 +909,34 @@
           </div>
         </div>
 
-        <a href="/admin/users/profile" class="dropdown-item-custom" onclick="showPageLoader('Loading Profile...')">
+        <a href="<%= hpfx %>/users/profile" class="dropdown-item-custom" onclick="showPageLoader('Loading Profile...')">
           <i class="ti ti-user-circle fs-5"></i>
           <span>My Profile</span>
         </a>
-        <a href="/admin/subscription" class="dropdown-item-custom" onclick="showPageLoader('Loading Subscriptions...')">
-          <i class="ti ti-credit-card fs-5"></i>
-          <span>Subscriptions &amp; Plans</span>
-        </a>
-        <a href="/admin/dashboard" class="dropdown-item-custom" onclick="showPageLoader('Loading Dashboard...')">
-          <i class="ti ti-dashboard fs-5"></i>
-          <span>Dashboard</span>
-        </a>
-        <a href="/admin/master/products" class="dropdown-item-custom" onclick="showPageLoader('Loading Products...')">
+        <% if (isHeaderSubscriber) { %>
+          <a href="/subscriber/dashboard#my-plan-section" class="dropdown-item-custom" onclick="showPageLoader('Loading Subscription...')">
+            <i class="ti ti-credit-card fs-5"></i>
+            <span>My Subscription Plan</span>
+          </a>
+          <a href="/subscriber/dashboard" class="dropdown-item-custom" onclick="showPageLoader('Loading Dashboard...')">
+            <i class="ti ti-dashboard fs-5"></i>
+            <span>Store Dashboard</span>
+          </a>
+        <% } else { %>
+          <a href="/admin/subscription" class="dropdown-item-custom" onclick="showPageLoader('Loading Subscriptions...')">
+            <i class="ti ti-credit-card fs-5"></i>
+            <span>Subscriptions &amp; Plans</span>
+          </a>
+          <a href="/admin/dashboard" class="dropdown-item-custom" onclick="showPageLoader('Loading Dashboard...')">
+            <i class="ti ti-dashboard fs-5"></i>
+            <span>Dashboard</span>
+          </a>
+        <% } %>
+        <a href="<%= hpfx %>/master/products" class="dropdown-item-custom" onclick="showPageLoader('Loading Products...')">
           <i class="ti ti-package fs-5"></i>
           <span>Manage Products</span>
         </a>
-        <a href="/admin/reports/sales" class="dropdown-item-custom" onclick="showPageLoader('Loading Reports...')">
+        <a href="<%= hpfx %>/reports/sales" class="dropdown-item-custom" onclick="showPageLoader('Loading Reports...')">
           <i class="ti ti-chart-bar fs-5"></i>
           <span>Sales Analytics</span>
         </a>
@@ -870,6 +1015,112 @@
       });
     }
 
+    // Header Notifications Dropdown Engine
+    const notifBtn = document.getElementById('notificationDropdownBtn');
+    const notifMenu = document.getElementById('headerNotifMenu');
+    const notifBadge = document.getElementById('headerNotifBadge');
+    const notifUnreadText = document.getElementById('headerNotifUnreadCount');
+    const notifList = document.getElementById('headerNotifList');
+    const markAllBtn = document.getElementById('headerMarkAllReadBtn');
+
+    if (notifBtn && notifMenu) {
+      notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isOpen = notifMenu.style.display === 'block';
+        notifMenu.style.display = isOpen ? 'none' : 'block';
+        if (menu) menu.classList.remove('show');
+        if (!isOpen) {
+          fetchHeaderNotifications();
+        }
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!notifMenu.contains(e.target) && !notifBtn.contains(e.target)) {
+          notifMenu.style.display = 'none';
+        }
+      });
+    }
+
+    function fetchHeaderNotifications() {
+      fetch('/api/notifications')
+        .then(res => res.json())
+        .then(data => {
+          if (!data || !data.success) return;
+
+          if (notifBadge && notifUnreadText) {
+            if (data.unread_count > 0) {
+              notifBadge.style.display = 'flex';
+              notifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+              notifUnreadText.textContent = `${data.unread_count} New`;
+            } else {
+              notifBadge.style.display = 'none';
+              notifUnreadText.textContent = 'All Caught Up';
+            }
+          }
+
+          if (notifList) {
+            if (!data.notifications || data.notifications.length === 0) {
+              notifList.innerHTML = `
+                <div style="text-align: center; padding: 24px 16px; color: #94a3b8; font-size: 13px;">
+                  <i class="ti ti-circle-check fs-2" style="color: #10b981; display: block; margin-bottom: 4px;"></i>
+                  No unread notifications!
+                </div>
+              `;
+              return;
+            }
+
+            notifList.innerHTML = data.notifications.map(n => {
+              const iconColor = n.severity === 'danger' ? '#ef4444' : (n.severity === 'warning' ? '#f59e0b' : (n.severity === 'success' ? '#10b981' : '#3b82f6'));
+              const bg = n.is_read ? 'transparent' : 'rgba(79, 70, 229, 0.05)';
+              return `
+                <a href="${n.link || '#'}" onclick="headerMarkSingleRead(${n.id}, event, '${n.link || ''}')" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px; text-decoration: none; background: ${bg}; border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s;">
+                  <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0,0,0,0.04); color: ${iconColor}; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; margin-top: 2px;">
+                    <i class="ti ${n.icon || 'ti-bell'}"></i>
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 2px;">
+                      <strong style="color: var(--text-color, #0f172a); font-size: 13px; font-weight: ${n.is_read ? '500' : '700'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${n.title}</strong>
+                      <span style="font-size: 11px; color: #94a3b8; flex-shrink: 0;">${n.time_ago || ''}</span>
+                    </div>
+                    <div style="color: #64748b; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                      ${n.message}
+                    </div>
+                  </div>
+                  ${!n.is_read ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #4f46e5; margin-top: 6px; flex-shrink: 0;"></span>' : ''}
+                </a>
+              `;
+            }).join('');
+          }
+        })
+        .catch(err => console.error('Error fetching notifications:', err));
+    }
+
+    window.headerMarkSingleRead = function(id, e, link) {
+      fetch(`/api/notifications/${id}/read`, { method: 'POST' })
+        .then(() => {
+          if (link && link !== '#' && link !== '') {
+            window.location.href = link;
+          } else {
+            fetchHeaderNotifications();
+          }
+        })
+        .catch(() => {
+          if (link && link !== '#' && link !== '') window.location.href = link;
+        });
+    };
+
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        fetch('/api/notifications/mark-all-read', { method: 'POST' })
+          .then(() => fetchHeaderNotifications())
+          .catch(err => console.error(err));
+      });
+    }
+
+    // Initial fetch and auto-poll every 45s
+    fetchHeaderNotifications();
+    setInterval(fetchHeaderNotifications, 45000);
+
     // =============================================
     // GLOBAL KEYBOARD SHORTCUTS ENGINE
     // =============================================
@@ -891,12 +1142,15 @@
         return;
       }
 
+      const isSub = window.location.pathname.startsWith('/subscriber');
+      const pfx = isSub ? '/subscriber' : '/admin';
+
       // F2 -> Instant POS Terminal
       if (e.key === 'F2') {
         e.preventDefault();
-        if (window.location.pathname !== '/admin/sales/pos') {
+        if (!window.location.pathname.endsWith('/sales/pos')) {
           if (typeof showPageLoader === 'function') showPageLoader('Opening POS Terminal (F2)...');
-          window.location.href = '/admin/sales/pos';
+          window.location.href = pfx + '/sales/pos';
         }
         return;
       }
@@ -909,12 +1163,20 @@
         return;
       }
 
+      // Alt + N -> Quick Add Menu
+      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        const qaBtn = document.getElementById('headerQuickAddBtn');
+        if (qaBtn) qaBtn.click();
+        return;
+      }
+
       // F4 -> Quick Products
       if (e.key === 'F4') {
         e.preventDefault();
-        if (window.location.pathname !== '/admin/master/products') {
+        if (!window.location.pathname.includes('/master/products')) {
           if (typeof showPageLoader === 'function') showPageLoader('Opening Products Catalog (F4)...');
-          window.location.href = '/admin/master/products';
+          window.location.href = pfx + '/master/products';
         }
         return;
       }
@@ -922,9 +1184,9 @@
       // F8 -> Quick Customers
       if (e.key === 'F8') {
         e.preventDefault();
-        if (window.location.pathname !== '/admin/master/customers') {
+        if (!window.location.pathname.includes('/master/customers')) {
           if (typeof showPageLoader === 'function') showPageLoader('Opening Customers Directory (F8)...');
-          window.location.href = '/admin/master/customers';
+          window.location.href = pfx + '/master/customers';
         }
         return;
       }
@@ -932,18 +1194,39 @@
       // F9 -> Day End Closing
       if (e.key === 'F9') {
         e.preventDefault();
-        if (!window.location.pathname.startsWith('/admin/day-end')) {
+        if (!window.location.pathname.includes('/day-end')) {
           if (typeof showPageLoader === 'function') showPageLoader('Opening Day End Closing (F9)...');
-          window.location.href = '/admin/day-end/form';
+          window.location.href = pfx + '/day-end/form';
         }
         return;
       }
 
-      // Esc -> Close Shortcuts Modal or active modals
+      // Esc -> Close Shortcuts Modal, quick palettes, and active modals
       if (e.key === 'Escape') {
         closeShortcutsModal();
+        const searchPalette = document.getElementById('quickSearchPalette');
+        if (searchPalette) searchPalette.style.display = 'none';
+        const qaMenu = document.getElementById('headerQuickAddMenu');
+        if (qaMenu) qaMenu.style.display = 'none';
+        document.querySelectorAll('.modal-backdrop-modern.show').forEach(m => m.classList.remove('show'));
+        document.querySelectorAll('.dropdown-menu-custom').forEach(d => { d.classList.remove('show'); d.style.display = 'none'; });
       }
     });
+
+    // Quick Add Menu toggle
+    const qaBtn = document.getElementById('headerQuickAddBtn');
+    const qaMenu = document.getElementById('headerQuickAddMenu');
+    if (qaBtn && qaMenu) {
+      qaBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        qaMenu.style.display = (qaMenu.style.display === 'none' || !qaMenu.style.display) ? 'block' : 'none';
+      });
+      document.addEventListener('click', function(e) {
+        if (!qaMenu.contains(e.target) && e.target !== qaBtn) {
+          qaMenu.style.display = 'none';
+        }
+      });
+    }
 
     const searchInput = document.getElementById('globalHeaderSearch');
     const searchPalette = document.getElementById('quickSearchPalette');

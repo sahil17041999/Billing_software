@@ -133,6 +133,10 @@
       if (category) params.push('category=' + category);
       url += params.join('&');
       
+      if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('.table-modern')) {
+        $('.table-modern').DataTable().destroy();
+      }
+
       fetch(url)
         .then(res => res.json())
         .then(data => {
@@ -150,6 +154,10 @@
                   <td style="text-align: right; color: #ef4444; font-weight: 700;" class="amount-cell">₹${parseFloat(row.total || 0).toFixed(2)}</td>
                 </tr>
               `).join('');
+
+              if (typeof initStandardDataTable === 'function') {
+                initStandardDataTable('.table-modern');
+              }
             }
             
             document.getElementById('kpiExpense').textContent = '₹' + parseFloat(data.summary.grandTotal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });

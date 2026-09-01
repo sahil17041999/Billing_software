@@ -34,6 +34,7 @@ router.get('/products', masterController.getProducts);
 router.get('/products/:id', masterController.getProductById);
 router.post('/products', masterController.createProduct);
 router.put('/products/:id', masterController.updateProduct);
+router.post('/products/:id/barcode', masterController.quickSetProductBarcode);
 
 // ============================================
 // CUSTOMER ROUTES

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Owner Sign In &bull; Subscriber Portal</title>
+  <meta name="description" content="Sign in to your Grocery Store Subscriber Dashboard with mobile number and instant OTP.">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  
+  <!-- jQuery, jQuery Validation & SweetAlert2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --sub-primary: #4f46e5;
+      --sub-primary-hover: #4338ca;
+      --sub-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+      --sub-bg: #0b0f19;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--sub-bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.25) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.2) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(37, 99, 235, 0.12) 0px, transparent 60%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #f8fafc;
+    }
+
+    .portal-container {
+      width: 100%;
+      max-width: 460px;
+      position: relative;
+    }
+
+    .portal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(79, 70, 229, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 999px;
+      color: #c7d2fe;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .portal-card {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(79, 70, 229, 0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--sub-gradient);
+    }
+
+    .portal-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-logo-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--sub-gradient);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 28px;
+      box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
+      margin-bottom: 16px;
+    }
+
+    .portal-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .portal-subtitle {
+      font-size: 13.5px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 14px;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .portal-input {
+      width: 100%;
+      height: 48px;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 0 14px 0 54px;
+      transition: all 0.2s ease;
+    }
+
+    .portal-input:focus {
+      outline: none;
+      border-color: #818cf8;
+      background: rgba(30, 41, 59, 0.85);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
+    }
+
+    .portal-input.error {
+      border-color: #ef4444 !important;
+      background: rgba(239, 68, 68, 0.08) !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
+
+    .portal-input.valid {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.08) !important;
+    }
+
+    .error-feedback {
+      color: #f87171;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 48px;
+      background: var(--sub-gradient);
+      border: none;
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -4px rgba(79, 70, 229, 0.5);
+      opacity: 0.95;
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Simulated SMS Notification Popup */
+    .sms-simulation-box {
+      background: rgba(79, 70, 229, 0.15);
+      border: 1px dashed rgba(99, 102, 241, 0.5);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sms-code-highlight {
+      font-family: monospace;
+      font-size: 18px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 3px;
+    }
+
+    .btn-autofill-otp {
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #c7d2fe;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.2s;
+    }
+
+    .btn-autofill-otp:hover {
+      background: rgba(99, 102, 241, 0.4);
+      color: #fff;
+    }
+
+    .alert-banner {
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.4;
+    }
+
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+
+    .portal-footer-links {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .portal-link {
+      color: #94a3b8;
+      font-size: 13px;
+      text-decoration: none;
+      transition: color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .portal-link:hover {
+      color: #c7d2fe;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="portal-container">
+    
+    <div style="text-align: center;">
+      <div class="portal-badge">
+        <i class="ti ti-crown"></i>
+        <span>Store Owner &bull; Subscriber Store Panel</span>
+      </div>
+    </div>
+
+    <div class="portal-card">
+      <div class="portal-header">
+        <div class="brand-logo-icon">
+          <i class="ti ti-building-store"></i>
+        </div>
+        <h1 class="portal-title">Store Owner Sign In</h1>
+        <p class="portal-subtitle" id="stepSubtitle">Enter your registered 10-digit mobile number to receive a secure login code.</p>
+      </div>
+
+      <!-- Server error/message fallback -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert-banner alert-danger">
+          <i class="ti ti-alert-circle fs-5"></i>
+          <div><%= error %></div>
+        </div>
+      <% } %>
+
+      <!-- Dynamic JS Feedback Alert -->
+      <div class="alert-banner alert-danger" id="jsAlertBanner" style="display: none;">
+        <i class="ti ti-alert-circle fs-5"></i>
+        <div id="jsAlertText"></div>
+      </div>
+
+      <!-- Simulated SMS OTP Notice -->
+      <div class="sms-simulation-box" id="smsSimulationBox">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <span style="font-size: 12px; font-weight: 700; color: #c7d2fe;"><i class="ti ti-message-dots me-1"></i> SMS Code Received</span>
+          <span style="font-size: 11px; background: rgba(99,102,241,0.3); padding: 2px 6px; border-radius: 4px; color: #a5b4fc;">VALID 5 MIN</span>
+        </div>
+        <div style="font-size: 13.5px; color: #e2e8f0;">
+          Your Store Login OTP is: <span class="sms-code-highlight" id="smsCodeDisplay">------</span>
+        </div>
+        <button type="button" class="btn-autofill-otp" onclick="autofillSubscriberOtp()">
+          <i class="ti ti-bolt"></i> Auto-Fill OTP
+        </button>
+      </div>
+
+      <!-- STEP 1: Enter Mobile Number Form -->
+      <form id="subscriberPhoneForm">
+        <div class="form-group">
+          <label class="form-label" for="subPhone">Registered Mobile Number</label>
+          <div class="input-wrapper">
+            <span class="input-prefix">
+              <i class="ti ti-phone"></i>
+              <span>+91</span>
+            </span>
+            <input 
+              type="tel" 
+              name="phone" 
+              id="subPhone" 
+              data-id="subPhoneInput"
+              class="portal-input subPhoneInput" 
+              placeholder="9876543210" 
+              maxlength="10" 
+              autocomplete="tel"
+              autofocus
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnGetOtp">
+          <i class="ti ti-key"></i>
+          <span>Get Login OTP</span>
+        </button>
+      </form>
+
+      <!-- STEP 2: Verify OTP Form (Hidden initially) -->
+      <form id="subscriberOtpForm" style="display: none;">
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; background: rgba(30,41,59,0.4); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="font-size: 13px; color: #cbd5e1;">
+            Code sent to: <strong id="activePhoneLabel" style="color: #fff;">+91 ----------</strong>
+          </div>
+          <button type="button" onclick="changePhoneNumber()" style="background: none; border: none; color: #818cf8; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">
+            Change
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="subOtp">Enter 6-Digit Code</label>
+          <div class="input-wrapper">
+            <span class="input-prefix" style="left: 16px;">
+              <i class="ti ti-lock"></i>
+            </span>
+            <input 
+              type="text" 
+              name="otp" 
+              id="subOtp" 
+              class="portal-input" 
+              placeholder="123456" 
+              maxlength="6"
+              style="padding-left: 48px; font-size: 18px; letter-spacing: 4px; font-weight: 700;"
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnVerifyOtp">
+          <i class="ti ti-login"></i>
+          <span>Verify OTP &amp; Sign In</span>
+        </button>
+
+        <div style="text-align: center; margin-top: 14px; font-size: 12.5px; color: #64748b;">
+          Didn't receive the SMS code? 
+          <button type="button" id="btnResendOtp" onclick="resendOtp()" style="background: none; border: none; color: #818cf8; font-weight: 700; cursor: pointer; text-decoration: underline;">
+            Resend OTP
+          </button>
+        </div>
+      </form>
+
+      <div class="portal-footer-links">
+        <a href="/pricing" class="portal-link" style="color: #818cf8; font-weight: 600;">
+          <i class="ti ti-sparkles"></i>
+          <span>Need a Store Subscription? View Plans</span>
+        </a>
+        <a href="/admin/login" class="portal-link">
+          <i class="ti ti-shield-lock"></i>
+          <span>Platform Founder &amp; Super Admin Login</span>
+        </a>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #475569;">
+      &copy; <%= new Date().getFullYear() %> Grocery Billing ERP &bull; Store Owner Portal
+    </div>
+
+  </div>
+
+  <script>
+    let activePhone = '';
+    let currentOtp = '';
+
+    $(document).ready(function() {
+
+      // Indian 10-digit mobile number custom validator
+      $.validator.addMethod("indianPhone", function(value, element) {
+        return this.optional(element) || /^[6-9]\d{9}$/.test(value);
+      }, "Please enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9)");
+
+      // 6-digit numeric OTP custom validator
+      $.validator.addMethod("exactOtp", function(value, element) {
+        return this.optional(element) || /^\d{6}$/.test(value);
+      }, "Please enter a valid 6-digit numeric OTP code");
+
+      // Initialize jQuery Validation on Step 1: Phone Form
+      $('#subscriberPhoneForm').validate({
+        rules: {
+          phone: {
+            required: true,
+            digits: true,
+            minlength: 10,
+            maxlength: 10,
+            indianPhone: true
+          }
+        },
+        messages: {
+          phone: {
+            required: "Mobile number is required to sign in",
+            digits: "Only numbers are permitted",
+            minlength: "Enter exactly 10 digits",
+            maxlength: "Enter exactly 10 digits"
+          }
+        },
+        errorElement: 'div',
+        errorClass: 'error-feedback',
+        errorPlacement: function(error, element) {
+          error.insertAfter(element.closest('.input-wrapper'));
+        },
+        highlight: function(element) {
+          $(element).addClass('error').removeClass('valid');
+        },
+        unhighlight: function(element) {
+          $(element).removeClass('error').addClass('valid');
+        },
+        submitHandler: function(form, e) {
+          e.preventDefault();
+          handleSendOtp();
+        }
+      });
+
+      // Initialize jQuery Validation on Step 2: OTP Form
+      $('#subscriberOtpForm').validate({
+        rules: {
+          otp: {
+            required: true,
+            digits: true,
+            minlength: 6,
+            maxlength: 6,
+            exactOtp: true
+          }
+        },
+        messages: {
+          otp: {
+            required: "Please enter the 6-digit OTP code",
+            digits: "OTP must contain only digits",
+            minlength: "Enter all 6 digits of the OTP code",
+            maxlength: "Enter all 6 digits of the OTP code"
+          }
+        },
+        errorElement: 'div',
+        errorClass: 'error-feedback',
+        errorPlacement: function(error, element) {
+          error.insertAfter(element.closest('.input-wrapper'));
+        },
+        highlight: function(element) {
+          $(element).addClass('error').removeClass('valid');
+        },
+        unhighlight: function(element) {
+          $(element).removeClass('error').addClass('valid');
+        },
+        submitHandler: function(form, e) {
+          e.preventDefault();
+          handleVerifyOtp();
+        }
+      });
+
+      // Format inputs strictly to digits
+      $('#subPhone').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+      });
+
+      $('#subOtp').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+      });
+
+    });
+
+    function showJsAlert(text) {
+      $('#jsAlertText').text(text);
+      $('#jsAlertBanner').slideDown();
+    }
+
+    function hideJsAlert() {
+      $('#jsAlertBanner').hide();
+    }
+
+    // Step 1: Send OTP AJAX
+    function handleSendOtp() {
+      hideJsAlert();
+      const phone = $('#subPhone').val().trim();
+      const btn = $('#btnGetOtp');
+
+      btn.prop('disabled', true).html('<i class="ti ti-loader rotate"></i> Sending OTP...');
+
+      $.ajax({
+        url: '/subscriber/send-otp',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ phone: phone }),
+        success: function(res) {
+          btn.prop('disabled', false).html('<i class="ti ti-key"></i> Get Login OTP');
+          if (res.success) {
+            activePhone = phone;
+            currentOtp = res.otp;
+
+            // Transition to Step 2
+            $('#subscriberPhoneForm').slideUp();
+            $('#subscriberOtpForm').slideDown();
+            $('#stepSubtitle').text('Enter the 6-digit verification code sent to your mobile.');
+            $('#activePhoneLabel').text('+91 ' + phone);
+
+            // Display simulated SMS box
+            $('#smsCodeDisplay').text(res.otp);
+            $('#smsSimulationBox').slideDown();
+
+            $('#subOtp').val('').focus();
+          } else {
+            showJsAlert(res.error || 'Failed to send OTP.');
+          }
+        },
+        error: function(xhr) {
+          btn.prop('disabled', false).html('<i class="ti ti-key"></i> Get Login OTP');
+          const err = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to send OTP.';
+          showJsAlert(err);
+        }
+      });
+    }
+
+    // Step 2: Verify OTP AJAX
+    function handleVerifyOtp() {
+      hideJsAlert();
+      const otp = $('#subOtp').val().trim();
+      const btn = $('#btnVerifyOtp');
+
+      btn.prop('disabled', true).html('<i class="ti ti-loader rotate"></i> Verifying...');
+
+      $.ajax({
+        url: '/subscriber/verify-otp',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ phone: activePhone, otp: otp }),
+        success: function(res) {
+          if (res.success) {
+            btn.html('<i class="ti ti-check"></i> Verified!');
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                icon: 'success',
+                title: 'Welcome Back!',
+                text: 'Signing you into your store dashboard...',
+                timer: 1200,
+                showConfirmButton: false,
+                background: '#111827',
+                color: '#fff'
+              }).then(() => {
+                window.location.href = res.redirectUrl || '/subscriber/dashboard';
+              });
+            } else {
+              window.location.href = res.redirectUrl || '/subscriber/dashboard';
+            }
+          } else {
+            btn.prop('disabled', false).html('<i class="ti ti-login"></i> Verify OTP & Sign In');
+            showJsAlert(res.error || 'Incorrect OTP code.');
+          }
+        },
+        error: function(xhr) {
+          btn.prop('disabled', false).html('<i class="ti ti-login"></i> Verify OTP & Sign In');
+          const err = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Incorrect OTP code.';
+          showJsAlert(err);
+        }
+      });
+    }
+
+    function autofillSubscriberOtp() {
+      if (currentOtp) {
+        $('#subOtp').val(currentOtp).removeClass('error').addClass('valid');
+        $('#subOtp-error').remove();
+        handleVerifyOtp();
+      }
+    }
+
+    function changePhoneNumber() {
+      hideJsAlert();
+      $('#smsSimulationBox').hide();
+      $('#subscriberOtpForm').slideUp();
+      $('#subscriberPhoneForm').slideDown();
+      $('#stepSubtitle').text('Enter your registered 10-digit mobile number to receive a secure login code.');
+      $('#subPhone').focus();
+    }
+
+    function resendOtp() {
+      if (!activePhone) return;
+      handleSendOtp();
+    }
+  </script>
+
+</body>
+</html>

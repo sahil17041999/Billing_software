@@ -764,7 +764,12 @@
               </h1>
               <p class="page-subheading">Manage your store subscription plan, quotas, billing cycles, and feature entitlements</p>
             </div>
-            <div class="page-title-right">
+            <div class="page-title-right" style="display: flex; gap: 10px;">
+              <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
+              <a href="/admin/subscription/plans" class="btn-modern btn-primary-modern">
+                <i class="ti ti-packages"></i> Manage Subscription Plans
+              </a>
+              <% } %>
               <a href="/admin/dashboard" class="btn-modern btn-secondary-modern">
                 <i class="ti ti-arrow-left"></i> Dashboard
               </a>
@@ -2511,6 +2516,8 @@
           });
         }
       });
+    }
+
     // ==========================================================
     // COMPLETE FEATURE ENTITLEMENTS BREAKDOWN INTERACTIVE ENGINE
     // ==========================================================

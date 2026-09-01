@@ -20,6 +20,7 @@
     },
 
     show(message, type = 'info', duration = 3200) {
+      if (typeof hidePageLoader === 'function') hidePageLoader();
       if (window.Swal) {
         const icon = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
         return Swal.fire({
@@ -100,6 +101,51 @@
       return this.optional(element) || !isNaN(Date.parse(value));
     }, 'Please enter a valid date.');
 
+    // Meaningful Entity Name (Category, Brand, Product, Unit, Tax)
+    // 1. Must contain at least 2 alphabetic letters
+    // 2. Cannot be pure digits (e.g. "67857878")
+    // 3. Cannot be keyboard spam or excessive repeated letters (e.g. "aaaa", "jkjkjkjk")
+    // 4. Allows standard characters: letters, numbers, spaces, &, -, /, ., etc.
+    $.validator.addMethod('validName', function (value, element) {
+      if (this.optional(element)) return true;
+      const str = String(value).trim();
+      if (str.length < 2 || str.length > 80) return false;
+      if (!/[a-zA-Z]{2,}/.test(str)) return false;
+      if (/^\d+$/.test(str)) return false;
+      if (/^\d+[a-zA-Z]/.test(str)) return false;
+      if (/[bcdfghjklmnpqrstvwxyz]{6,}/i.test(str)) return false;
+      if (/(.)\1{3,}/i.test(str)) return false;
+      if (/(.{2,3})\1{3,}/i.test(str)) return false;
+      return /^[a-zA-Z0-9\s.,\-_#&()/'"+%]+$/.test(str);
+    }, 'Please enter a valid name (at least 2 letters, no random gibberish or pure numbers).');
+
+    // Person / Contact Name (Customer Name, Owner Name, Contact Person)
+    $.validator.addMethod('validPersonName', function (value, element) {
+      if (this.optional(element)) return true;
+      const str = String(value).trim();
+      if (str.length < 2 || str.length > 70) return false;
+      if (!/^[a-zA-Z\s.'-]+$/.test(str)) return false;
+      if (!/[a-zA-Z]{2,}/.test(str)) return false;
+      if (/(.)\1{3,}/i.test(str)) return false;
+      if (/(.{2,3})\1{3,}/i.test(str)) return false;
+      return true;
+    }, 'Please enter a valid person name containing letters only (e.g. Rajesh Kumar).');
+
+    // Not All Digits
+    $.validator.addMethod('notAllDigits', function (value, element) {
+      if (this.optional(element)) return true;
+      return !/^\d+$/.test(String(value).trim());
+    }, 'Value cannot be composed of numbers only.');
+
+    // No Spam or Keyboard Mash
+    $.validator.addMethod('noSpamRepeat', function (value, element) {
+      if (this.optional(element)) return true;
+      const str = String(value).trim();
+      if (/(.)\1{3,}/i.test(str)) return false;
+      if (/(.{2,3})\1{3,}/i.test(str)) return false;
+      return true;
+    }, 'Please enter meaningful text without repetitive characters.');
+
     // Global Default Configuration for jQuery Validation
     $.validator.setDefaults({
       errorElement: 'span',
@@ -118,7 +164,13 @@
         $(element).addClass('is-invalid').removeClass('is-valid');
       },
       unhighlight: function (element, errorClass, validClass) {
-        $(element).removeClass('is-invalid').addClass('is-valid');
+        const $el = $(element);
+        $el.removeClass('is-invalid');
+        if ($el.val() && String($el.val()).trim().length > 0) {
+          $el.addClass('is-valid');
+        } else {
+          $el.removeClass('is-valid');
+        }
       },
       invalidHandler: function (event, validator) {
         if (validator.errorList.length > 0) {
@@ -158,6 +210,14 @@
             if (shouldContinue === false) return;
           }
 
+          const isEdit = Boolean($form.find('input[name="id"], #productId, #categoryId, #brandId, #customerId, #supplierId, #unitId, #taxId, #planId').val());
+          const entityName = options.entityName || options.title || 'Record';
+          const defaultLoaderMsg = isEdit ? `Updating ${entityName}...` : `Saving ${entityName}...`;
+
+          if (typeof showPageLoader === 'function') {
+            showPageLoader(options.loaderText || defaultLoaderMsg, 'Please wait while your database is updated', isEdit ? 'ti ti-edit' : 'ti ti-device-floppy');
+          }
+
           // If custom submit handler is provided, delegate to it
           if (typeof options.onSubmit === 'function') {
             return options.onSubmit(form, $form);
@@ -184,9 +244,6 @@
           // UI Loading state
           submitBtn.prop('disabled', true);
           submitBtn.html('<i class="ti ti-loader-2" style="animation: loaderSpin 0.75s linear infinite; display: inline-block;"></i> Processing...');
-          if (options.loaderText && typeof showPageLoader === 'function') {
-            showPageLoader(options.loaderText);
-          }
 
           const fetchOptions = {
             method: method,
@@ -309,6 +366,65 @@
   // ------------------------------------------------------------------------
   // 5. EXPORT GLOBALLY
   // ------------------------------------------------------------------------
+  global.confirmDelete = function(options) {
+    const title = options.title || 'Are you sure?';
+    const text = options.text || 'This item will be permanently deleted.';
+    const deleteUrl = options.url;
+    const itemLabel = options.itemLabel || 'Item';
+
+    if (window.Swal) {
+      return Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '<i class="ti ti-trash"></i> Yes, Delete',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (typeof showPageLoader === 'function') {
+            showPageLoader(`Deleting ${itemLabel}...`, 'Removing record from database', 'ti ti-trash');
+          }
+          return fetch(deleteUrl, {
+            method: options.method || 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(options.body || {})
+          })
+          .then(res => res.json().then(data => ({ ok: res.ok, status: res.status, data })))
+          .then(({ ok, data }) => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            if (ok && (data.success || data.status === 'success')) {
+              Toast.show(data.message || `${itemLabel} deleted successfully!`, 'success');
+              if (typeof options.onSuccess === 'function') {
+                options.onSuccess(data);
+              } else {
+                setTimeout(() => location.reload(), 900);
+              }
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Delete Failed',
+                text: data.error || data.message || 'Could not delete item.',
+                confirmButtonColor: '#ef4444'
+              });
+            }
+          })
+          .catch(err => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            Swal.fire({
+              icon: 'error',
+              title: 'Network Error',
+              text: err.message || 'Could not connect to server.',
+              confirmButtonColor: '#ef4444'
+            });
+          });
+        }
+      });
+    }
+  };
+
   global.AppToast = Toast;
   global.showToast = (msg, type, duration) => Toast.show(msg, type, duration);
   global.AppFormHelper = AppFormHelper;

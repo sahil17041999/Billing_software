@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Profile &amp; Settings - <%= company.name %></title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+
+  <style>
+    .form-group-admin {
+      margin-bottom: 20px;
+    }
+
+    .form-label-admin {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .form-control-admin {
+      width: 100%;
+      height: 44px;
+      background: #ffffff;
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 10px;
+      color: #0f172a;
+      font-size: 14px;
+      padding: 0 14px;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .form-control-admin:focus {
+      outline: none;
+      border-color: var(--primary, #1366d9);
+      box-shadow: 0 0 0 3px rgba(19, 102, 217, 0.15);
+    }
+
+    .grid-2-admin {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2-admin {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Standard Unified Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'profile' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Standard Unified Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-settings" style="color: var(--primary);"></i> Store Profile &amp; Settings
+              </h1>
+              <p class="page-subheading">
+                Configure your store contact information and tax details printed on customer invoices
+              </p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/subscriber/dashboard" class="btn-modern btn-outline-modern">
+                <i class="ti ti-arrow-left"></i> Back to Dashboard
+              </a>
+            </div>
+          </div>
+
+          <div class="card-modern" style="padding: 28px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; max-width: 960px;">
+            <form id="storeProfileForm">
+              
+              <div class="grid-2-admin">
+                <div class="form-group-admin">
+                  <label class="form-label-admin" for="storeNameInput">Store / Trade Name *</label>
+                  <input type="text" id="storeNameInput" name="name" class="form-control-admin" value="<%= company.name %>" required>
+                </div>
+
+                <div class="form-group-admin">
+                  <label class="form-label-admin" for="storeGstinInput">GSTIN / Tax Registration ID</label>
+                  <input type="text" id="storeGstinInput" name="gstin" class="form-control-admin" value="<%= company.gstin || '' %>" placeholder="27ABCDE1234F1Z5">
+                </div>
+              </div>
+
+              <div class="grid-2-admin">
+                <div class="form-group-admin">
+                  <label class="form-label-admin" for="storePhoneInput">Store Contact Phone *</label>
+                  <input type="tel" id="storePhoneInput" name="phone" class="form-control-admin" value="<%= company.phone || '' %>" required>
+                </div>
+
+                <div class="form-group-admin">
+                  <label class="form-label-admin" for="storeEmailInput">Store Email Address</label>
+                  <input type="email" id="storeEmailInput" name="email" class="form-control-admin" value="<%= company.email || '' %>">
+                </div>
+              </div>
+
+              <div class="form-group-admin">
+                <label class="form-label-admin" for="storeAddressInput">Store Street Address</label>
+                <input type="text" id="storeAddressInput" name="address" class="form-control-admin" value="<%= company.address || '' %>" placeholder="Shop No., Market, Area">
+              </div>
+
+              <div class="grid-2-admin">
+                <div class="form-group-admin">
+                  <label class="form-label-admin" for="storeCityInput">City</label>
+                  <input type="text" id="storeCityInput" name="city" class="form-control-admin" value="<%= company.city || '' %>">
+                </div>
+
+                <div class="form-group-admin">
+                  <label class="form-label-admin" for="storeStateInput">State</label>
+                  <input type="text" id="storeStateInput" name="state" class="form-control-admin" value="<%= company.state || '' %>">
+                </div>
+              </div>
+
+              <div style="margin-top: 16px; display: flex; align-items: center; gap: 14px;">
+                <button type="submit" class="btn-modern btn-primary-modern" id="btnSaveProfile">
+                  <i class="ti ti-device-floppy"></i>
+                  <span>Save Changes</span>
+                </button>
+                <span id="saveStatusMsg" style="font-size: 13px; color: #059669; font-weight: 600; display: none;">
+                  <i class="ti ti-circle-check me-1"></i> Store profile updated successfully!
+                </span>
+              </div>
+
+            </form>
+          </div>
+
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('storeProfileForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveProfile');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader rotate"></i> Saving...';
+
+      const data = {
+        name: document.getElementById('storeNameInput').value,
+        gstin: document.getElementById('storeGstinInput').value,
+        phone: document.getElementById('storePhoneInput').value,
+        email: document.getElementById('storeEmailInput').value,
+        address: document.getElementById('storeAddressInput').value,
+        city: document.getElementById('storeCityInput').value,
+        state: document.getElementById('storeStateInput').value
+      };
+
+      fetch('/subscriber/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(result => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Changes';
+        if (result.success) {
+          const status = document.getElementById('saveStatusMsg');
+          status.style.display = 'inline';
+          setTimeout(() => { status.style.display = 'none'; }, 3000);
+        } else {
+          alert(result.error || 'Failed to update profile');
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Changes';
+        alert('Error saving profile');
+      });
+    });
+  </script>
+
+</body>
+</html>

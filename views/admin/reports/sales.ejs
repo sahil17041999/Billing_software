@@ -203,6 +203,10 @@
       const tbody = document.getElementById('reportBody');
       const btn = document.getElementById('generateBtn');
 
+      if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('.table-modern')) {
+        $('.table-modern').DataTable().destroy();
+      }
+
       tbody.innerHTML = '<tr><td colspan="6" class="table-empty-state"><div class="spinner-border text-primary" role="status" style="width: 28px; height: 28px; border-width: 3px;"></div><p style="margin-top: 8px;">Compiling report metrics...</p></td></tr>';
       if (btn) btn.disabled = true;
 
@@ -230,6 +234,10 @@
                   <td style="text-align: right; color: var(--primary); font-weight: 700;" class="amount-cell">₹${parseFloat(row.total || 0).toFixed(2)}</td>
                 </tr>
               `).join('');
+
+              if (typeof initStandardDataTable === 'function') {
+                initStandardDataTable('.table-modern');
+              }
             }
             
             // Update summary

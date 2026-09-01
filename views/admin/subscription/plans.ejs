@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Plans - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .plan-card-item {
+      background: #ffffff;
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 18px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    }
+
+    .plan-card-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.07);
+      border-color: #cbd5e1;
+    }
+
+    .plan-card-item.popular {
+      border: 2px solid var(--primary, #1366d9);
+      background: #ffffff;
+    }
+
+    .popular-ribbon {
+      position: absolute;
+      top: -12px;
+      right: 24px;
+      background: var(--primary, #1366d9);
+      color: #ffffff;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(19, 102, 217, 0.35);
+    }
+
+    .plan-badge-pill {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary, #1366d9);
+      margin-bottom: 6px;
+    }
+
+    .plan-price-block {
+      margin: 14px 0 20px 0;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .plan-quota-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .plan-features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 18px 0;
+      flex: 1;
+    }
+
+    .plan-feature-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    .plan-feature-row i {
+      color: #10b981;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Modal Form Styles */
+    .form-group-modal {
+      margin-bottom: 18px;
+    }
+
+    .form-label-modal {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .form-control-modal {
+      width: 100%;
+      height: 42px;
+      background: #ffffff;
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 13.5px;
+      color: #0f172a;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+
+    .form-control-modal:focus {
+      outline: none;
+      border-color: var(--primary, #1366d9);
+      box-shadow: 0 0 0 3px rgba(19, 102, 217, 0.15);
+    }
+
+    .grid-2-modal {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3-modal {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2-modal, .grid-3-modal {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Sidebar Navigation -->
+    <%- include('../../partials/sidebar.ejs', { currentPage: 'subscription-plans' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Top Header Navigation -->
+        <%- include('../../partials/header.ejs') %>
+
+        <main class="page-content">
+
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-packages" style="color: var(--primary);"></i> Subscription Plans &amp; Pricing Tiers
+              </h1>
+              <p class="page-subheading">
+                Configure and manage subscription packages, quotas, pricing tiers, and feature entitlements for grocery stores.
+              </p>
+            </div>
+            
+            <div class="page-title-actions">
+              <button type="button" onclick="openCreatePlanModal()" class="btn-modern btn-primary-modern">
+                <i class="ti ti-plus"></i> Add New Plan
+              </button>
+              <a href="/admin/subscription" class="btn-modern btn-outline-modern">
+                <i class="ti ti-credit-card"></i> Store Subscriptions
+              </a>
+            </div>
+          </div>
+
+          <!-- Subscription Metrics Strip (Zoho/Admin Style) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px;">
+            
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Packages</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-packages"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a;"><%= stats.totalPlans %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Configured pricing tiers</div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Active Packages</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #f0fdf4; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-circle-check"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #059669;"><%= stats.activePlans %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Available for subscriber purchase</div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Featured Tier</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #faf5ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-crown"></i>
+                </div>
+              </div>
+              <div style="font-size: 20px; font-weight: 800; color: #7c3aed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <%= stats.popularPlan ? stats.popularPlan.name : 'Professional' %>
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Most popular subscription</div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 18px 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Entry Price</span>
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-currency-rupee"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #d97706;">₹<%= stats.minPrice.toFixed(2) %></div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Starting monthly cost</div>
+            </div>
+
+          </div>
+
+          <!-- Subscription Plans Showcase Grid -->
+          <div class="plans-grid">
+            <% if (plans && plans.length > 0) { %>
+              <% plans.forEach(function(plan) { %>
+                <div class="plan-card-item <%= plan.is_popular ? 'popular' : '' %>" id="plan-card-<%= plan.id %>">
+                  <% if (plan.is_popular) { %>
+                    <div class="popular-ribbon">MOST POPULAR</div>
+                  <% } %>
+
+                  <div class="plan-badge-pill"><%= plan.badge_text || 'SUBSCRIPTION TIER' %></div>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                      <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;"><%= plan.name %></h3>
+                      <span style="font-family: monospace; font-size: 12px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 6px;">
+                        code: <%= plan.code %>
+                      </span>
+                    </div>
+                    <div>
+                      <span class="badge-modern <%= plan.is_active ? 'success' : 'secondary' %>" style="font-size: 10.5px; padding: 2px 8px;">
+                        <%= plan.is_active ? 'Active' : 'Inactive' %>
+                      </span>
+                    </div>
+                  </div>
+
+                  <p style="color: #64748b; font-size: 13px; margin: 12px 0 0 0; line-height: 1.4; min-height: 38px;">
+                    <%= plan.description || 'Feature-packed plan designed for grocery billing operations.' %>
+                  </p>
+
+                  <div class="plan-price-block">
+                    <div style="display: flex; align-items: baseline; gap: 4px;">
+                      <span style="font-size: 32px; font-weight: 800; color: #0f172a;">₹<%= plan.price_monthly %></span>
+                      <span style="font-size: 13px; color: #64748b;">/ month</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #059669; font-weight: 600; margin-top: 2px;">
+                      or ₹<%= plan.price_yearly %> / year (Save 20%)
+                    </div>
+                  </div>
+
+                  <!-- Quota Entitlements -->
+                  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="plan-quota-chip">
+                      <i class="ti ti-users" style="color: #2563eb; font-size: 16px;"></i>
+                      <span>Cashiers / Counters: <strong><%= plan.max_users >= 999 ? 'Unlimited' : plan.max_users %></strong></span>
+                    </div>
+                    <div class="plan-quota-chip">
+                      <i class="ti ti-package" style="color: #059669; font-size: 16px;"></i>
+                      <span>Product Catalog SKUs: <strong><%= plan.max_products >= 99999 ? 'Unlimited' : plan.max_products.toLocaleString() %></strong></span>
+                    </div>
+                    <div class="plan-quota-chip" style="margin-bottom: 0;">
+                      <i class="ti ti-receipt" style="color: #d97706; font-size: 16px;"></i>
+                      <span>Monthly Invoices: <strong><%= plan.max_invoices_per_month >= 99999 ? 'Unlimited' : plan.max_invoices_per_month.toLocaleString() %></strong></span>
+                    </div>
+                  </div>
+
+                  <!-- Included Features List -->
+                  <div class="plan-features-list">
+                    <% const fList = Array.isArray(plan.features) ? plan.features : []; %>
+                    <% if (fList.length > 0) { %>
+                      <% fList.forEach(function(feat) { %>
+                        <div class="plan-feature-row">
+                          <i class="ti ti-circle-check"></i>
+                          <span><%= feat %></span>
+                        </div>
+                      <% }); %>
+                    <% } else { %>
+                      <div style="color: #94a3b8; font-size: 13px; font-style: italic;">Standard POS &amp; Inventory Features included.</div>
+                    <% } %>
+                  </div>
+
+                  <!-- Plan Management Action Buttons -->
+                  <div style="display: flex; gap: 8px; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: auto;">
+                    <button type="button" class="btn-modern btn-outline-modern" style="flex: 1; justify-content: center; font-size: 12.5px; padding: 7px 12px;" onclick="openEditPlanModal(<%= JSON.stringify(plan) %>)">
+                      <i class="ti ti-edit"></i> Edit
+                    </button>
+                    <button type="button" class="btn-modern btn-outline-modern" style="font-size: 12.5px; padding: 7px 12px;" onclick="togglePlanStatus(<%= plan.id %>, '<%= plan.name %>')">
+                      <i class="ti ti-<%= plan.is_active ? 'eye-off' : 'eye' %>"></i>
+                    </button>
+                    <button type="button" class="btn-modern btn-outline-modern" style="font-size: 12.5px; padding: 7px 12px; color: #dc2626; border-color: #fecaca;" onclick="deletePlan(<%= plan.id %>, '<%= plan.name %>')">
+                      <i class="ti ti-trash"></i>
+                    </button>
+                  </div>
+
+                </div>
+              <% }); %>
+            <% } %>
+          </div>
+
+          <!-- Detailed Plans Comparison Table -->
+          <div class="card-modern" style="padding: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">All Subscription Packages Directory</h3>
+                <p style="font-size: 13px; color: #64748b; margin: 0;">Comprehensive matrix of pricing tiers, capacity parameters, and active store subscribers</p>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table-modern" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>Plan Name</th>
+                    <th>Code</th>
+                    <th>Monthly Price</th>
+                    <th>Annual Price</th>
+                    <th>Counters</th>
+                    <th>Products</th>
+                    <th>Monthly Bills</th>
+                    <th>Stores</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (plans && plans.length > 0) { %>
+                    <% plans.forEach(function(plan) { %>
+                      <% const subCount = plan.subscriptions ? plan.subscriptions.length : 0; %>
+                      <tr>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <strong style="color: #0f172a;"><%= plan.name %></strong>
+                            <% if (plan.is_popular) { %>
+                              <span class="badge-modern primary" style="font-size: 9.5px; padding: 1px 6px;">POPULAR</span>
+                            <% } %>
+                          </div>
+                          <% if (plan.badge_text) { %>
+                            <span style="font-size: 11px; color: #64748b;"><%= plan.badge_text %></span>
+                          <% } %>
+                        </td>
+                        <td><span style="font-family: monospace; font-size: 12px;"><%= plan.code %></span></td>
+                        <td><strong>₹<%= Number(plan.price_monthly).toFixed(2) %></strong></td>
+                        <td><strong>₹<%= Number(plan.price_yearly).toFixed(2) %></strong></td>
+                        <td><%= plan.max_users >= 999 ? 'Unlimited' : plan.max_users %></td>
+                        <td><%= plan.max_products >= 99999 ? 'Unlimited' : plan.max_products.toLocaleString() %></td>
+                        <td><%= plan.max_invoices_per_month >= 99999 ? 'Unlimited' : plan.max_invoices_per_month.toLocaleString() %></td>
+                        <td>
+                          <span class="badge-modern info" style="font-size: 11px; padding: 2px 8px;">
+                            <%= subCount %> <%= subCount === 1 ? 'store' : 'stores' %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge-modern <%= plan.is_active ? 'success' : 'secondary' %>" style="font-size: 11px;">
+                            <%= plan.is_active ? 'Active' : 'Inactive' %>
+                          </span>
+                        </td>
+                        <td>
+                          <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-modern btn-outline-modern" style="padding: 4px 8px; font-size: 12px;" onclick="openEditPlanModal(<%= JSON.stringify(plan) %>)" title="Edit Plan">
+                              <i class="ti ti-edit"></i>
+                            </button>
+                            <button type="button" class="btn-modern btn-outline-modern" style="padding: 4px 8px; font-size: 12px; color: #dc2626;" onclick="deletePlan(<%= plan.id %>, '<%= plan.name %>')" title="Delete Plan">
+                              <i class="ti ti-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="10" style="text-align: center; padding: 36px; color: #64748b;">
+                        No subscription plans found. Click "Add New Plan" above to create one.
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+        </main>
+
+        <!-- Modern Fixed Footer -->
+        <%- include('../../partials/footer.ejs') %>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN CREATE / EDIT MODAL (Clean White Admin Theme) -->
+  <div id="planModal" class="modal-backdrop-modern">
+    <div class="modal-dialog-modern" style="max-width: 720px; padding: 28px;">
+      
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;" id="planModalTitle">Add New Subscription Plan</h2>
+          <p style="color: #64748b; font-size: 13px; margin: 0;">Configure package details, quotas, and feature availability.</p>
+        </div>
+        <button type="button" onclick="closePlanModal()" style="background: #f1f5f9; border: none; color: #64748b; width: 34px; height: 34px; border-radius: 10px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <form id="planForm" onsubmit="handleSavePlan(event)">
+        <input type="hidden" id="plan_id" name="plan_id" value="">
+
+        <div class="grid-2-modal">
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_name">Plan Package Name *</label>
+            <input type="text" id="plan_name" name="name" class="form-control-modal" placeholder="e.g. Starter Retailer" required>
+          </div>
+
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_code">Unique Plan Code *</label>
+            <input type="text" id="plan_code" name="code" class="form-control-modal" placeholder="e.g. starter" required>
+          </div>
+        </div>
+
+        <div class="grid-2-modal">
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_price_monthly">Monthly Price (₹) *</label>
+            <input type="number" step="0.01" id="plan_price_monthly" name="price_monthly" class="form-control-modal" placeholder="499.00" required>
+          </div>
+
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_price_yearly">Annual Price (₹) *</label>
+            <input type="number" step="0.01" id="plan_price_yearly" name="price_yearly" class="form-control-modal" placeholder="4790.00" required>
+          </div>
+        </div>
+
+        <div class="grid-3-modal">
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_max_users">Max Cashiers / Users *</label>
+            <input type="number" id="plan_max_users" name="max_users" class="form-control-modal" placeholder="2" required>
+          </div>
+
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_max_products">Max Product SKUs *</label>
+            <input type="number" id="plan_max_products" name="max_products" class="form-control-modal" placeholder="1000" required>
+          </div>
+
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_max_invoices">Monthly Bills Limit *</label>
+            <input type="number" id="plan_max_invoices" name="max_invoices_per_month" class="form-control-modal" placeholder="2000" required>
+          </div>
+        </div>
+
+        <div class="grid-2-modal">
+          <div class="form-group-modal">
+            <label class="form-label-modal" for="plan_badge_text">Badge / Pill Text</label>
+            <input type="text" id="plan_badge_text" name="badge_text" class="form-control-modal" placeholder="e.g. ESSENTIALS, BEST VALUE">
+          </div>
+
+          <div class="form-group-modal" style="display: flex; align-items: center; gap: 24px; padding-top: 26px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #0f172a; cursor: pointer;">
+              <input type="checkbox" id="plan_is_popular" name="is_popular">
+              <span>Mark as Popular Tier</span>
+            </label>
+
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #0f172a; cursor: pointer;">
+              <input type="checkbox" id="plan_is_active" name="is_active" checked>
+              <span>Active for Stores</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group-modal">
+          <label class="form-label-modal" for="plan_description">Description / Tagline</label>
+          <input type="text" id="plan_description" name="description" class="form-control-modal" placeholder="Brief summary of who this plan is tailored for">
+        </div>
+
+        <div class="form-group-modal">
+          <label class="form-label-modal" for="plan_features">
+            Included Feature Entitlements <span style="font-size: 11.5px; font-weight: 500; color: #64748b;">(One feature item per line)</span>
+          </label>
+          <textarea id="plan_features" name="features" rows="5" class="form-control-modal" style="height: auto; padding: 10px 14px; font-family: inherit; font-size: 13px; resize: vertical;" placeholder="Single Counter Quick POS Billing&#10;Barcode &amp; Thermal 80mm Printing&#10;Product &amp; Category Catalog&#10;GST Tax Reports &amp; Invoices"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 18px;">
+          <button type="button" onclick="closePlanModal()" class="btn-modern btn-outline-modern">
+            Cancel
+          </button>
+          <button type="submit" class="btn-modern btn-primary-modern" id="savePlanSubmitBtn">
+            <i class="ti ti-check"></i> Save Subscription Plan
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <script>
+    function openCreatePlanModal() {
+      document.getElementById('planModalTitle').innerText = 'Add New Subscription Plan';
+      document.getElementById('plan_id').value = '';
+      document.getElementById('plan_name').value = '';
+      document.getElementById('plan_code').value = '';
+      document.getElementById('plan_code').removeAttribute('readonly');
+      document.getElementById('plan_price_monthly').value = '';
+      document.getElementById('plan_price_yearly').value = '';
+      document.getElementById('plan_max_users').value = '2';
+      document.getElementById('plan_max_products').value = '1000';
+      document.getElementById('plan_max_invoices').value = '2000';
+      document.getElementById('plan_badge_text').value = '';
+      document.getElementById('plan_description').value = '';
+      document.getElementById('plan_features').value = '';
+      document.getElementById('plan_is_popular').checked = false;
+      document.getElementById('plan_is_active').checked = true;
+
+      document.getElementById('planModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function openEditPlanModal(plan) {
+      document.getElementById('planModalTitle').innerText = 'Edit Plan: ' + plan.name;
+      document.getElementById('plan_id').value = plan.id;
+      document.getElementById('plan_name').value = plan.name;
+      document.getElementById('plan_code').value = plan.code;
+      document.getElementById('plan_code').setAttribute('readonly', 'readonly');
+      document.getElementById('plan_price_monthly').value = plan.price_monthly;
+      document.getElementById('plan_price_yearly').value = plan.price_yearly;
+      document.getElementById('plan_max_users').value = plan.max_users;
+      document.getElementById('plan_max_products').value = plan.max_products;
+      document.getElementById('plan_max_invoices').value = plan.max_invoices_per_month;
+      document.getElementById('plan_badge_text').value = plan.badge_text || '';
+      document.getElementById('plan_description').value = plan.description || '';
+      
+      const feats = Array.isArray(plan.features) ? plan.features.join('\n') : (plan.features || '');
+      document.getElementById('plan_features').value = feats;
+      
+      document.getElementById('plan_is_popular').checked = plan.is_popular === true;
+      document.getElementById('plan_is_active').checked = plan.is_active !== false;
+
+      document.getElementById('planModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePlanModal() {
+      document.getElementById('planModal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function handleSavePlan(e) {
+      e.preventDefault();
+      const planId = document.getElementById('plan_id').value;
+      const isEdit = !!planId;
+      const url = isEdit ? `/admin/subscription/plans/${planId}/edit` : '/admin/subscription/plans';
+
+      const payload = {
+        name: document.getElementById('plan_name').value,
+        code: document.getElementById('plan_code').value,
+        price_monthly: document.getElementById('plan_price_monthly').value,
+        price_yearly: document.getElementById('plan_price_yearly').value,
+        max_users: document.getElementById('plan_max_users').value,
+        max_products: document.getElementById('plan_max_products').value,
+        max_invoices_per_month: document.getElementById('plan_max_invoices').value,
+        badge_text: document.getElementById('plan_badge_text').value,
+        description: document.getElementById('plan_description').value,
+        features: document.getElementById('plan_features').value,
+        is_popular: document.getElementById('plan_is_popular').checked,
+        is_active: document.getElementById('plan_is_active').checked
+      };
+
+      const btn = document.getElementById('savePlanSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader-2" style="animation: loaderSpin 0.75s linear infinite; display: inline-block;"></i> Saving...';
+      if (typeof showPageLoader === 'function') {
+        showPageLoader(planId ? 'Updating Plan...' : 'Creating New Plan...', 'Saving package pricing and quotas', 'ti ti-credit-card');
+      }
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(result => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-check"></i> Save Subscription Plan';
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Plan Saved',
+            text: result.message || 'Subscription plan saved successfully!',
+            timer: 1800,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.error || 'Failed to save subscription plan.'
+          });
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-check"></i> Save Subscription Plan';
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+        Swal.fire({
+          icon: 'error',
+          title: 'Network Error',
+          text: 'An error occurred while saving the plan.'
+        });
+      });
+    }
+
+    function togglePlanStatus(planId, planName) {
+      if (typeof showPageLoader === 'function') {
+        showPageLoader('Updating Status...', 'Toggling subscription tier status', 'ti ti-toggle-right');
+      }
+      fetch(`/admin/subscription/plans/${planId}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Status Updated',
+            text: result.message,
+            timer: 1400,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.reload();
+          });
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: result.error || 'Failed to toggle status.' });
+        }
+      })
+      .catch(() => {
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+      });
+    }
+
+    function deletePlan(planId, planName) {
+      Swal.fire({
+        title: `Delete Plan "${planName}"?`,
+        text: 'Are you sure you want to remove this subscription plan package? If active stores are subscribed, it will be safely deactivated instead.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '<i class="ti ti-trash"></i> Yes, Delete Plan'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (typeof showPageLoader === 'function') {
+            showPageLoader('Deleting Plan...', 'Removing plan from database', 'ti ti-trash');
+          }
+          fetch(`/admin/subscription/plans/${planId}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .then(res => res.json())
+          .then(resData => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+            if (resData.success) {
+              Swal.fire({
+                icon: resData.deactivated ? 'info' : 'success',
+                title: resData.deactivated ? 'Plan Deactivated' : 'Deleted!',
+                text: resData.message,
+                timer: 2000,
+                showConfirmButton: false
+              }).then(() => {
+                window.location.reload();
+              });
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: resData.error || 'Failed to delete plan.' });
+            }
+          })
+          .catch(() => {
+            if (typeof hidePageLoader === 'function') hidePageLoader();
+          });
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

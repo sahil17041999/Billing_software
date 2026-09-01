@@ -101,6 +101,10 @@
       if (toDate) params.push('toDate=' + toDate);
       url += params.join('&');
       
+      if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('.table-modern')) {
+        $('.table-modern').DataTable().destroy();
+      }
+
       fetch(url)
         .then(res => res.json())
         .then(data => {
@@ -133,6 +137,10 @@
                   </tr>
                 `;
               }).join('');
+
+              if (typeof initStandardDataTable === 'function') {
+                initStandardDataTable('.table-modern');
+              }
             }
           }
         });

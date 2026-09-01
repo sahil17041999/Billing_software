@@ -247,6 +247,7 @@ exports.getStockLedger = async (req, res) => {
       ledgers: ledgers.rows,
       total: ledgers.count,
       page: parseInt(page),
+      limit: parseInt(limit),
       totalPages: Math.ceil(ledgers.count / limit),
       productId,
       user: req.user

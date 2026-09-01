@@ -10,6 +10,33 @@ const validateRequired = (value, fieldName) => {
   return null;
 };
 
+const validateEntityName = (value, fieldName, min = 2, max = 60) => {
+  if (!value || String(value).trim() === '') return `${fieldName} is required`;
+  const str = String(value).trim();
+  if (str.length < min) return `${fieldName} must be at least ${min} characters`;
+  if (str.length > max) return `${fieldName} cannot exceed ${max} characters`;
+  if (/^\d+$/.test(str)) return `${fieldName} cannot be composed of numbers only`;
+  if (/^\d+[a-zA-Z]/.test(str)) return `${fieldName} cannot start with numbers attached to letters`;
+  if (!/[a-zA-Z]{2,}/.test(str)) return `${fieldName} must contain at least 2 alphabetic letters (cannot be pure numbers or symbols)`;
+  if (/[bcdfghjklmnpqrstvwxyz]{6,}/i.test(str)) return `${fieldName} contains invalid or unpronounceable character sequence`;
+  if (/(.)\1{3,}/i.test(str)) return `${fieldName} contains excessive repeating characters`;
+  if (/(.{2,3})\1{3,}/i.test(str)) return `${fieldName} contains repetitive pattern`;
+  if (!/^[a-zA-Z0-9\s.,\-_#&()/'"+%]+$/.test(str)) return `${fieldName} contains invalid characters`;
+  return null;
+};
+
+const validatePersonName = (value, fieldName) => {
+  if (!value || String(value).trim() === '') return `${fieldName} is required`;
+  const str = String(value).trim();
+  if (str.length < 2) return `${fieldName} must be at least 2 characters`;
+  if (str.length > 70) return `${fieldName} cannot exceed 70 characters`;
+  if (!/^[a-zA-Z\s.'-]+$/.test(str)) return `${fieldName} can only contain letters, spaces, dots, and hyphens (no numbers or symbols)`;
+  if (!/[a-zA-Z]{2,}/.test(str)) return `${fieldName} must contain at least 2 letters`;
+  if (/(.)\1{3,}/i.test(str)) return `${fieldName} contains excessive repeating characters`;
+  if (/(.{2,3})\1{3,}/i.test(str)) return `${fieldName} contains repetitive pattern`;
+  return null;
+};
+
 const validateEmail = (value) => {
   if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim())) return 'Invalid email format';
   return null;
@@ -196,8 +223,9 @@ exports.createCategory = async (req, res) => {
     const { name, description } = req.body;
     const companyId = req.session.companyId;
 
-    const trimmedName = String(name || '').trim();
-    if (!trimmedName) return res.status(400).json({ error: 'Category name is required' });
+    const nameErr = validateEntityName(name, 'Category name', 2, 60);
+    if (nameErr) return res.status(400).json({ error: nameErr });
+    const trimmedName = String(name).trim();
 
     // Enforce uniqueness within company
     const existingCategory = await Category.findOne({
@@ -239,8 +267,9 @@ exports.updateCategory = async (req, res) => {
 
     const updatePayload = {};
     if (name !== undefined) {
+      const nameErr = validateEntityName(name, 'Category name', 2, 60);
+      if (nameErr) return res.status(400).json({ error: nameErr });
       const trimmedName = String(name).trim();
-      if (!trimmedName) return res.status(400).json({ error: 'Category name cannot be empty' });
 
       const existingCategory = await Category.findOne({
         where: {
@@ -293,8 +322,9 @@ exports.createBrand = async (req, res) => {
     const { name, description } = req.body;
     const companyId = req.session.companyId;
 
-    const trimmedName = String(name || '').trim();
-    if (!trimmedName) return res.status(400).json({ error: 'Brand name is required' });
+    const nameErr = validateEntityName(name, 'Brand name', 2, 60);
+    if (nameErr) return res.status(400).json({ error: nameErr });
+    const trimmedName = String(name).trim();
 
     // Enforce uniqueness within company
     const existingBrand = await Brand.findOne({
@@ -331,8 +361,9 @@ exports.updateBrand = async (req, res) => {
 
     const updatePayload = {};
     if (name !== undefined) {
+      const nameErr = validateEntityName(name, 'Brand name', 2, 60);
+      if (nameErr) return res.status(400).json({ error: nameErr });
       const trimmedName = String(name).trim();
-      if (!trimmedName) return res.status(400).json({ error: 'Brand name cannot be empty' });
 
       const existingBrand = await Brand.findOne({
         where: {
@@ -645,6 +676,61 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+exports.quickSetProductBarcode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const companyId = req.session.companyId;
+    let { barcode } = req.body;
+
+    const product = await Product.findOne({
+      where: { id, company_id: companyId }
+    });
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+
+    if (!barcode || String(barcode).trim() === '') {
+      let isUnique = false;
+      let candidate = '';
+      while (!isUnique) {
+        const rand9 = Math.floor(100000000 + Math.random() * 900000000);
+        const raw12 = '890' + rand9;
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+          sum += parseInt(raw12[i], 10) * (i % 2 === 0 ? 1 : 3);
+        }
+        const checkDigit = (10 - (sum % 10)) % 10;
+        candidate = raw12 + checkDigit;
+
+        const existing = await Product.findOne({
+          where: { company_id: companyId, barcode: candidate, is_active: 1 }
+        });
+        if (!existing) isUnique = true;
+      }
+      barcode = candidate;
+    } else {
+      barcode = String(barcode).trim();
+      const existing = await Product.findOne({
+        where: { company_id: companyId, barcode, id: { [Op.ne]: id }, is_active: 1 }
+      });
+      if (existing) {
+        return res.status(400).json({ success: false, error: 'This barcode is already assigned to another product.' });
+      }
+    }
+
+    await product.update({ barcode });
+    return res.json({
+      success: true,
+      message: 'Barcode assigned successfully',
+      barcode,
+      product: { id: product.id, name: product.name, barcode }
+    });
+  } catch (error) {
+    console.error('Quick set barcode error:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 // ============================================
 // CUSTOMER MANAGEMENT
 // ============================================
@@ -697,7 +783,7 @@ exports.createCustomer = async (req, res) => {
 
     // Server-side validation
     const errors = buildErrors([
-      { field: 'name', error: validateRequired(name, 'Customer name') },
+      { field: 'name', error: validatePersonName(name, 'Customer name') },
       { field: 'email', error: validateEmail(email) },
       { field: 'phone', error: validatePhone(phone) },
       { field: 'gstin', error: validateGSTIN(gstin) },
@@ -763,7 +849,7 @@ exports.updateCustomer = async (req, res) => {
 
     // Server-side validation
     const errors = buildErrors([
-      { field: 'name', error: updateData.name !== undefined ? validateRequired(updateData.name, 'Customer name') : null },
+      { field: 'name', error: updateData.name !== undefined ? validatePersonName(updateData.name, 'Customer name') : null },
       { field: 'email', error: validateEmail(updateData.email) },
       { field: 'phone', error: validatePhone(updateData.phone) },
       { field: 'gstin', error: validateGSTIN(updateData.gstin) },

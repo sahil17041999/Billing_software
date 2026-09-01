@@ -20,6 +20,7 @@ const Company = sequelize.define('Company', {
   gstin: DataTypes.STRING(20),
   pan: DataTypes.STRING(10),
   logo_path: DataTypes.STRING(255),
+  stamp_image: DataTypes.STRING(255),
   is_active: {
     type: DataTypes.TINYINT,
     defaultValue: 1

@@ -166,13 +166,17 @@
     }
 
     $(document).ready(function() {
+      const checkDupUrl = (window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin') + '/master/check-duplicate';
       initFormValidation('#unitForm', {
+        entityName: 'Unit',
         rules: {
           name: {
             required: true,
             minlength: 1,
+            maxlength: 30,
+            validName: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'unit',
@@ -182,8 +186,9 @@
             }
           },
           abbreviation: {
+            maxlength: 10,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'unit',
@@ -196,9 +201,12 @@
         messages: {
           name: {
             required: 'Please enter unit name (e.g. Kilogram, Pieces)',
+            maxlength: 'Unit name cannot exceed 30 characters',
+            validName: 'Please enter a valid unit name (letters only, no random gibberish)',
             remote: 'This unit name already exists in your database'
           },
           abbreviation: {
+            maxlength: 'Symbol cannot exceed 10 characters',
             remote: 'This symbol / abbreviation already exists in your database'
           }
         },
@@ -212,7 +220,8 @@
             short_name: shortNameVal,
             abbreviation: shortNameVal
           };
-          const url = id ? '/admin/master/units/' + id : '/admin/master/units';
+          const apiBase = window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin';
+          const url = id ? apiBase + '/master/units/' + id : apiBase + '/master/units';
           const method = id ? 'PUT' : 'POST';
           const saveBtn = $('#unitSaveBtn');
           saveBtn.prop('disabled', true);

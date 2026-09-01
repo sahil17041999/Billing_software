@@ -4,7 +4,8 @@
 <aside class="sidebar" id="adminSidebar">
   <!-- Brand Logo Header -->
   <div class="sidebar-header">
-    <a href="/admin/dashboard" class="sidebar-brand">
+    <% const isSubscriberNav = (typeof user !== 'undefined' && user && user.company_id > 1); %>
+    <a href="<%= isSubscriberNav ? '/subscriber/dashboard' : '/admin/dashboard' %>" class="sidebar-brand">
       <% if (typeof company !== 'undefined' && company && company.logo_path) { %>
         <div class="brand-logo-custom" style="max-height: 38px; display: flex; align-items: center;">
           <img src="<%= company.logo_path %>" alt="<%= company.name || 'Store' %>" style="max-height: 34px; max-width: 140px; object-fit: contain;">
@@ -35,15 +36,17 @@
     <!-- MAIN SECTION -->
     <div class="nav-group-title">Main</div>
     
+    <% const isSubUser = (typeof user !== 'undefined' && user && user.company_id > 1); %>
+    <% const pfx = isSubUser ? '/subscriber' : '/admin'; %>
     <% if (can('dashboard.view')) { %>
-    <a href="/admin/dashboard" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'dashboard') ? 'active' : '' %>">
+    <a href="<%= isSubUser ? '/subscriber/dashboard' : '/admin/dashboard' %>" class="nav-item-link <%= (typeof currentPage !== 'undefined' && (currentPage === 'dashboard' || currentPage === 'subscriber-dashboard')) ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-layout-dashboard"></i></span>
-      <span class="label-text">Dashboard</span>
+      <span class="label-text"><%= isSubUser ? 'Store Dashboard' : 'Dashboard' %></span>
     </a>
     <% } %>
 
     <% if (can('pos.access')) { %>
-    <a href="/admin/sales/pos" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'pos') ? 'active' : '' %>">
+    <a href="<%= pfx %>/sales/pos" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'pos') ? 'active' : '' %>">
       <span class="icon-box" style="color: var(--primary);"><i class="ti ti-device-laptop"></i></span>
       <span class="label-text">POS Terminal</span>
       <span class="badge-modern primary" style="margin-left: auto; font-size: 10px; padding: 2px 6px; background: var(--primary-light); color: var(--primary); font-weight: 700;">Live</span>
@@ -51,7 +54,7 @@
     <% } %>
 
     <% if (can('sales.view')) { %>
-    <a href="/admin/sales/" class="nav-item-link <%= (typeof currentPage !== 'undefined' && (currentPage === 'sales' || currentPage === 'invoices')) ? 'active' : '' %>">
+    <a href="<%= pfx %>/sales/" class="nav-item-link <%= (typeof currentPage !== 'undefined' && (currentPage === 'sales' || currentPage === 'invoices')) ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-file-invoice"></i></span>
       <span class="label-text">Invoices &amp; Bills</span>
     </a>
@@ -68,14 +71,14 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="masterMenu">
-        <% if (can('master.products')) { %><a href="/admin/master/products" class="nav-sub-link"><i class="ti ti-package fs-3"></i> Products Catalog</a><% } %>
-        <% if (can('master.categories_brands')) { %><a href="/admin/master/categories" class="nav-sub-link"><i class="ti ti-category fs-3"></i> Categories &amp; Brands</a><% } %>
-        <% if (can('master.customers')) { %><a href="/admin/master/customers" class="nav-sub-link"><i class="ti ti-users fs-3"></i> Customers</a><% } %>
-        <% if (can('suppliers.manage')) { %><a href="/admin/master/suppliers" class="nav-sub-link"><i class="ti ti-truck-delivery fs-3"></i> Suppliers</a><% } %>
+        <% if (can('master.products')) { %><a href="<%= pfx %>/master/products" class="nav-sub-link"><i class="ti ti-package fs-3"></i> Products Catalog</a><% } %>
+        <% if (can('master.categories_brands')) { %><a href="<%= pfx %>/master/categories" class="nav-sub-link"><i class="ti ti-category fs-3"></i> Categories &amp; Brands</a><% } %>
+        <% if (can('master.customers')) { %><a href="<%= pfx %>/master/customers" class="nav-sub-link"><i class="ti ti-users fs-3"></i> Customers</a><% } %>
+        <% if (can('suppliers.manage')) { %><a href="<%= pfx %>/master/suppliers" class="nav-sub-link"><i class="ti ti-truck-delivery fs-3"></i> Suppliers</a><% } %>
         <% if (can('master.taxes_units')) { %>
-          <a href="/admin/master/taxes" class="nav-sub-link"><i class="ti ti-percentage fs-3"></i> GST Taxes</a>
-          <a href="/admin/master/units" class="nav-sub-link"><i class="ti ti-ruler fs-3"></i> Units of Measure</a>
-          <a href="/admin/master/payment-modes" class="nav-sub-link"><i class="ti ti-credit-card fs-3"></i> Payment Modes</a>
+          <a href="<%= pfx %>/master/taxes" class="nav-sub-link"><i class="ti ti-percentage fs-3"></i> GST Taxes</a>
+          <a href="<%= pfx %>/master/units" class="nav-sub-link"><i class="ti ti-ruler fs-3"></i> Units of Measure</a>
+          <a href="<%= pfx %>/master/payment-modes" class="nav-sub-link"><i class="ti ti-credit-card fs-3"></i> Payment Modes</a>
         <% } %>
       </div>
     </div>
@@ -92,10 +95,10 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="inventoryMenu">
-        <a href="/admin/inventory/stock" class="nav-sub-link"><i class="ti ti-stack fs-3"></i> Stock Summary</a>
-        <a href="/admin/inventory/stock/low" class="nav-sub-link"><i class="ti ti-alert-triangle fs-3"></i> Low Stock Alerts</a>
-        <a href="/admin/inventory/stock/expiry" class="nav-sub-link"><i class="ti ti-calendar-time fs-3"></i> Expiry Tracking</a>
-        <% if (can('inventory.adjust')) { %><a href="/admin/inventory/ledger" class="nav-sub-link"><i class="ti ti-book fs-3"></i> Stock Ledger</a><% } %>
+        <a href="<%= pfx %>/inventory/stock" class="nav-sub-link"><i class="ti ti-stack fs-3"></i> Stock Summary</a>
+        <a href="<%= pfx %>/inventory/stock/low" class="nav-sub-link"><i class="ti ti-alert-triangle fs-3"></i> Low Stock Alerts</a>
+        <a href="<%= pfx %>/inventory/stock/expiry" class="nav-sub-link"><i class="ti ti-calendar-time fs-3"></i> Expiry Tracking</a>
+        <% if (can('inventory.adjust')) { %><a href="<%= pfx %>/inventory/ledger" class="nav-sub-link"><i class="ti ti-book fs-3"></i> Stock Ledger</a><% } %>
       </div>
     </div>
 
@@ -107,8 +110,8 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="purchaseMenu">
-        <% if (can('purchase.view')) { %><a href="/admin/purchases/" class="nav-sub-link"><i class="ti ti-list-check fs-3"></i> Purchase Inward Orders</a><% } %>
-        <% if (can('purchase.create')) { %><a href="/admin/purchases/new" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> Create Inward Purchase</a><% } %>
+        <% if (can('purchase.view')) { %><a href="<%= pfx %>/purchases/" class="nav-sub-link"><i class="ti ti-list-check fs-3"></i> Purchase Inward Orders</a><% } %>
+        <% if (can('purchase.create')) { %><a href="<%= pfx %>/purchases/new" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> Create Inward Purchase</a><% } %>
       </div>
     </div>
     <% } %>
@@ -122,12 +125,12 @@
       </button>
       <div class="nav-sub-menu" id="returnsMenu">
         <% if (can('returns.sales')) { %>
-          <a href="/admin/returns/sales" class="nav-sub-link"><i class="ti ti-arrow-up-right fs-3"></i> Sales Returns</a>
-          <a href="/admin/returns/sales/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> New Sales Return</a>
+          <a href="<%= pfx %>/returns/sales" class="nav-sub-link"><i class="ti ti-arrow-up-right fs-3"></i> Sales Returns</a>
+          <a href="<%= pfx %>/returns/sales/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> New Sales Return</a>
         <% } %>
         <% if (can('returns.purchases')) { %>
-          <a href="/admin/returns/purchases" class="nav-sub-link"><i class="ti ti-arrow-down-left fs-3"></i> Purchase Returns</a>
-          <a href="/admin/returns/purchases/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> New Purchase Return</a>
+          <a href="<%= pfx %>/returns/purchases" class="nav-sub-link"><i class="ti ti-arrow-down-left fs-3"></i> Purchase Returns</a>
+          <a href="<%= pfx %>/returns/purchases/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> New Purchase Return</a>
         <% } %>
       </div>
     </div>
@@ -146,8 +149,8 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="expensesMenu">
-        <% if (can('expenses.view')) { %><a href="/admin/expenses/" class="nav-sub-link"><i class="ti ti-list fs-3"></i> Expense List</a><% } %>
-        <% if (can('expenses.create')) { %><a href="/admin/expenses/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> Add Expense</a><% } %>
+        <% if (can('expenses.view')) { %><a href="<%= pfx %>/expenses/" class="nav-sub-link"><i class="ti ti-list fs-3"></i> Expense List</a><% } %>
+        <% if (can('expenses.create')) { %><a href="<%= pfx %>/expenses/form" class="nav-sub-link"><i class="ti ti-plus fs-3"></i> Add Expense</a><% } %>
       </div>
     </div>
     <% } %>
@@ -160,8 +163,8 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="ledgerMenu">
-        <a href="/admin/ledger/customer" class="nav-sub-link"><i class="ti ti-user fs-3"></i> Customer Ledger</a>
-        <a href="/admin/ledger/supplier" class="nav-sub-link"><i class="ti ti-building fs-3"></i> Supplier Ledger</a>
+        <a href="<%= pfx %>/ledger/customer" class="nav-sub-link"><i class="ti ti-user fs-3"></i> Customer Ledger</a>
+        <a href="<%= pfx %>/ledger/supplier" class="nav-sub-link"><i class="ti ti-building fs-3"></i> Supplier Ledger</a>
       </div>
     </div>
     <% } %>
@@ -174,9 +177,9 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="dayendMenu">
-        <a href="/admin/day-end/" class="nav-sub-link"><i class="ti ti-list-details fs-3"></i> Closings List</a>
+        <a href="<%= pfx %>/day-end/" class="nav-sub-link"><i class="ti ti-list-details fs-3"></i> Closings List</a>
         <% if (can('dayend.perform')) { %>
-          <a href="/admin/day-end/form" class="nav-sub-link"><i class="ti ti-check fs-3"></i> Close Register</a>
+          <a href="<%= pfx %>/day-end/form" class="nav-sub-link"><i class="ti ti-check fs-3"></i> Close Register</a>
         <% } %>
       </div>
     </div>
@@ -190,13 +193,13 @@
         <i class="ti ti-chevron-right arrow-icon"></i>
       </button>
       <div class="nav-sub-menu" id="reportsMenu">
-        <a href="/admin/reports/sales" class="nav-sub-link"><i class="ti ti-chart-bar fs-3"></i> Sales Analytics</a>
-        <a href="/admin/reports/profit-loss" class="nav-sub-link"><i class="ti ti-trending-up fs-3"></i> Profit &amp; Loss</a>
-        <a href="/admin/reports/stock" class="nav-sub-link"><i class="ti ti-box fs-3"></i> Stock Valuation</a>
-        <a href="/admin/reports/purchase" class="nav-sub-link"><i class="ti ti-truck fs-3"></i> Purchase Inward</a>
-        <a href="/admin/reports/expense" class="nav-sub-link"><i class="ti ti-coin fs-3"></i> Expense Report</a>
-        <a href="/admin/reports/cashier" class="nav-sub-link"><i class="ti ti-user-check fs-3"></i> Cashier Audits</a>
-        <a href="/admin/reports/day-end" class="nav-sub-link"><i class="ti ti-calendar-stats fs-3"></i> Day End Reports</a>
+        <a href="<%= pfx %>/reports/sales" class="nav-sub-link"><i class="ti ti-chart-bar fs-3"></i> Sales Analytics</a>
+        <a href="<%= pfx %>/reports/profit-loss" class="nav-sub-link"><i class="ti ti-trending-up fs-3"></i> Profit &amp; Loss</a>
+        <a href="<%= pfx %>/reports/stock" class="nav-sub-link"><i class="ti ti-box fs-3"></i> Stock Valuation</a>
+        <a href="<%= pfx %>/reports/purchase" class="nav-sub-link"><i class="ti ti-truck fs-3"></i> Purchase Inward</a>
+        <a href="<%= pfx %>/reports/expense" class="nav-sub-link"><i class="ti ti-coin fs-3"></i> Expense Report</a>
+        <a href="<%= pfx %>/reports/cashier" class="nav-sub-link"><i class="ti ti-user-check fs-3"></i> Cashier Audits</a>
+        <a href="<%= pfx %>/reports/day-end" class="nav-sub-link"><i class="ti ti-calendar-stats fs-3"></i> Day End Reports</a>
       </div>
     </div>
     <% } %>
@@ -206,29 +209,50 @@
     <div class="nav-group-title">Administration</div>
 
     <% if (((typeof user !== 'undefined' && user && user.role && user.role.name === 'admin') || can('users.manage') || can('roles.manage')) && canFeature('users')) { %>
-    <a href="/admin/users" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'users') ? 'active' : '' %>">
+    <a href="<%= pfx %>/users" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'users') ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-users-group"></i></span>
       <span class="label-text">Staff &amp; Roles</span>
     </a>
     <% } %>
 
-    <a href="/admin/users/profile" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'profile') ? 'active' : '' %>">
+    <a href="<%= pfx %>/users/profile" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'profile') ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-user-circle"></i></span>
       <span class="label-text">My Profile</span>
     </a>
 
     <% if (canFeature('smtp')) { %>
-    <a href="/admin/settings/smtp" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'settings') ? 'active' : '' %>">
+    <a href="<%= pfx %>/settings/smtp" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'settings') ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-settings"></i></span>
       <span class="label-text">SMTP Settings</span>
     </a>
     <% } %>
 
+    <a href="<%= pfx %>/notifications" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'notifications') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-bell"></i></span>
+      <span class="label-text">Notification Center</span>
+    </a>
+
+    <% if (isSubUser) { %>
+    <a href="/subscriber/dashboard#my-plan-section" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscription') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-credit-card"></i></span>
+      <span class="label-text">My Subscription</span>
+      <span class="badge" style="background: linear-gradient(135deg, #4f46e5 0%, #1366d9 100%); color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; margin-left:auto;">
+        <%= (typeof currentSubscription !== 'undefined' && currentSubscription && currentSubscription.plan) ? currentSubscription.plan.name.toUpperCase() : 'ACTIVE' %>
+      </span>
+    </a>
+    <% } else { %>
     <a href="/admin/subscription" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscription') ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-credit-card"></i></span>
       <span class="label-text">Subscriptions</span>
-      <span class="badge" style="background: linear-gradient(135deg, #4f46e5 0%, #1366d9 100%); color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; margin-left:auto;">PRO</span>
+      <span class="badge" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; margin-left:auto;">FOUNDER</span>
     </a>
+
+    <a href="/admin/subscription/plans" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'subscription-plans') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-packages"></i></span>
+      <span class="label-text">Subscription Plans</span>
+      <span class="badge-modern primary" style="margin-left: auto; font-size: 10px; padding: 2px 7px;">Plans</span>
+    </a>
+    <% } %>
 
   </div>
 
@@ -337,7 +361,7 @@
     // Auto-detect and activate current route
     document.querySelectorAll('.nav-sub-link').forEach(link => {
       const href = link.getAttribute('href');
-      if (href && (currentPath === href || (href !== '/admin/' && currentPath.startsWith(href) && href.length > 7))) {
+      if (href && (currentPath === href || (href !== '/admin/' && href !== '/subscriber/' && currentPath.startsWith(href) && href.length > 7))) {
         link.classList.add('active');
         const parentMenu = link.closest('.nav-sub-menu');
         if (parentMenu) {

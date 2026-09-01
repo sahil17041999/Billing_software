@@ -1,0 +1,235 @@
+<!-- views/subscriber/partials/header.ejs -->
+<header class="header-modern" style="background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1020;">
+  
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <button class="header-icon-btn mobile-menu-btn d-lg-none" id="mobileMenuToggle" type="button" aria-label="Toggle menu" onclick="window.openMobileSidebar && window.openMobileSidebar();" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+      <i class="ti ti-menu-2 fs-4"></i>
+    </button>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; box-shadow: 0 4px 12px rgba(79,70,229,0.35);">
+        <i class="ti ti-building-store"></i>
+      </div>
+      <div>
+        <div style="font-weight: 700; font-size: 15px; color: #ffffff; line-height: 1.2;">
+          <%= (typeof company !== 'undefined' && company && company.name) ? company.name : 'My Grocery Store' %>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+          Store ID: #<%= (typeof company !== 'undefined' && company && company.id) ? company.id : '1' %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 14px;">
+    
+    <!-- Active Subscription Tier Badge -->
+    <a href="/subscriber/dashboard#subscription-card" style="text-decoration: none; display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 999px; color: #a5b4fc; font-size: 12px; font-weight: 700; transition: all 0.2s ease;">
+      <i class="ti ti-sparkles" style="color: #fbbf24;"></i>
+      <span><%= (typeof subscription !== 'undefined' && subscription && subscription.plan) ? subscription.plan.name.toUpperCase() : 'PRO STORE' %></span>
+    </a>
+
+    <!-- Direct POS Terminal Launch -->
+    <a href="/admin/sales/pos" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;">
+      <i class="ti ti-device-laptop fs-4"></i>
+      <span>Open POS Counter</span>
+    </a>
+
+    <!-- Notification Bell with Dropdown -->
+    <div style="position: relative;">
+      <div id="subNotifDropdownBtn" style="position: relative; width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" title="Notifications">
+        <i class="ti ti-bell fs-5"></i>
+        <span id="subNotifBadge" style="display: none; position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #ffffff; font-size: 10.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #0f172a;">0</span>
+      </div>
+
+      <!-- Notification Dropdown Panel -->
+      <div id="subNotifDropdownMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 10px); width: 360px; max-width: 90vw; background: #1e293b; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 1050; overflow: hidden;">
+        <div style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <strong style="color: #ffffff; font-size: 14px;">Store Notifications</strong>
+            <span id="subNotifHeaderCount" style="background: rgba(99,102,241,0.2); color: #818cf8; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700;">0 New</span>
+          </div>
+          <button type="button" id="subMarkAllReadBtn" style="background: none; border: none; color: #94a3b8; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">Mark read</button>
+        </div>
+
+        <div id="subNotifList" style="max-height: 320px; overflow-y: auto; padding: 8px 0;">
+          <div style="text-align: center; padding: 30px 16px; color: #64748b; font-size: 13px;">
+            <i class="ti ti-bell-off fs-1" style="display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+            Loading notifications...
+          </div>
+        </div>
+
+        <div style="padding: 10px 16px; border-top: 1px solid rgba(255,255,255,0.08); text-align: center; background: rgba(15, 23, 42, 0.5);">
+          <a href="/subscriber/notifications" style="color: #818cf8; font-size: 12.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            <span>View All Notifications</span>
+            <i class="ti ti-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscriber User Profile Dropdown -->
+    <div style="position: relative;">
+      <button id="subUserMenuTrigger" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 5px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff;">
+        <img src="/assets/images/profile/user-1.jpg" alt="Avatar" style="width: 30px; height: 30px; border-radius: 8px; object-fit: cover;">
+        <div style="text-align: left; line-height: 1.2;">
+          <div style="font-weight: 700; font-size: 13px; color: #ffffff;">
+            <%= (typeof user !== 'undefined' && user) ? (user.first_name || user.username) : 'Store Owner' %>
+          </div>
+          <div style="font-size: 11px; color: #94a3b8;">Subscriber</div>
+        </div>
+        <i class="ti ti-chevron-down text-muted fs-3 ms-1"></i>
+      </button>
+
+      <div id="subUserMenu" style="display: none; position: absolute; right: 0; top: calc(100% + 10px); width: 220px; background: #1e293b; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 1050; padding: 6px;">
+        <a href="/subscriber/dashboard" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #e2e8f0; font-size: 13px; text-decoration: none; border-radius: 8px; transition: background 0.2s;">
+          <i class="ti ti-layout-dashboard fs-4 text-primary"></i>
+          <span>Store Dashboard</span>
+        </a>
+        <a href="/subscriber/invoices" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #e2e8f0; font-size: 13px; text-decoration: none; border-radius: 8px; transition: background 0.2s;">
+          <i class="ti ti-receipt fs-4 text-info"></i>
+          <span>Subscription Invoices</span>
+        </a>
+        <a href="/subscriber/profile" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #e2e8f0; font-size: 13px; text-decoration: none; border-radius: 8px; transition: background 0.2s;">
+          <i class="ti ti-settings fs-4 text-warning"></i>
+          <span>Store Profile</span>
+        </a>
+        <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0;"></div>
+        <a href="/admin/logout" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #f87171; font-size: 13px; text-decoration: none; border-radius: 8px; transition: background 0.2s;">
+          <i class="ti ti-logout fs-4"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<script>
+  (function() {
+    // User profile dropdown toggle
+    const userTrigger = document.getElementById('subUserMenuTrigger');
+    const userMenu = document.getElementById('subUserMenu');
+    if (userTrigger && userMenu) {
+      userTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        userMenu.style.display = (userMenu.style.display === 'block') ? 'none' : 'block';
+        if (notifMenu) notifMenu.style.display = 'none';
+      });
+    }
+
+    // Notification dropdown toggle
+    const notifBtn = document.getElementById('subNotifDropdownBtn');
+    const notifMenu = document.getElementById('subNotifDropdownMenu');
+    const notifBadge = document.getElementById('subNotifBadge');
+    const notifHeaderCount = document.getElementById('subNotifHeaderCount');
+    const notifList = document.getElementById('subNotifList');
+    const markAllBtn = document.getElementById('subMarkAllReadBtn');
+
+    if (notifBtn && notifMenu) {
+      notifBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        notifMenu.style.display = (notifMenu.style.display === 'block') ? 'none' : 'block';
+        if (userMenu) userMenu.style.display = 'none';
+        if (notifMenu.style.display === 'block') {
+          fetchNotifications();
+        }
+      });
+    }
+
+    // Close on click outside
+    document.addEventListener('click', function() {
+      if (userMenu) userMenu.style.display = 'none';
+      if (notifMenu) notifMenu.style.display = 'none';
+    });
+
+    // Fetch Notifications from API
+    function fetchNotifications() {
+      fetch('/api/notifications')
+        .then(res => res.json())
+        .then(data => {
+          if (!data || !data.success) return;
+
+          // Update badge
+          if (data.unread_count > 0) {
+            notifBadge.style.display = 'flex';
+            notifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+            notifHeaderCount.textContent = `${data.unread_count} New`;
+          } else {
+            notifBadge.style.display = 'none';
+            notifHeaderCount.textContent = 'All Caught Up';
+          }
+
+          // Populate list
+          if (!data.notifications || data.notifications.length === 0) {
+            notifList.innerHTML = `
+              <div style="text-align: center; padding: 28px 16px; color: #64748b; font-size: 13px;">
+                <i class="ti ti-circle-check fs-1" style="display: block; margin-bottom: 6px; color: #10b981; opacity: 0.8;"></i>
+                No new notifications! Everything is operating normally.
+              </div>
+            `;
+            return;
+          }
+
+          notifList.innerHTML = data.notifications.map(n => {
+            const severityColor = n.severity === 'danger' ? '#ef4444' : (n.severity === 'warning' ? '#f59e0b' : (n.severity === 'success' ? '#10b981' : '#3b82f6'));
+            const bgClass = n.is_read ? 'transparent' : 'rgba(99, 102, 241, 0.08)';
+            return `
+              <a href="${n.link || '#'}" onclick="markNotificationRead(${n.id}, event, '${n.link || ''}')" style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px; text-decoration: none; background: ${bgClass}; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); color: ${severityColor}; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; margin-top: 2px;">
+                  <i class="ti ${n.icon || 'ti-bell'}"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                    <strong style="color: #ffffff; font-size: 13px; font-weight: ${n.is_read ? '500' : '700'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(n.title)}</strong>
+                    <span style="font-size: 11px; color: #64748b; flex-shrink: 0;">${n.time_ago || 'recent'}</span>
+                  </div>
+                  <div style="color: #94a3b8; font-size: 12px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    ${escapeHtml(n.message)}
+                  </div>
+                </div>
+                ${!n.is_read ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #6366f1; margin-top: 6px; flex-shrink: 0;"></span>' : ''}
+              </a>
+            `;
+          }).join('');
+        })
+        .catch(err => console.error('Error fetching notifications:', err));
+    }
+
+    // Mark single notification read
+    window.markNotificationRead = function(id, e, link) {
+      fetch(`/api/notifications/${id}/read`, { method: 'POST' })
+        .then(() => {
+          if (link && link !== '#' && link !== '') {
+            window.location.href = link;
+          } else {
+            fetchNotifications();
+          }
+        })
+        .catch(() => {
+          if (link && link !== '#' && link !== '') window.location.href = link;
+        });
+    };
+
+    // Mark all read
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', function() {
+        fetch('/api/notifications/mark-all-read', { method: 'POST' })
+          .then(() => fetchNotifications())
+          .catch(err => console.error(err));
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/[&<>"']/g, function(m) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m];
+      });
+    }
+
+    // Initial check and periodic poll every 45s
+    fetchNotifications();
+    setInterval(fetchNotifications, 45000);
+  })();
+</script>

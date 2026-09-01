@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= company.name %> &bull; Store Dashboard - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+
+  <style>
+    .store-hero-banner {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(30, 64, 175, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .store-hero-banner::after {
+      content: '';
+      position: absolute;
+      right: -30px;
+      bottom: -40px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .license-chip-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-family: monospace;
+      color: #e0e7ff;
+      margin-top: 12px;
+    }
+
+    .btn-copy-chip {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .btn-copy-chip:hover {
+      color: #ffffff;
+    }
+
+    .quota-progress-track {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .quota-progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .plan-features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 991px) {
+      .plan-features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Standard Unified Sidebar (White theme matching Image 2) -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'dashboard' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Standard Unified Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+
+          <!-- Store Identity Hero Banner -->
+          <div class="store-hero-banner">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; position: relative; z-index: 1;">
+              <div>
+                <div class="hero-plan-badge">
+                  <i class="ti ti-crown"></i>
+                  <span><%= (subscription && subscription.plan) ? subscription.plan.name.toUpperCase() : 'ACTIVE SUBSCRIBER' %></span>
+                </div>
+                <h1 style="font-size: 26px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -0.5px;">
+                  <%= company.name %>
+                </h1>
+                <p style="font-size: 13.5px; opacity: 0.9; margin: 0;">
+                  <i class="ti ti-map-pin me-1"></i><%= company.city ? `${company.city}, ` : '' %><%= company.address || 'Registered Grocery Retail Store' %> &bull; Store ID #<%= company.id %>
+                </p>
+
+                <div class="license-chip-pill">
+                  <i class="ti ti-key"></i>
+                  <span>License: <strong id="licenseKeyText"><%= subscription.license_key || 'GROC-ACTIVE-KEY' %></strong></span>
+                  <button type="button" class="btn-copy-chip" onclick="copyLicenseKey()" title="Copy License Key">
+                    <i class="ti ti-copy" id="copyIcon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 18px; text-align: right;">
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; opacity: 0.85;">Validity Status</div>
+                  <div style="font-size: 22px; font-weight: 800; color: <%= daysRemaining <= 7 ? '#fef08a' : '#86efac' %>;">
+                    <%= daysRemaining %> Days Remaining
+                  </div>
+                  <div style="font-size: 11px; opacity: 0.8;">Renews on <%= new Date(subscription.end_date).toLocaleDateString() %></div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                  <a href="/subscriber/sales/pos" class="btn-modern" style="background: #ffffff; color: #1e3a8a; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <i class="ti ti-device-laptop fs-4"></i>
+                    <span>Open POS Terminal</span>
+                  </a>
+                  <a href="/subscriber/invoices" class="btn-modern" style="background: rgba(255,255,255,0.18); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="ti ti-receipt"></i>
+                    <span>Billing Invoices</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscriber Fast Quick Action Strip -->
+          <div class="quick-action-strip" style="margin-bottom: 22px;">
+            <a href="/subscriber/sales/pos" class="quick-action-item" style="border-color: rgba(37, 99, 235, 0.3); background: #eff6ff;">
+              <div class="action-icon" style="background: #2563eb; color: #ffffff;"><i class="ti ti-device-laptop"></i></div>
+              <div class="action-label" style="font-weight: 700; color: #1e40af;">POS Billing <span style="background: #2563eb; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">F2</span></div>
+            </a>
+            <a href="/subscriber/master/products" class="quick-action-item">
+              <div class="action-icon"><i class="ti ti-package"></i></div>
+              <div class="action-label">Products <span style="background: var(--bg-subtle); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F4</span></div>
+            </a>
+            <a href="/subscriber/inventory/stock" class="quick-action-item">
+              <div class="action-icon"><i class="ti ti-building-warehouse"></i></div>
+              <div class="action-label">Live Stock</div>
+            </a>
+            <a href="/subscriber/master/customers" class="quick-action-item">
+              <div class="action-icon"><i class="ti ti-users"></i></div>
+              <div class="action-label">Customers <span style="background: var(--bg-subtle); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F8</span></div>
+            </a>
+            <a href="/subscriber/sales/" class="quick-action-item">
+              <div class="action-icon"><i class="ti ti-receipt"></i></div>
+              <div class="action-label">Sales Invoices</div>
+            </a>
+          </div>
+
+          <!-- MY SUBSCRIPTION PLAN & ENTITLEMENTS (Matching Admin Panel Style) -->
+          <div class="card-modern" id="my-plan-section" style="padding: 24px; margin-bottom: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                  <i class="ti ti-crown"></i>
+                </div>
+                <div>
+                  <h2 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">My Subscription Plan</h2>
+                  <p style="font-size: 13px; color: #64748b; margin: 0;">Active license tier, billing cycle &amp; feature entitlements for <%= company.name %></p>
+                </div>
+              </div>
+
+              <div>
+                <button type="button" onclick="openUpgradeModal()" class="btn-modern btn-primary-modern">
+                  <i class="ti ti-arrows-up"></i>
+                  <span>Upgrade / Switch Plan</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="plan-features-grid">
+              
+              <!-- Plan Summary Details Box -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px;">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
+                  <div>
+                    <span class="badge-modern primary" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; display: inline-block;">
+                      <%= (subscription && subscription.plan) ? (subscription.plan.badge_text || 'ACTIVE PLAN') : 'ACTIVE' %>
+                    </span>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 4px 0;">
+                      <%= (subscription && subscription.plan) ? subscription.plan.name : 'Professional Store Plan' %>
+                    </h3>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 24px; font-weight: 800; color: #1366d9;">
+                      ₹<%= (subscription && subscription.billing_cycle === 'yearly') ? (subscription.plan ? subscription.plan.price_yearly : 9590) : (subscription.plan ? subscription.plan.price_monthly : 999) %>
+                    </div>
+                    <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">
+                      Billed <%= (subscription && subscription.billing_cycle) ? subscription.billing_cycle : 'Monthly' %>
+                    </div>
+                  </div>
+                </div>
+
+                <p style="color: #475569; font-size: 13.5px; line-height: 1.5; margin-bottom: 16px;">
+                  <%= (subscription && subscription.plan) ? subscription.plan.description : 'Full access to cloud POS billing, inventory stock ledger, and store operations.' %>
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: #334155; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+                  <div>
+                    <span style="color: #64748b; font-size: 12px; display: block;">Plan Tier Code</span>
+                    <strong style="text-transform: uppercase; color: #0f172a;"><%= (subscription && subscription.plan) ? subscription.plan.code : 'PRO' %></strong>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; font-size: 12px; display: block;">Billing Cycle</span>
+                    <strong style="text-transform: capitalize; color: #0f172a;"><%= (subscription && subscription.billing_cycle) ? subscription.billing_cycle : 'monthly' %></strong>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; font-size: 12px; display: block;">Activated Date</span>
+                    <strong style="color: #0f172a;"><%= subscription ? new Date(subscription.start_date).toLocaleDateString() : 'N/A' %></strong>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; font-size: 12px; display: block;">Renewal Expiry</span>
+                    <strong style="color: <%= daysRemaining <= 7 ? '#d97706' : '#059669' %>;"><%= subscription ? new Date(subscription.end_date).toLocaleDateString() : 'N/A' %></strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Included Features Checklist -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px;">
+                <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                  <i class="ti ti-checkbox" style="color: #10b981; font-size: 18px;"></i>
+                  <span>Features Unlocked in Your Plan:</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <% const planFeatures = (subscription && subscription.plan && Array.isArray(subscription.plan.features)) ? subscription.plan.features : [
+                    'Single & Multi-Counter POS Billing',
+                    'Barcode Scanning & Thermal 80mm Printing',
+                    'Product & Category Catalog Management',
+                    'Customer Ledger & Account Balances',
+                    'Inventory Stock Ledger & Low Stock Alerts',
+                    'Automated Tax Reports & SMTP Invoices'
+                  ]; %>
+
+                  <% planFeatures.forEach(function(feat) { %>
+                    <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #334155;">
+                      <i class="ti ti-circle-check fs-5" style="color: #10b981; flex-shrink: 0; margin-top: 1px;"></i>
+                      <span><%= feat %></span>
+                    </div>
+                  <% }); %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Plan Quotas Strip (Zoho/Admin Style) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            
+            <!-- Users Quota -->
+            <div class="stat-card-modern" style="padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Staff / Cashier Counters</span>
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-users"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a;">
+                <%= quotas.users.current %> <span style="font-size: 14px; font-weight: 500; color: #64748b;">/ <%= quotas.users.max %></span>
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Active staff accounts</div>
+              <div class="quota-progress-track">
+                <div class="quota-progress-fill" style="width: <%= quotas.users.percent %>%; background: #2563eb;"></div>
+              </div>
+            </div>
+
+            <!-- Products Quota -->
+            <div class="stat-card-modern" style="padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Product Catalog Items</span>
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: #f0fdf4; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-package"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a;">
+                <%= quotas.products.current %> <span style="font-size: 14px; font-weight: 500; color: #64748b;">/ <%= quotas.products.max %></span>
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Inventory SKU items</div>
+              <div class="quota-progress-track">
+                <div class="quota-progress-fill" style="width: <%= quotas.products.percent %>%; background: #059669;"></div>
+              </div>
+            </div>
+
+            <!-- Invoices Quota -->
+            <div class="stat-card-modern" style="padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Monthly Bills &amp; Invoices</span>
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-receipt"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a;">
+                <%= quotas.invoices.current %> <span style="font-size: 14px; font-weight: 500; color: #64748b;">/ <%= quotas.invoices.max %></span>
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Transactions this calendar month</div>
+              <div class="quota-progress-track">
+                <div class="quota-progress-fill" style="width: <%= quotas.invoices.percent %>%; background: #d97706;"></div>
+              </div>
+            </div>
+
+            <!-- Today's Sales Stat -->
+            <div class="stat-card-modern" style="padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Today's Revenue</span>
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #1366d9; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                  <i class="ti ti-currency-rupee"></i>
+                </div>
+              </div>
+              <div style="font-size: 24px; font-weight: 800; color: #1366d9;">
+                ₹<%= Number(todaySales.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= todaySales.count || 0 %> sales bills recorded today</div>
+            </div>
+
+          </div>
+
+          <!-- Store Operations Grid: Recent Sales & Store Notifications -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;" class="plan-features-grid">
+            
+            <!-- Recent Sales Bills -->
+            <div class="card-modern" style="padding: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+                <div>
+                  <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">Recent Store Sales</h3>
+                  <p style="font-size: 12.5px; color: #64748b; margin: 0;">Latest customer transactions from POS counter</p>
+                </div>
+                <a href="/subscriber/sales/" class="btn-modern btn-outline-modern" style="padding: 6px 12px; font-size: 12.5px;">
+                  View All Invoices &rarr;
+                </a>
+              </div>
+
+              <% if (recentSales && recentSales.length > 0) { %>
+                <div class="table-responsive">
+                  <table class="table-modern" style="width: 100%;">
+                    <thead>
+                      <tr>
+                        <th>Invoice #</th>
+                        <th>Customer</th>
+                        <th>Date &amp; Time</th>
+                        <th>Grand Total</th>
+                        <th>Payment</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% recentSales.forEach(function(sale) { %>
+                        <tr>
+                          <td><strong style="color: var(--primary);"><%= sale.invoice_number %></strong></td>
+                          <td><%= sale.customer_name || 'Walk-in Customer' %></td>
+                          <td><%= new Date(sale.invoice_date || sale.created_at).toLocaleDateString() %></td>
+                          <td><strong>₹<%= Number(sale.grand_total || 0).toFixed(2) %></strong></td>
+                          <td>
+                            <span class="badge-modern success" style="font-size: 10.5px; padding: 2px 8px;">
+                              <%= sale.payment_mode ? sale.payment_mode.toUpperCase() : 'PAID' %>
+                            </span>
+                          </td>
+                          <td>
+                            <a href="/subscriber/sales/<%= sale.id %>" class="btn-modern btn-outline-modern" style="padding: 3px 8px; font-size: 11px;">
+                              View
+                            </a>
+                          </td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } else { %>
+                <div style="text-align: center; padding: 36px 16px; color: #64748b;">
+                  <i class="ti ti-receipt-off fs-2" style="color: #94a3b8; display: block; margin-bottom: 6px;"></i>
+                  <p style="font-size: 14px; font-weight: 600; margin: 0;">No sales bills created yet.</p>
+                  <p style="font-size: 12.5px; margin-top: 4px;">Launch POS terminal to start recording billing transactions.</p>
+                  <a href="/subscriber/sales/pos" class="btn-modern btn-primary-modern" style="margin-top: 10px;">
+                    <i class="ti ti-device-laptop"></i> Open POS Terminal
+                  </a>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Recent Notifications -->
+            <div class="card-modern" style="padding: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+                <div>
+                  <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">Store Alerts</h3>
+                  <p style="font-size: 12.5px; color: #64748b; margin: 0;">Inventory &amp; license notices</p>
+                </div>
+                <a href="/subscriber/notifications" class="btn-modern btn-outline-modern" style="padding: 6px 12px; font-size: 12.5px;">
+                  All Alerts &rarr;
+                </a>
+              </div>
+
+              <% if (notifications && notifications.length > 0) { %>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <% notifications.forEach(function(n) { %>
+                    <div style="padding: 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: flex-start;">
+                      <div style="width: 32px; height: 32px; border-radius: 8px; background: <%= n.severity === 'danger' ? '#fef2f2' : (n.severity === 'warning' ? '#fffbeb' : '#eff6ff') %>; color: <%= n.severity === 'danger' ? '#dc2626' : (n.severity === 'warning' ? '#d97706' : '#2563eb') %>; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">
+                        <i class="ti <%= n.icon || 'ti-bell' %>"></i>
+                      </div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                          <strong style="font-size: 13px; color: #0f172a;"><%= n.title %></strong>
+                          <span style="font-size: 11px; color: #94a3b8;"><%= new Date(n.created_at).toLocaleDateString() %></span>
+                        </div>
+                        <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.4;"><%= n.message %></p>
+                      </div>
+                    </div>
+                  <% }); %>
+                </div>
+              <% } else { %>
+                <div style="text-align: center; padding: 32px 12px; color: #64748b;">
+                  <i class="ti ti-circle-check fs-2" style="color: #10b981; display: block; margin-bottom: 6px;"></i>
+                  <p style="font-size: 13px; font-weight: 600; margin: 0;">All notifications caught up!</p>
+                </div>
+              <% } %>
+            </div>
+
+          </div>
+
+        </main>
+
+        <!-- Modern Fixed Footer -->
+        <%- include('../partials/footer.ejs') %>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan Upgrade / Switch Modal (Clean White Admin Style) -->
+  <div id="upgradeModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1090; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; padding: 32px;">
+      
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Choose Your Subscription Plan</h2>
+          <p style="color: #64748b; font-size: 13.5px; margin: 0;">Upgrade or switch tiers to unlock higher product catalogs, counters, and advanced modules.</p>
+        </div>
+        <button type="button" onclick="closeUpgradeModal()" style="background: #f1f5f9; border: none; color: #64748b; width: 36px; height: 36px; border-radius: 10px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+        <% if (typeof allPlans !== 'undefined' && allPlans) { %>
+          <% allPlans.forEach(function(plan) { %>
+            <% const isCurrent = (subscription && subscription.plan && subscription.plan.id === plan.id); %>
+            <div style="background: <%= isCurrent ? '#eff6ff' : '#f8fafc' %>; border: <%= isCurrent ? '2px solid #2563eb' : '1px solid #e2e8f0' %>; border-radius: 18px; padding: 24px; display: flex; flex-direction: column; position: relative;">
+              <% if (isCurrent) { %>
+                <div style="position: absolute; top: -12px; right: 20px; background: #2563eb; color: #fff; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 999px; letter-spacing: 0.5px;">CURRENT PLAN</div>
+              <% } %>
+
+              <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #2563eb; margin-bottom: 6px;"><%= plan.badge_text || 'TIER' %></div>
+              <h4 style="font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 8px;"><%= plan.name %></h4>
+              
+              <div style="margin-bottom: 16px;">
+                <span style="font-size: 28px; font-weight: 800; color: #0f172a;">₹<%= plan.price_monthly %></span>
+                <span style="font-size: 12px; color: #64748b;">/ month</span>
+                <div style="font-size: 12px; color: #059669; font-weight: 600;">or ₹<%= plan.price_yearly %> / year (Save 20%)</div>
+              </div>
+
+              <div style="font-size: 12.5px; color: #475569; margin-bottom: 18px; flex: 1;">
+                <div style="margin-bottom: 6px;"><i class="ti ti-users me-1 text-primary"></i> Up to <strong><%= plan.max_users %> Cashiers</strong></div>
+                <div style="margin-bottom: 6px;"><i class="ti ti-package me-1 text-success"></i> Up to <strong><%= plan.max_products.toLocaleString() %> Products</strong></div>
+                <div style="margin-bottom: 6px;"><i class="ti ti-file-invoice me-1 text-warning"></i> Up to <strong><%= plan.max_invoices_per_month.toLocaleString() %> Bills/mo</strong></div>
+              </div>
+
+              <% if (isCurrent) { %>
+                <button type="button" disabled class="btn-modern" style="width: 100%; justify-content: center; background: #e2e8f0; color: #64748b; cursor: not-allowed;">
+                  Currently Active
+                </button>
+              <% } else { %>
+                <button type="button" onclick="performPlanUpgrade(<%= plan.id %>, '<%= plan.name %>')" class="btn-modern btn-primary-modern" style="width: 100%; justify-content: center;">
+                  <span>Switch to <%= plan.name.split(' ')[0] %></span>
+                  <i class="ti ti-arrow-right"></i>
+                </button>
+              <% } %>
+            </div>
+          <% }); %>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function copyLicenseKey() {
+      const key = document.getElementById('licenseKeyText').innerText;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(key).then(() => {
+          const icon = document.getElementById('copyIcon');
+          icon.className = 'ti ti-check';
+          setTimeout(() => { icon.className = 'ti ti-copy'; }, 2000);
+        });
+      }
+    }
+
+    function openUpgradeModal() {
+      const m = document.getElementById('upgradeModal');
+      if (m) m.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeUpgradeModal() {
+      const m = document.getElementById('upgradeModal');
+      if (m) m.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function performPlanUpgrade(planId, planName) {
+      if (confirm(`Confirm plan switch to ${planName}?`)) {
+        fetch('/admin/subscription/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan_id: planId, billing_cycle: 'monthly' })
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            alert('Subscription upgraded successfully!');
+            window.location.reload();
+          } else {
+            alert(res.error || 'Failed to switch plan.');
+          }
+        })
+        .catch(() => alert('Error switching plan.'));
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Invoices - <%= company.name %></title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+  <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Standard Unified Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'subscription' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Standard Unified Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+
+          <!-- Page Header -->
+          <div class="page-title-box">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-receipt" style="color: var(--primary);"></i> Subscription Billing &amp; Invoices
+              </h1>
+              <p class="page-subheading">
+                Official GST tax receipts and billing history for <%= company.name %>
+              </p>
+            </div>
+            
+            <div class="page-title-actions">
+              <a href="/subscriber/dashboard" class="btn-modern btn-outline-modern">
+                <i class="ti ti-arrow-left"></i> Back to Dashboard
+              </a>
+            </div>
+          </div>
+
+          <div class="card-modern" style="padding: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+            <% if (invoices && invoices.length > 0) { %>
+              <div class="table-responsive">
+                <table class="table-modern" style="width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Invoice Number</th>
+                      <th>Plan Tier</th>
+                      <th>Billing Cycle</th>
+                      <th>Total Amount</th>
+                      <th>Payment Method</th>
+                      <th>Date Paid</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% invoices.forEach(function(inv) { %>
+                      <tr>
+                        <td>
+                          <strong style="color: var(--primary);"><%= inv.invoice_number %></strong>
+                        </td>
+                        <td>
+                          <strong><%= inv.plan ? inv.plan.name : 'Store Plan' %></strong>
+                        </td>
+                        <td><span style="text-transform: capitalize;"><%= inv.billing_cycle || 'monthly' %></span></td>
+                        <td><strong style="color: #059669;">₹<%= parseFloat(inv.total_amount || 0).toFixed(2) %></strong></td>
+                        <td><%= inv.payment_method || 'UPI' %></td>
+                        <td><%= inv.paid_at ? new Date(inv.paid_at).toLocaleDateString() : 'N/A' %></td>
+                        <td>
+                          <span class="badge-modern success" style="font-size: 11px; padding: 2px 8px;">
+                            <i class="ti ti-check"></i> Paid
+                          </span>
+                        </td>
+                        <td>
+                          <a href="/admin/subscription/invoices/<%= inv.id %>/receipt" target="_blank" class="btn-modern btn-outline-modern" style="padding: 4px 10px; font-size: 12px;">
+                            <i class="ti ti-download me-1"></i> Receipt
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            <% } else { %>
+              <div style="text-align: center; padding: 60px 16px; color: #64748b;">
+                <div style="width: 60px; height: 60px; border-radius: 16px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin-bottom: 14px;">
+                  <i class="ti ti-receipt-off"></i>
+                </div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">No invoices generated yet</h3>
+                <p style="font-size: 13.5px; color: #64748b; margin: 0;">Your active subscription details and receipts will appear here.</p>
+              </div>
+            <% } %>
+          </div>
+
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

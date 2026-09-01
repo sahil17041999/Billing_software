@@ -169,13 +169,17 @@
     }
 
     $(document).ready(function() {
+      const checkDupUrl = (window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin') + '/master/check-duplicate';
       initFormValidation('#taxForm', {
+        entityName: 'Tax',
         rules: {
           name: {
             required: true,
             minlength: 2,
+            maxlength: 50,
+            validName: true,
             remote: {
-              url: '/admin/master/check-duplicate',
+              url: checkDupUrl,
               type: 'GET',
               data: {
                 entity: 'tax',
@@ -189,6 +193,8 @@
         messages: {
           name: {
             required: 'Please enter tax label (e.g. 18% GST)',
+            maxlength: 'Tax label cannot exceed 50 characters',
+            validName: 'Please enter a valid tax name (at least 2 letters, no random gibberish)',
             remote: 'This tax label already exists in your database'
           },
           rate: { required: 'Please enter tax percentage rate', validPercentage: 'Rate must be between 0% and 100%' }
@@ -199,7 +205,8 @@
             name: $('#taxName').val().trim(),
             rate: parseFloat($('#taxRate').val()) || 0
           };
-          const url = id ? '/admin/master/taxes/' + id : '/admin/master/taxes';
+          const apiBase = window.location.pathname.startsWith('/subscriber') ? '/subscriber' : '/admin';
+          const url = id ? apiBase + '/master/taxes/' + id : apiBase + '/master/taxes';
           const method = id ? 'PUT' : 'POST';
           const saveBtn = $('#taxSaveBtn');
           saveBtn.prop('disabled', true);

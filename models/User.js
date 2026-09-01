@@ -28,6 +28,13 @@ const User = sequelize.define('User', {
   first_name: DataTypes.STRING(100),
   last_name: DataTypes.STRING(100),
   avatar: DataTypes.STRING(255),
+  signatory_name: DataTypes.STRING(100),
+  signatory_designation: {
+    type: DataTypes.STRING(100),
+    defaultValue: 'Authorized Signatory'
+  },
+  signature_image: DataTypes.STRING(255),
+  stamp_image: DataTypes.STRING(255),
   phone: {
     type: DataTypes.STRING(20),
     allowNull: false,
