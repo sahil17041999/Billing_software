@@ -8,7 +8,7 @@ const generatePurchaseNumber = async (companyId) => {
     where: { company_id: companyId },
     order: [['id', 'DESC']]
   });
-  
+
   const nextNumber = (lastPurchase?.id || 0) + 1;
   return `PO-${new Date().getFullYear()}-${String(nextNumber).padStart(6, '0')}`;
 };
@@ -45,7 +45,10 @@ exports.getPurchases = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching purchases:', error);
-    res.status(500).json({ error: error.message });
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).render('error', { error: error.message });
   }
 };
 
@@ -56,7 +59,7 @@ exports.getPurchaseForm = async (req, res) => {
     const suppliers = await Supplier.findAll({
       where: { company_id: companyId, is_active: 1 }
     });
-    
+
     const products = await Product.findAll({
       where: { company_id: companyId, is_active: 1 },
       include: [
@@ -80,7 +83,7 @@ exports.getPurchaseForm = async (req, res) => {
 // Create purchase
 exports.createPurchase = async (req, res) => {
   const transaction = await sequelize.transaction();
-  
+
   try {
     const companyId = req.session.companyId;
     const userId = req.session.userId;
@@ -141,7 +144,7 @@ exports.createPurchase = async (req, res) => {
 
     // Create purchase order
     const purchaseNumber = await generatePurchaseNumber(companyId);
-    
+
     const purchase = await Purchase.create({
       company_id: companyId,
       supplier_id,
@@ -220,7 +223,7 @@ exports.getPurchaseDetails = async (req, res) => {
 // Receive purchase stock
 exports.receivePurchaseStock = async (req, res) => {
   const transaction = await sequelize.transaction();
-  
+
   try {
     const { id } = req.params;
     const { items } = req.body;
@@ -240,7 +243,7 @@ exports.receivePurchaseStock = async (req, res) => {
     // Update stock for each item
     for (const item of items) {
       const detail = purchase.purchaseDetails.find(d => d.id === item.detail_id);
-      
+
       if (!detail) continue;
 
       const receivedQty = parseInt(item.received_quantity || detail.quantity);

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us &bull; Grocery POS Cloud ERP</title>
+  <meta name="description" content="Overview of Grocery POS Cloud ERP architecture, multi-tenant cloud security, supported retail modules, and hardware compatibility.">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
+  <!-- Centralized B2C Stylesheet -->
+  <link rel="stylesheet" href="/assets/css/b2c-website.css" />
+</head>
+<body>
+
+  <!-- Shared Top Navigation Header -->
+  <%- include('partials/header') %>
+
+  <!-- Page Hero -->
+  <section class="b2c-hero" style="padding: 65px 20px 75px;">
+    <div class="hero-badge">
+      <i class="ti ti-info-circle"></i> SYSTEM OVERVIEW
+    </div>
+    <h1 style="font-size: 38px;">About Grocery POS Cloud ERP</h1>
+    <p style="max-width: 680px;">A secure, multi-tenant cloud retail management and billing platform designed for supermarkets, grocery marts, and retail shops.</p>
+  </section>
+
+  <!-- Platform Overview -->
+  <main style="max-width: 1100px; margin: -30px auto 70px; padding: 0 20px; position: relative; z-index: 10;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 36px 32px; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05); margin-bottom: 30px;">
+      <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">What is Grocery POS Cloud ERP?</h2>
+      <p style="color: #475569; font-size: 14.5px; line-height: 1.65; margin-bottom: 16px;">
+        Grocery POS Cloud ERP is an integrated Point of Sale and store management solution. It centralizes counter checkout, barcode scanning, inventory tracking, GST tax compliance, and customer accounts in a unified cloud interface accessible from desktop, laptop, or tablet.
+      </p>
+      <p style="color: #475569; font-size: 14.5px; line-height: 1.65;">
+        Unlike legacy desktop billing software vulnerable to hard drive crashes and data loss, all store records are replicated to secure cloud storage with automated daily backups.
+      </p>
+    </div>
+
+    <!-- Core Functional Capabilities Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px;">
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;">
+        <div style="font-size: 22px; color: #1366d9; margin-bottom: 8px;"><i class="ti ti-shopping-cart"></i></div>
+        <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Multi-Cart POS Counter</h3>
+        <p style="font-size: 13.5px; color: #64748b; line-height: 1.55;">
+          Hold and switch between active customer carts. Supports split payments (Cash + UPI / Card), rapid barcode lookup, and automatic total calculations.
+        </p>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;">
+        <div style="font-size: 22px; color: #10b981; margin-bottom: 8px;"><i class="ti ti-packages"></i></div>
+        <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Inventory &amp; Batch Expiry</h3>
+        <p style="font-size: 13.5px; color: #64748b; line-height: 1.55;">
+          Real-time stock ledger, batch numbers, reorder thresholds, and automated 30-day expiry notifications to prevent product spoilage.
+        </p>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;">
+        <div style="font-size: 22px; color: #7c3aed; margin-bottom: 8px;"><i class="ti ti-receipt-tax"></i></div>
+        <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Automated GST Invoices</h3>
+        <p style="font-size: 13.5px; color: #64748b; line-height: 1.55;">
+          Automated CGST, SGST, and IGST calculations with HSN codes. Generates compliant receipts for 80mm/58mm thermal rolls and A4 paper.
+        </p>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px;">
+        <div style="font-size: 22px; color: #d97706; margin-bottom: 8px;"><i class="ti ti-lock-square"></i></div>
+        <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Day-End Cashier Reconciliation</h3>
+        <p style="font-size: 13.5px; color: #64748b; line-height: 1.55;">
+          Shift closings with cash drawer balance audits. Role-based accounts ensure cashiers only access the billing counter.
+        </p>
+      </div>
+    </div>
+
+    <!-- Hardware Specs & Compatibility -->
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);">
+      <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Hardware &amp; System Compatibility</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13.5px; color: #334155;">
+        <div>
+          <strong style="color: #0f172a; display: block; margin-bottom: 4px;">Barcode Scanners:</strong>
+          Any standard 1D/2D USB, wireless 2.4GHz, or Bluetooth scanner (Honeywell, TVS, Zebra, generic).
+        </div>
+        <div>
+          <strong style="color: #0f172a; display: block; margin-bottom: 4px;">Receipt Printers:</strong>
+          Standard ESC/POS 80mm and 58mm thermal printers (USB/LAN/Bluetooth) and standard A4 laser/inkjet printers.
+        </div>
+        <div>
+          <strong style="color: #0f172a; display: block; margin-bottom: 4px;">Operating Systems:</strong>
+          Runs in any modern web browser on Windows, macOS, Linux, Android, or ChromeOS.
+        </div>
+        <div>
+          <strong style="color: #0f172a; display: block; margin-bottom: 4px;">Weighing Scales:</strong>
+          Supports price-embedded and weight-embedded barcode labels from electronic counter scales.
+        </div>
+      </div>
+    </div>
+
+    <!-- Direct Navigation Actions -->
+    <div style="display: flex; justify-content: center; gap: 14px; margin-top: 36px;">
+      <a href="/pricing" class="btn-hero-primary" style="padding: 11px 24px;">
+        <i class="ti ti-crown"></i> View Pricing Plans
+      </a>
+      <a href="/contact" class="btn-hero-outline" style="padding: 11px 24px; color: #0f172a; border-color: #cbd5e1; background: #ffffff;">
+        <i class="ti ti-mail"></i> Contact Support
+      </a>
+    </div>
+  </main>
+
+  <!-- Shared Footer -->
+  <%- include('partials/footer') %>
+
+</body>
+</html>

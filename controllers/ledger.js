@@ -69,13 +69,17 @@ exports.getCustomerLedger = async (req, res) => {
       ledger: ledger.rows,
       total: ledger.count,
       page: parseInt(page),
+      limit: parseInt(limit),
       totalPages: Math.ceil(ledger.count / limit),
       currentBalance: runningBalance,
       user: req.user
     });
   } catch (error) {
     console.error('Get Customer Ledger Error:', error);
-    res.status(500).json({ error: error.message });
+    if (req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).render('error', { error: error.message });
   }
 };
 
@@ -183,13 +187,17 @@ exports.getSupplierLedger = async (req, res) => {
       ledger: ledger.rows,
       total: ledger.count,
       page: parseInt(page),
+      limit: parseInt(limit),
       totalPages: Math.ceil(ledger.count / limit),
       currentBalance: runningBalance,
       user: req.user
     });
   } catch (error) {
     console.error('Get Supplier Ledger Error:', error);
-    res.status(500).json({ error: error.message });
+    if (req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).render('error', { error: error.message });
   }
 };
 

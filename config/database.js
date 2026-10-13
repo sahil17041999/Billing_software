@@ -43,8 +43,38 @@ const testConnection = async () => {
   }
 };
 
+// Ensure required columns exist (auto-migration helper)
+const ensureRequiredColumns = async () => {
+  const columnMigrations = [
+    { table: 'users', column: 'signatory_name', sql: 'ALTER TABLE users ADD COLUMN signatory_name VARCHAR(100) NULL' },
+    { table: 'users', column: 'signatory_designation', sql: "ALTER TABLE users ADD COLUMN signatory_designation VARCHAR(100) NULL DEFAULT 'Authorized Signatory'" },
+    { table: 'users', column: 'signature_image', sql: 'ALTER TABLE users ADD COLUMN signature_image VARCHAR(255) NULL' },
+    { table: 'users', column: 'stamp_image', sql: 'ALTER TABLE users ADD COLUMN stamp_image VARCHAR(255) NULL' },
+    { table: 'users', column: 'avatar', sql: 'ALTER TABLE users ADD COLUMN avatar VARCHAR(255) NULL' },
+    { table: 'users', column: 'phone', sql: 'ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL' },
+    { table: 'companies', column: 'stamp_image', sql: 'ALTER TABLE companies ADD COLUMN stamp_image VARCHAR(255) NULL' }
+  ];
+
+  for (const item of columnMigrations) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+        [item.table, item.column]
+      );
+      if (rows.length === 0) {
+        await pool.query(item.sql);
+        console.log(`✓ Auto-migrated missing column: ${item.table}.${item.column}`);
+      }
+    } catch (e) {
+      // Table might not exist yet, will be created by sequelize sync
+    }
+  }
+};
+
 module.exports = {
   pool,
   sequelize,
-  testConnection
+  testConnection,
+  ensureRequiredColumns
 };

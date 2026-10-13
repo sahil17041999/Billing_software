@@ -23,7 +23,7 @@ const SQLI_PATTERNS = [
   /\bSLEEP\s*\(\s*\d+\s*\)/i,
   /\bBENCHMARK\s*\(\s*\d+\s*,\s*[^)]+\)/i,
   // SQL commenting tricks: --, /* */, #
-  /--[^\r\n]*/,
+  /(?:;|\s)--\s/,
   /\/\*[\s\S]*?\*\//,
   // Stacked query executions (e.g. ; DROP TABLE...)
   /;\s*(DROP|DELETE|UPDATE|INSERT|SELECT|ALTER|CREATE|EXEC)\b/i,

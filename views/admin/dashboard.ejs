@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,356 +12,415 @@
   <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
   <link rel="stylesheet" href="/assets/css/admin-theme.css" />
 </head>
+
 <body>
   <div class="admin-layout">
     <!-- Sidebar -->
     <%- include('../partials/sidebar.ejs', { currentPage: 'dashboard' }) %>
 
-    <div class="page-wrapper">
-      <div class="body-wrapper">
-        <!-- Top Header Navigation -->
-        <%- include('../partials/header.ejs', { user: user }) %>
-        
-        <!-- Main Content Area -->
-        <main class="page-content">
-          
-          <!-- Phoenix Style Dashboard Header -->
-          <div class="page-title-box">
-            <div class="page-title-left">
-              <h1 class="page-main-heading" style="font-size: 26px; font-weight: 800; color: #141824;">
-                <span>CRM &amp; POS Dashboard</span>
-              </h1>
-              <p class="page-subheading" style="font-size: 13.5px; color: #525b75;">
-                Check your business growth and store operations in one place.
-              </p>
-            </div>
-            
-            <div class="page-title-actions">
-              <div class="badge-modern secondary" style="font-size: 12.5px; padding: 6px 14px; border-radius: var(--radius-full); background: #ffffff; border: 1px solid var(--border-color); color: var(--text-body);">
-                <i class="ti ti-calendar" style="color: var(--primary);"></i>
-                <span id="currentDateDisplay"><%= new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) %></span>
-              </div>
-              <a href="/admin/sales/pos" class="btn-modern btn-primary-modern">
-                <i class="ti ti-device-laptop"></i> Open POS Terminal
-              </a>
-            </div>
-          </div>
+      <div class="page-wrapper">
+        <div class="body-wrapper">
+          <!-- Top Header Navigation -->
+          <%- include('../partials/header.ejs', { user: user }) %>
 
-          <!-- Quick Action Buttons Strip -->
-          <div class="quick-action-strip">
-            <a href="/admin/sales/pos" class="quick-action-item" style="border-color: rgba(56, 116, 255, 0.25); background: #edf2ff;">
-              <div class="action-icon" style="color: var(--primary);"><i class="ti ti-device-laptop"></i></div>
-              <div class="action-label" style="font-weight: 700; color: var(--primary);">POS Billing <span style="background: var(--primary); color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">F2</span></div>
-            </a>
-            <a href="/admin/master/products" class="quick-action-item">
-              <div class="action-icon"><i class="ti ti-package"></i></div>
-              <div class="action-label">Products <span style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F4</span></div>
-            </a>
-            <a href="/admin/master/customers" class="quick-action-item">
-              <div class="action-icon"><i class="ti ti-users"></i></div>
-              <div class="action-label">Customers <span style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F8</span></div>
-            </a>
-            <a href="/admin/purchases/new" class="quick-action-item">
-              <div class="action-icon"><i class="ti ti-truck-loading"></i></div>
-              <div class="action-label">New Purchase</div>
-            </a>
-            <a href="/admin/expenses/form" class="quick-action-item">
-              <div class="action-icon"><i class="ti ti-receipt-tax"></i></div>
-              <div class="action-label">Record Expense</div>
-            </a>
-            <a href="/admin/day-end/form" class="quick-action-item">
-              <div class="action-icon"><i class="ti ti-lock-access"></i></div>
-              <div class="action-label">Day Closing <span style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F9</span></div>
-            </a>
-          </div>
+            <!-- Main Content Area -->
+            <main class="page-content">
 
-          <!-- 4 Main KPI Stat Cards -->
-          <div class="stat-cards-grid">
-            <!-- Today's Sales -->
-            <div class="stat-card-modern">
-              <div class="stat-card-header">
-                <div class="stat-card-icon-box emerald">
-                  <i class="ti ti-coin"></i>
+              <!-- Phoenix Style Dashboard Header -->
+              <div class="page-title-box">
+                <div class="page-title-left">
+                  <h1 class="page-main-heading"
+                    style="font-size: 24px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
+                    <span>CRM &amp; POS Dashboard</span>
+                  </h1>
+                  <p class="page-subheading" style="font-size: 13.5px; color: var(--text-muted);">
+                    Check your business growth and store operations in one place.
+                  </p>
                 </div>
-                <span class="stat-card-tag up"><i class="ti ti-trending-up"></i> +24.5%</span>
-              </div>
-              <div class="stat-card-title">Today's Sales</div>
-              <div class="stat-card-value">
-                ₹<%= typeof todaySales !== 'undefined' && todaySales.total ? (Number(todaySales.total)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %>
-              </div>
-              <div class="stat-card-footer">
-                <i class="ti ti-receipt"></i>
-                <span><strong><%= typeof todaySales !== 'undefined' ? (todaySales.count || 0) : 0 %></strong> bills generated today</span>
-              </div>
-            </div>
 
-            <!-- Month's Sales -->
-            <div class="stat-card-modern">
-              <div class="stat-card-header">
-                <div class="stat-card-icon-box indigo">
-                  <i class="ti ti-chart-bar"></i>
+                <div class="page-title-actions">
+                  <div class="badge-modern secondary"
+                    style="font-size: 12.5px; padding: 6px 14px; border-radius: var(--radius-full); background: #ffffff; border: 1px solid var(--border-color); color: var(--text-body); box-shadow: var(--shadow-xs);">
+                    <i class="ti ti-calendar" style="color: var(--primary);"></i>
+                    <span id="currentDateDisplay">
+                      <%= new Date().toLocaleDateString('en-US', { weekday: 'short' , year: 'numeric' , month: 'short' ,
+                        day: 'numeric' }) %>
+                    </span>
+                  </div>
+                  <a href="/admin/sales/pos" class="btn-modern btn-primary-modern">
+                    <i class="ti ti-device-laptop"></i> Open POS Terminal
+                  </a>
                 </div>
-                <span class="stat-card-tag up"><i class="ti ti-trending-up"></i> +18.2%</span>
               </div>
-              <div class="stat-card-title">Monthly Revenue</div>
-              <div class="stat-card-value">
-                ₹<%= typeof monthSales !== 'undefined' && monthSales.total ? (Number(monthSales.total)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %>
-              </div>
-              <div class="stat-card-footer">
-                <i class="ti ti-shopping-bag"></i>
-                <span><strong><%= typeof monthSales !== 'undefined' ? (monthSales.count || 0) : 0 %></strong> total transactions</span>
-              </div>
-            </div>
 
-            <!-- Stock Value -->
-            <div class="stat-card-modern">
-              <div class="stat-card-header">
-                <div class="stat-card-icon-box cyan">
-                  <i class="ti ti-building-warehouse"></i>
+              <!-- Quick Action Buttons Strip -->
+              <div class="quick-action-strip">
+                <a href="/admin/sales/pos" class="quick-action-item"
+                  style="border-color: rgba(37, 99, 235, 0.25); background: #eff6ff;">
+                  <div class="action-icon" style="color: var(--primary);"><i class="ti ti-device-laptop"></i></div>
+                  <div class="action-label" style="font-weight: 700; color: var(--primary);">POS Billing <span
+                      style="background: var(--primary); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-left: 4px;">F2</span>
+                  </div>
+                </a>
+                <a href="/admin/master/products" class="quick-action-item">
+                  <div class="action-icon"><i class="ti ti-package"></i></div>
+                  <div class="action-label">Products <span
+                      style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F4</span>
+                  </div>
+                </a>
+                <a href="/admin/master/customers" class="quick-action-item">
+                  <div class="action-icon"><i class="ti ti-users"></i></div>
+                  <div class="action-label">Customers <span
+                      style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F8</span>
+                  </div>
+                </a>
+                <a href="/admin/purchases/new" class="quick-action-item">
+                  <div class="action-icon"><i class="ti ti-truck-loading"></i></div>
+                  <div class="action-label">New Purchase</div>
+                </a>
+                <a href="/admin/expenses/form" class="quick-action-item">
+                  <div class="action-icon"><i class="ti ti-receipt-tax"></i></div>
+                  <div class="action-label">Record Expense</div>
+                </a>
+                <a href="/admin/day-end/form" class="quick-action-item">
+                  <div class="action-icon"><i class="ti ti-lock-access"></i></div>
+                  <div class="action-label">Day Closing <span
+                      style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-left: 2px;">F9</span>
+                  </div>
+                </a>
+              </div>
+
+              <!-- 4 Main KPI Stat Cards -->
+              <div class="stat-cards-grid">
+                <!-- Today's Sales -->
+                <div class="stat-card-modern">
+                  <div class="stat-card-header">
+                    <div class="stat-card-icon-box emerald">
+                      <i class="ti ti-coin"></i>
+                    </div>
+                    <span class="stat-card-tag up"><i class="ti ti-trending-up"></i> +24.5%</span>
+                  </div>
+                  <div class="stat-card-title">Today's Sales</div>
+                  <div class="stat-card-value">
+                    ₹<%= typeof todaySales !=='undefined' && todaySales.total ?
+                      (Number(todaySales.total)).toLocaleString('en-IN', { minimumFractionDigits: 2,
+                      maximumFractionDigits: 2 }) : '0.00' %>
+                  </div>
+                  <div class="stat-card-footer">
+                    <i class="ti ti-receipt"></i>
+                    <span><strong>
+                        <%= typeof todaySales !=='undefined' ? (todaySales.count || 0) : 0 %>
+                      </strong> bills generated today</span>
+                  </div>
                 </div>
-                <span class="stat-card-tag neutral">In Stock</span>
-              </div>
-              <div class="stat-card-title">Stock Valuation</div>
-              <div class="stat-card-value">
-                ₹<%= typeof stockSummary !== 'undefined' && stockSummary.total_value ? (Number(stockSummary.total_value)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %>
-              </div>
-              <div class="stat-card-footer">
-                <i class="ti ti-boxes"></i>
-                <span><strong><%= typeof stockSummary !== 'undefined' ? (stockSummary.total_products || 0) : 0 %></strong> active catalog items</span>
-              </div>
-            </div>
 
-            <!-- Net Profit / Margin -->
-            <div class="stat-card-modern">
-              <div class="stat-card-header">
-                <div class="stat-card-icon-box amber">
-                  <i class="ti ti-chart-pie"></i>
+                <!-- Month's Sales -->
+                <div class="stat-card-modern">
+                  <div class="stat-card-header">
+                    <div class="stat-card-icon-box indigo">
+                      <i class="ti ti-chart-bar"></i>
+                    </div>
+                    <span class="stat-card-tag up"><i class="ti ti-trending-up"></i> +18.2%</span>
+                  </div>
+                  <div class="stat-card-title">Monthly Revenue</div>
+                  <div class="stat-card-value">
+                    ₹<%= typeof monthSales !=='undefined' && monthSales.total ?
+                      (Number(monthSales.total)).toLocaleString('en-IN', { minimumFractionDigits: 2,
+                      maximumFractionDigits: 2 }) : '0.00' %>
+                  </div>
+                  <div class="stat-card-footer">
+                    <i class="ti ti-shopping-bag"></i>
+                    <span><strong>
+                        <%= typeof monthSales !=='undefined' ? (monthSales.count || 0) : 0 %>
+                      </strong> total transactions</span>
+                  </div>
                 </div>
-                <span class="stat-card-tag up"><i class="ti ti-trending-up"></i> +30.5%</span>
-              </div>
-              <div class="stat-card-title">Monthly Net Margin</div>
-              <div class="stat-card-value">
-                ₹<%= typeof profitSummary !== 'undefined' && profitSummary.profit ? (Number(profitSummary.profit)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %>
-              </div>
-              <div class="stat-card-footer">
-                <i class="ti ti-percentage"></i>
-                <span>Margin: <strong><%= (typeof profitSummary !== 'undefined' && profitSummary.total_sales > 0) ? ((profitSummary.profit / profitSummary.total_sales) * 100).toFixed(1) : '0.0' %>%</strong></span>
-              </div>
-            </div>
-          </div>
 
-          <!-- 3-Column Alerts Section -->
-          <div class="grid-3" style="margin-bottom: 28px;">
-            
-            <!-- Low Stock Alert -->
-            <div class="card-modern" style="margin-bottom: 0;">
-              <div class="card-header-modern">
-                <h3 class="card-title-modern" style="color: #d97706;">
-                  <i class="ti ti-alert-triangle"></i> Low Stock Alert
-                </h3>
-                <a href="/admin/inventory/stock/low" class="badge-modern warning" style="text-decoration: none;">View All</a>
+                <!-- Stock Value -->
+                <div class="stat-card-modern">
+                  <div class="stat-card-header">
+                    <div class="stat-card-icon-box cyan">
+                      <i class="ti ti-building-warehouse"></i>
+                    </div>
+                    <span class="stat-card-tag neutral">In Stock</span>
+                  </div>
+                  <div class="stat-card-title">Stock Valuation</div>
+                  <div class="stat-card-value">
+                    ₹<%= typeof stockSummary !=='undefined' && stockSummary.total_value ?
+                      (Number(stockSummary.total_value)).toLocaleString('en-IN', { minimumFractionDigits: 2,
+                      maximumFractionDigits: 2 }) : '0.00' %>
+                  </div>
+                  <div class="stat-card-footer">
+                    <i class="ti ti-boxes"></i>
+                    <span><strong>
+                        <%= typeof stockSummary !=='undefined' ? (stockSummary.total_products || 0) : 0 %>
+                      </strong> active catalog items</span>
+                  </div>
+                </div>
+
+                <!-- Net Profit / Margin -->
+                <div class="stat-card-modern">
+                  <div class="stat-card-header">
+                    <div class="stat-card-icon-box amber">
+                      <i class="ti ti-chart-pie"></i>
+                    </div>
+                    <span class="stat-card-tag up"><i class="ti ti-trending-up"></i> +30.5%</span>
+                  </div>
+                  <div class="stat-card-title">Monthly Net Margin</div>
+                  <div class="stat-card-value">
+                    ₹<%= typeof profitSummary !=='undefined' && profitSummary.profit ?
+                      (Number(profitSummary.profit)).toLocaleString('en-IN', { minimumFractionDigits: 2,
+                      maximumFractionDigits: 2 }) : '0.00' %>
+                  </div>
+                  <div class="stat-card-footer">
+                    <i class="ti ti-percentage"></i>
+                    <span>Margin: <strong>
+                        <%= (typeof profitSummary !=='undefined' && profitSummary.total_sales> 0) ?
+                          ((profitSummary.profit / profitSummary.total_sales) * 100).toFixed(1) : '0.0' %>%
+                      </strong></span>
+                  </div>
+                </div>
               </div>
-              <div class="card-body-modern" style="padding: 0;">
-                <% if (typeof lowStockProducts !== 'undefined' && lowStockProducts.length > 0) { %>
-                  <table class="table-modern">
+
+              <!-- 3-Column Alerts Section -->
+              <div class="grid-3" style="margin-bottom: 28px;">
+
+                <!-- Low Stock Alert -->
+                <div class="card-modern" style="margin-bottom: 0;">
+                  <div class="card-header-modern">
+                    <h3 class="card-title-modern" style="color: #d97706;">
+                      <i class="ti ti-alert-triangle"></i> Low Stock Alert
+                    </h3>
+                    <a href="/admin/inventory/stock/low" class="badge-modern warning"
+                      style="text-decoration: none;">View All</a>
+                  </div>
+                  <div class="card-body-modern" style="padding: 0;">
+                    <% if (typeof lowStockProducts !=='undefined' && lowStockProducts.length> 0) { %>
+                      <table class="table-modern">
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th style="text-align: right;">Current / Min</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% lowStockProducts.slice(0, 5).forEach(product=> { %>
+                            <tr>
+                              <td>
+                                <strong>
+                                  <%= product.name %>
+                                </strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">
+                                  <%= product.category || 'General' %>
+                                </div>
+                              </td>
+                              <td style="text-align: right;">
+                                <span class="badge-modern danger">
+                                  <%= product.quantity %> / <%= product.min_stock_level %>
+                                </span>
+                              </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                      </table>
+                      <% } else { %>
+                        <div class="table-empty-state">
+                          <i class="ti ti-circle-check icon" style="color: #10b981;"></i>
+                          <p>All stock levels are optimal</p>
+                        </div>
+                        <% } %>
+                  </div>
+                </div>
+
+                <!-- Expiry Alert -->
+                <div class="card-modern" style="margin-bottom: 0;">
+                  <div class="card-header-modern">
+                    <h3 class="card-title-modern" style="color: #dc2626;">
+                      <i class="ti ti-calendar-time"></i> Expiry Alerts (30 Days)
+                    </h3>
+                    <a href="/admin/inventory/stock/expiry" class="badge-modern danger"
+                      style="text-decoration: none;">View All</a>
+                  </div>
+                  <div class="card-body-modern" style="padding: 0;">
+                    <% if (typeof expiryProducts !=='undefined' && expiryProducts.length> 0) { %>
+                      <table class="table-modern">
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th style="text-align: right;">Expiry Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% expiryProducts.slice(0, 5).forEach(product=> { %>
+                            <tr>
+                              <td>
+                                <strong>
+                                  <%= product.name %>
+                                </strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">
+                                  <%= product.batch_number ? 'Batch: ' + product.batch_number : 'In Stock: ' +
+                                    product.quantity %>
+                                </div>
+                              </td>
+                              <td style="text-align: right;">
+                                <span class="badge-modern warning">
+                                  <%= new Date(product.expiry_date).toLocaleDateString() %>
+                                </span>
+                              </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                      </table>
+                      <% } else { %>
+                        <div class="table-empty-state">
+                          <i class="ti ti-shield-check icon" style="color: #10b981;"></i>
+                          <p>No products expiring soon</p>
+                        </div>
+                        <% } %>
+                  </div>
+                </div>
+
+                <!-- Customer Outstanding Receivables -->
+                <div class="card-modern" style="margin-bottom: 0;">
+                  <div class="card-header-modern">
+                    <h3 class="card-title-modern" style="color: #4f46e5;">
+                      <i class="ti ti-wallet"></i> Customer Outstanding
+                    </h3>
+                    <a href="/admin/ledger/customer" class="badge-modern info" style="text-decoration: none;">Ledger</a>
+                  </div>
+                  <div class="card-body-modern" style="padding: 0;">
+                    <% if (typeof customerOutstanding !=='undefined' && customerOutstanding.length> 0) { %>
+                      <table class="table-modern">
+                        <thead>
+                          <tr>
+                            <th>Customer</th>
+                            <th style="text-align: right;">Due Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% customerOutstanding.slice(0, 5).forEach(customer=> { %>
+                            <tr>
+                              <td>
+                                <strong>
+                                  <%= customer.name %>
+                                </strong>
+                                <div style="font-size: 11px; color: var(--text-muted);">
+                                  <%= customer.total_invoices || 1 %> invoices
+                                </div>
+                              </td>
+                              <td style="text-align: right;" class="amount-cell" style="color: #4f46e5;">
+                                ₹<%= Number(customer.outstanding_amount).toLocaleString('en-IN', {
+                                  minimumFractionDigits: 2 }) %>
+                              </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                      </table>
+                      <% } else { %>
+                        <div class="table-empty-state">
+                          <i class="ti ti-mood-smile icon" style="color: #10b981;"></i>
+                          <p>No outstanding customer dues</p>
+                        </div>
+                        <% } %>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Recent Transactions Table Card -->
+              <div class="card-modern">
+                <div class="card-header-modern">
+                  <h3 class="card-title-modern">
+                    <i class="ti ti-receipt-2"></i> Recent Sales Transactions
+                  </h3>
+                  <a href="/admin/sales/" class="btn-modern btn-secondary-modern btn-sm-modern">
+                    View All Sales <i class="ti ti-arrow-right"></i>
+                  </a>
+                </div>
+                <div class="table-responsive-wrapper" style="border: none; padding: 12px 18px;">
+                  <table class="table-modern" id="recentSalesTable">
                     <thead>
                       <tr>
-                        <th>Product</th>
-                        <th style="text-align: right;">Current / Min</th>
+                        <th>Invoice #</th>
+                        <th>Customer Name</th>
+                        <th>Date &amp; Time</th>
+                        <th style="text-align: right;">Grand Total</th>
+                        <th style="text-align: center;">Status</th>
+                        <th style="text-align: center;">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <% lowStockProducts.slice(0, 5).forEach(product => { %>
-                        <tr>
-                          <td>
-                            <strong><%= product.name %></strong>
-                            <div style="font-size: 11px; color: var(--text-muted);"><%= product.category || 'General' %></div>
-                          </td>
-                          <td style="text-align: right;">
-                            <span class="badge-modern danger"><%= product.quantity %> / <%= product.min_stock_level %></span>
-                          </td>
-                        </tr>
-                      <% }); %>
+                      <% if (typeof recentSales !=='undefined' && recentSales.length> 0) { %>
+                        <% recentSales.forEach(sale=> { %>
+                          <tr>
+                            <td>
+                              <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
+                                #<%= sale.invoice_number %>
+                              </span>
+                            </td>
+                            <td>
+                              <div style="display: flex; align-items: center; gap: 8px;">
+                                <div
+                                  style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
+                                  <%= (sale.customer_name || 'W' ).charAt(0).toUpperCase() %>
+                                </div>
+                                <div>
+                                  <strong>
+                                    <%= sale.customer_name || 'Walk-in Customer' %>
+                                  </strong>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <span style="color: var(--text-muted);">
+                                <%= new Date(sale.invoice_date).toLocaleDateString('en-IN', { year: 'numeric' ,
+                                  month: 'short' , day: 'numeric' }) %>
+                              </span>
+                            </td>
+                            <td style="text-align: right;" class="amount-cell">
+                              ₹<%= Number(sale.grand_total).toLocaleString('en-IN', { minimumFractionDigits: 2,
+                                maximumFractionDigits: 2 }) %>
+                            </td>
+                            <td style="text-align: center;">
+                              <span class="badge-modern success">
+                                <i class="ti ti-check"></i> Completed
+                              </span>
+                            </td>
+                            <td style="text-align: center;">
+                              <a href="/admin/sales/" class="btn-modern btn-secondary-modern btn-sm-modern"
+                                title="View details">
+                                <i class="ti ti-eye"></i> View
+                              </a>
+                            </td>
+                          </tr>
+                          <% }); %>
+                            <% } else { %>
+                              <tr>
+                                <td colspan="6" class="table-empty-state">
+                                  <i class="ti ti-receipt-off icon"></i>
+                                  <p>No transactions recorded yet today.</p>
+                                  <a href="/admin/sales/pos" class="btn-modern btn-primary-modern btn-sm-modern"
+                                    style="margin-top: 10px;">
+                                    Create First Invoice
+                                  </a>
+                                </td>
+                              </tr>
+                              <% } %>
                     </tbody>
                   </table>
-                <% } else { %>
-                  <div class="table-empty-state">
-                    <i class="ti ti-circle-check icon" style="color: #10b981;"></i>
-                    <p>All stock levels are optimal</p>
-                  </div>
-                <% } %>
+                </div>
               </div>
-            </div>
 
-            <!-- Expiry Alert -->
-            <div class="card-modern" style="margin-bottom: 0;">
-              <div class="card-header-modern">
-                <h3 class="card-title-modern" style="color: #dc2626;">
-                  <i class="ti ti-calendar-time"></i> Expiry Alerts (30 Days)
-                </h3>
-                <a href="/admin/inventory/stock/expiry" class="badge-modern danger" style="text-decoration: none;">View All</a>
-              </div>
-              <div class="card-body-modern" style="padding: 0;">
-                <% if (typeof expiryProducts !== 'undefined' && expiryProducts.length > 0) { %>
-                  <table class="table-modern">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th style="text-align: right;">Expiry Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% expiryProducts.slice(0, 5).forEach(product => { %>
-                        <tr>
-                          <td>
-                            <strong><%= product.name %></strong>
-                            <div style="font-size: 11px; color: var(--text-muted);"><%= product.batch_number ? 'Batch: ' + product.batch_number : 'In Stock: ' + product.quantity %></div>
-                          </td>
-                          <td style="text-align: right;">
-                            <span class="badge-modern warning"><%= new Date(product.expiry_date).toLocaleDateString() %></span>
-                          </td>
-                        </tr>
-                      <% }); %>
-                    </tbody>
-                  </table>
-                <% } else { %>
-                  <div class="table-empty-state">
-                    <i class="ti ti-shield-check icon" style="color: #10b981;"></i>
-                    <p>No products expiring soon</p>
-                  </div>
-                <% } %>
-              </div>
-            </div>
+            </main>
 
-            <!-- Customer Outstanding Receivables -->
-            <div class="card-modern" style="margin-bottom: 0;">
-              <div class="card-header-modern">
-                <h3 class="card-title-modern" style="color: #4f46e5;">
-                  <i class="ti ti-wallet"></i> Customer Outstanding
-                </h3>
-                <a href="/admin/ledger/customer" class="badge-modern info" style="text-decoration: none;">Ledger</a>
-              </div>
-              <div class="card-body-modern" style="padding: 0;">
-                <% if (typeof customerOutstanding !== 'undefined' && customerOutstanding.length > 0) { %>
-                  <table class="table-modern">
-                    <thead>
-                      <tr>
-                        <th>Customer</th>
-                        <th style="text-align: right;">Due Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% customerOutstanding.slice(0, 5).forEach(customer => { %>
-                        <tr>
-                          <td>
-                            <strong><%= customer.name %></strong>
-                            <div style="font-size: 11px; color: var(--text-muted);"><%= customer.total_invoices || 1 %> invoices</div>
-                          </td>
-                          <td style="text-align: right;" class="amount-cell" style="color: #4f46e5;">
-                            ₹<%= Number(customer.outstanding_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %>
-                          </td>
-                        </tr>
-                      <% }); %>
-                    </tbody>
-                  </table>
-                <% } else { %>
-                  <div class="table-empty-state">
-                    <i class="ti ti-mood-smile icon" style="color: #10b981;"></i>
-                    <p>No outstanding customer dues</p>
-                  </div>
-                <% } %>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Recent Transactions Table Card -->
-          <div class="card-modern">
-            <div class="card-header-modern">
-              <h3 class="card-title-modern">
-                <i class="ti ti-receipt-2"></i> Recent Sales Transactions
-              </h3>
-              <a href="/admin/sales/" class="btn-modern btn-secondary-modern btn-sm-modern">
-                View All Sales <i class="ti ti-arrow-right"></i>
-              </a>
-            </div>
-            <div class="table-responsive-wrapper" style="border: none; padding: 12px 18px;">
-              <table class="table-modern" id="recentSalesTable">
-                <thead>
-                  <tr>
-                    <th>Invoice #</th>
-                    <th>Customer Name</th>
-                    <th>Date &amp; Time</th>
-                    <th style="text-align: right;">Grand Total</th>
-                    <th style="text-align: center;">Status</th>
-                    <th style="text-align: center;">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if (typeof recentSales !== 'undefined' && recentSales.length > 0) { %>
-                    <% recentSales.forEach(sale => { %>
-                      <tr>
-                        <td>
-                          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
-                            #<%= sale.invoice_number %>
-                          </span>
-                        </td>
-                        <td>
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
-                              <%= (sale.customer_name || 'W').charAt(0).toUpperCase() %>
-                            </div>
-                            <div>
-                              <strong><%= sale.customer_name || 'Walk-in Customer' %></strong>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span style="color: var(--text-muted);">
-                            <%= new Date(sale.invoice_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
-                          </span>
-                        </td>
-                        <td style="text-align: right;" class="amount-cell">
-                          ₹<%= Number(sale.grand_total).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
-                        </td>
-                        <td style="text-align: center;">
-                          <span class="badge-modern success">
-                            <i class="ti ti-check"></i> Completed
-                          </span>
-                        </td>
-                        <td style="text-align: center;">
-                          <a href="/admin/sales/" class="btn-modern btn-secondary-modern btn-sm-modern" title="View details">
-                            <i class="ti ti-eye"></i> View
-                          </a>
-                        </td>
-                      </tr>
-                    <% }); %>
-                  <% } else { %>
-                    <tr>
-                      <td colspan="6" class="table-empty-state">
-                        <i class="ti ti-receipt-off icon"></i>
-                        <p>No transactions recorded yet today.</p>
-                        <a href="/admin/sales/pos" class="btn-modern btn-primary-modern btn-sm-modern" style="margin-top: 10px;">
-                          Create First Invoice
-                        </a>
-                      </td>
-                    </tr>
-                  <% } %>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </main>
-        
-        <!-- Modern Footer -->
-        <%- include('../partials/footer.ejs') %>
+            <!-- Modern Footer -->
+            <%- include('../partials/footer.ejs') %>
+        </div>
       </div>
-    </div>
   </div>
 
   <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
       if ($('#recentSalesTable tbody tr').length > 0 && !$('#recentSalesTable tbody td').hasClass('table-empty-state')) {
         initStandardDataTable('#recentSalesTable', {
           pageLength: 5,
@@ -371,4 +431,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grocery POS Cloud ERP &bull; Retail Billing &amp; Store Management</title>
+  <meta name="description" content="Cloud POS billing software for grocery stores and supermarkets. Barcode billing, multi-cart holding, automated GST tax invoices, inventory stock ledger, and store registration.">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+
+  <!-- Typography: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
+  <!-- Centralized B2C Stylesheet -->
+  <link rel="stylesheet" href="/assets/css/b2c-website.css" />
+
+  <!-- jQuery & SweetAlert2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+  <!-- Shared Navigation Header (Subscriber Login Only - Admin Removed) -->
+  <%- include('partials/header') %>
+
+  <!-- Hero Section -->
+  <section class="b2c-hero">
+    <div class="hero-badge">
+      <i class="ti ti-sparkles"></i> CLOUD POS &amp; RETAIL BILLING ERP
+    </div>
+    <h1>Modern Cloud POS Billing Software for Growing Retail Stores</h1>
+    <p>Fast barcode billing, multi-cart holding, automated GST tax invoices, inventory stock control, and customer khata in one unified platform.</p>
+
+    <div class="hero-cta-btns">
+      <a href="#pricing" class="btn-hero-primary">
+        <i class="ti ti-crown"></i> View Plans &amp; Pricing
+      </a>
+      <a href="/subscriber/login" class="btn-hero-outline">
+        <i class="ti ti-login"></i> Subscriber Login
+      </a>
+    </div>
+
+    <!-- Direct Feature Chips -->
+    <div class="hero-trust-strip">
+      <div class="hero-chip"><i class="ti ti-bolt"></i> Fast Barcode Scanning</div>
+      <div class="hero-chip"><i class="ti ti-file-certificate"></i> Automated GST Invoicing</div>
+      <div class="hero-chip"><i class="ti ti-alert-triangle"></i> Batch &amp; Expiry Alerts</div>
+      <div class="hero-chip"><i class="ti ti-device-desktop"></i> Multi-Counter Support</div>
+    </div>
+
+    <!-- Billing Cycle Switcher -->
+    <div class="cycle-switcher-wrap">
+      <div class="cycle-switcher-pills">
+        <button type="button" class="cycle-pill-btn active" id="pillMonthly" onclick="switchPublicCycle('monthly')">
+          Monthly Billing
+        </button>
+        <button type="button" class="cycle-pill-btn" id="pillYearly" onclick="switchPublicCycle('yearly')">
+          Annual Billing <span class="discount-ribbon">Save 20%</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Cards & Store Registration Section -->
+  <main class="pricing-container" id="pricing">
+    <div class="plans-pricing-grid">
+      <% if (typeof plans !== 'undefined' && plans) { %>
+        <% plans.forEach(plan => { %>
+          <div class="plan-card <%= plan.is_popular ? 'popular' : '' %>">
+            <% if (plan.is_popular) { %>
+              <div class="popular-tag"><i class="ti ti-star"></i> <%= plan.badge_text || 'MOST POPULAR' %></div>
+            <% } %>
+
+            <div class="plan-header">
+              <h2 class="plan-name"><%= plan.name %></h2>
+              <div class="plan-desc"><%= plan.description %></div>
+            </div>
+
+            <div class="plan-price-box">
+              <div class="plan-price">
+                <span class="price-val" data-monthly="<%= plan.price_monthly %>" data-yearly="<%= plan.price_yearly %>">
+                  ₹<%= plan.price_monthly %>
+                </span>
+                <span class="plan-period">/ month</span>
+              </div>
+              <div class="yearly-note" style="font-size: 11.5px; color: #10b981; font-weight: 700; display: none; margin-top: 3px;">
+                Billed annually at ₹<%= plan.price_yearly %>/yr (2 Months Free)
+              </div>
+            </div>
+
+            <ul class="plan-features-list">
+              <% if (plan.features && Array.isArray(plan.features)) { %>
+                <% plan.features.forEach(feat => { %>
+                  <li class="plan-feature-item">
+                    <i class="ti ti-circle-check-filled"></i>
+                    <span><%= feat %></span>
+                  </li>
+                <% }); %>
+              <% } %>
+            </ul>
+
+            <div>
+              <button type="button" class="plan-btn <%= plan.is_popular ? 'plan-btn-primary' : 'plan-btn-secondary' %>"
+                      onclick="openClientCheckout('<%= plan.id %>', '<%= plan.name %>', <%= plan.price_monthly %>, <%= plan.price_yearly %>)">
+                <i class="ti ti-shopping-cart-plus"></i> Buy <%= plan.name.split(' ')[0] %> Plan
+              </button>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <!-- Feature Entitlements Comparison Table -->
+    <section id="compare" class="compare-section">
+      <div class="section-header-wrap" style="margin-bottom: 24px; text-align: left;">
+        <span class="section-eyebrow">Comparison Matrix</span>
+        <h2 class="section-main-heading" style="font-size: 24px;">
+          Plan Capabilities &amp; Entitlements
+        </h2>
+        <p class="section-subheading" style="font-size: 13.5px;">Choose the exact license tier designed for your store counter capacity.</p>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width: 40%; text-align: left;">Feature Module</th>
+              <th style="text-align: center;">Starter Retailer</th>
+              <th style="text-align: center; color: #1366d9;">Professional Store</th>
+              <th style="text-align: center;">Enterprise Supermarket</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 700;">Multi-Level &amp; Multi-Cart POS Terminal</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">High-Speed Barcode Scanning &amp; Audio Beep</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Automated SMTP Email Invoicing &amp; Presets</td>
+              <td style="text-align: center;">Basic</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Full Dynamic</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Dedicated Relay</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Custom Store Logo on A4 &amp; 80mm Thermal Receipts</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Day-End Cash Reconciliation &amp; Closing Audit</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Cashier &amp; Operator Accounts</td>
+              <td style="text-align: center;">2 Users</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">6 Users</td>
+              <td style="text-align: center; font-weight: 700; color: #10b981;">Unlimited</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Products in Catalog</td>
+              <td style="text-align: center;">1,000 Items</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">10,000 Items</td>
+              <td style="text-align: center; font-weight: 700; color: #10b981;">Unlimited</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Monthly Invoicing Quota</td>
+              <td style="text-align: center;">2,000 Bills/mo</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">15,000 Bills/mo</td>
+              <td style="text-align: center; font-weight: 700; color: #10b981;">Unlimited</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Customer &amp; Supplier Ledger Accounts</td>
+              <td style="text-align: center;"><i class="ti ti-x" style="color: #94a3b8;"></i></td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Full Khata</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Enterprise Ledgers</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Role Privileges &amp; Custom Permissions</td>
+              <td style="text-align: center;">Standard Roles</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Custom Roles</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Enterprise RBAC</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Sales &amp; Profit/Loss Analytics</td>
+              <td style="text-align: center;">Daily Summaries</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Full P&amp;L Reports</td>
+              <td style="text-align: center;"><i class="ti ti-check" style="color: #10b981; font-weight: 800;"></i> Advanced Analytics</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700;">Customer Support Level &amp; SLA</td>
+              <td style="text-align: center;">Standard</td>
+              <td style="text-align: center; font-weight: 700; color: #1366d9;">Priority Email &amp; Chat</td>
+              <td style="text-align: center; font-weight: 700; color: #10b981;">Dedicated 24/7 Manager</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="section-header-wrap">
+      <span class="section-eyebrow">System Capabilities</span>
+      <h2 class="section-main-heading">Core Retail Features</h2>
+      <p class="section-subheading">Functionalities built into the software to streamline daily store operations.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-box feat-blue"><i class="ti ti-shopping-cart"></i></div>
+        <h3>Multi-Cart Instant Holding</h3>
+        <p>Switch between active customer shopping carts with one click during rush hours. Avoid counter stalls when a customer needs to pick additional items.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box feat-green"><i class="ti ti-barcode"></i></div>
+        <h3>Barcode &amp; Thermal Printing</h3>
+        <p>Works with all standard USB/Bluetooth barcode scanners. Supports 80mm and 58mm thermal printers as well as standard A4 tax invoice printouts.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box feat-amber"><i class="ti ti-packages"></i></div>
+        <h3>Batch &amp; 30-Day Expiry Alerts</h3>
+        <p>Track unique batch numbers, purchase dates, and expiry dates. Automatic system notifications alert you before products expire.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box feat-purple"><i class="ti ti-receipt-tax"></i></div>
+        <h3>Automated GST Invoicing</h3>
+        <p>Calculates CGST, SGST, and IGST with HSN codes automatically. Compliant with Indian tax slabs (0%, 5%, 12%, 18%, 28%).</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box feat-rose"><i class="ti ti-book-2"></i></div>
+        <h3>Customer &amp; Supplier Khata</h3>
+        <p>Maintain digital credit ledgers. Track customer balances, record partial payments, view supplier credit accounts, and export statements.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box feat-cyan"><i class="ti ti-lock-square"></i></div>
+        <h3>Day-End Cash Reconciliation</h3>
+        <p>Perform cashier shift closures and end-of-day drawer counts. Verify cash, UPI, and card totals to maintain accurate bookkeeping.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Us Section -->
+  <section id="about" class="about-section">
+    <div class="about-inner">
+      <div class="about-split">
+        <div class="about-story">
+          <span class="section-eyebrow">About the Platform</span>
+          <h2>Cloud Point of Sale &amp; Retail ERP</h2>
+          <p>Grocery POS Cloud ERP is a multi-tenant cloud retail management and billing platform built for grocery stores, supermarkets, and retail shops.</p>
+          <p>The system eliminates the risk of hardware crashes and corrupted local databases by running securely in the cloud with automated daily encrypted backups.</p>
+          <p>Store owners can manage single or multiple billing counters, configure cashier accounts with restricted access, monitor inventory stock levels, and generate GST-compliant invoices from any laptop, desktop, or tablet.</p>
+        </div>
+
+        <div class="about-pillars-grid">
+          <div class="pillar-card">
+            <span class="pillar-icon">⚡</span>
+            <h4>Fast POS Billing</h4>
+            <p>Designed for high-traffic counters. Processes items instantly without terminal lag.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">🛡️</span>
+            <h4>Cloud Data Security</h4>
+            <p>Automated cloud backups with strict multi-tenant database isolation.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">👤</span>
+            <h4>Role-Based Access</h4>
+            <p>Cashier accounts are restricted strictly to POS billing to protect profit margins.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">🖨️</span>
+            <h4>Standard Hardware</h4>
+            <p>Connect standard USB barcode scanners, weighing scales, and thermal printers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Us Section -->
+  <section id="contact" class="contact-section">
+    <div class="contact-grid">
+      <!-- Direct Contact Channels -->
+      <div class="contact-info-panel">
+        <div>
+          <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.8px; margin-bottom: 6px; display: block;">Contact &amp; Support</span>
+          <h3>Direct Assistance</h3>
+          <p>Have questions about hardware compatibility, plan setup, or need technical assistance? Contact our team directly.</p>
+
+          <div class="contact-cards-stack">
+            <a href="tel:+919876543210" style="text-decoration: none; color: inherit;" class="contact-card-item">
+              <div class="contact-card-icon" style="color: #38bdf8;">
+                <i class="ti ti-phone-call"></i>
+              </div>
+              <div>
+                <strong>Phone Support</strong>
+                <span>+91 98765 43210 &bull; Mon–Sat, 9AM–9PM IST</span>
+              </div>
+            </a>
+
+            <a href="https://wa.me/919876543210" target="_blank" style="text-decoration: none; color: inherit;" class="contact-card-item">
+              <div class="contact-card-icon" style="color: #22c55e;">
+                <i class="ti ti-brand-whatsapp"></i>
+              </div>
+              <div>
+                <strong>WhatsApp Assistance</strong>
+                <span>Instant chat support for setup and questions</span>
+              </div>
+            </a>
+
+            <a href="mailto:support@grocerypos.com" style="text-decoration: none; color: inherit;" class="contact-card-item">
+              <div class="contact-card-icon" style="color: #f59e0b;">
+                <i class="ti ti-mail"></i>
+              </div>
+              <div>
+                <strong>Email Support</strong>
+                <span>support@grocerypos.com</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 18px;">
+          <i class="ti ti-shield-check text-success me-1"></i> Serving stores nationwide across India.
+        </div>
+      </div>
+
+      <!-- Functional Contact Inquiry Form -->
+      <div class="contact-form-panel">
+        <h3>Send an Inquiry</h3>
+        <p>Fill out the form below to send a message directly to the administrator.</p>
+
+        <form id="contactInquiryForm" novalidate>
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label for="contact_name">Your Name <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="contact_name" name="name" class="form-control-contact" required placeholder="e.g. Ramesh Kumar">
+            </div>
+            <div class="form-group-client">
+              <label for="contact_store">Store / Business Name <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="contact_store" name="store_name" class="form-control-contact" required placeholder="e.g. Apex Supermarket">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label for="contact_phone">10-Digit Mobile Number <span style="color: #ef4444;">*</span></label>
+              <input type="tel" id="contact_phone" name="phone" maxlength="10" class="form-control-contact" required placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group-client">
+              <label for="contact_email">Email Address <span style="color: #ef4444;">*</span></label>
+              <input type="email" id="contact_email" name="email" class="form-control-contact" required placeholder="e.g. ramesh@store.com">
+            </div>
+          </div>
+
+          <div class="form-group-client">
+            <label for="contact_subject">Inquiry Subject</label>
+            <select id="contact_subject" name="subject" class="form-control-contact" style="cursor: pointer;">
+              <option value="Pricing & Plans">Subscription Plans &amp; Pricing</option>
+              <option value="Hardware Compatibility">Thermal Printer / Barcode Scanner Setup</option>
+              <option value="Demo Request">Request a System Demo</option>
+              <option value="General Inquiry">General Question</option>
+            </select>
+          </div>
+
+          <div class="form-group-client">
+            <label for="contact_message">Your Message</label>
+            <textarea id="contact_message" name="message" class="form-control-contact" placeholder="Describe your questions or requirements..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-contact-submit" id="btnContactSubmit">
+            <i class="ti ti-send"></i> Submit Inquiry
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reusable Client Checkout Modal -->
+  <%- include('partials/checkout-modal') %>
+
+  <!-- Shared Footer -->
+  <%- include('partials/footer') %>
+
+  <script>
+    let selectedCycle = 'monthly';
+    let targetPlanId = null;
+    let selectedPayment = 'UPI';
+    let checkoutValidator = null;
+
+    $(document).ready(function() {
+      $('#cust_phone, #contact_phone').on('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      });
+
+      $.validator.addMethod("indianPhone", function(value, element) {
+        return this.optional(element) || /^[6-9]\d{9}$/.test(value);
+      }, "Please enter a valid 10-digit Indian mobile number (e.g. 9876543210)");
+
+      checkoutValidator = $('#clientCheckoutForm').validate({
+        rules: {
+          cust_store_name: { required: true, minlength: 3, maxlength: 100 },
+          cust_owner_name: { required: true, minlength: 3, maxlength: 60 },
+          cust_phone: { required: true, digits: true, minlength: 10, maxlength: 10, indianPhone: true },
+          cust_email: { required: true, email: true, maxlength: 100 },
+          cust_city: { required: true, minlength: 2, maxlength: 60 }
+        },
+        messages: {
+          cust_store_name: { required: "Please enter your store name", minlength: "At least 3 characters" },
+          cust_owner_name: { required: "Please enter the owner's name", minlength: "At least 3 characters" },
+          cust_phone: { required: "Mobile number is required", digits: "Numbers only", minlength: "10 digits", maxlength: "10 digits" },
+          cust_email: { required: "Email is required", email: "Valid email required" },
+          cust_city: { required: "City is required", minlength: "At least 2 characters" }
+        },
+        errorElement: 'span',
+        errorClass: 'error-feedback',
+        errorPlacement: function(error, element) {
+          error.html('<i class="ti ti-alert-circle"></i> ' + error.text());
+          error.insertAfter(element);
+        },
+        highlight: function(element) {
+          $(element).addClass('error').removeClass('valid');
+        },
+        unhighlight: function(element) {
+          $(element).removeClass('error').addClass('valid');
+        },
+        submitHandler: function(form) {
+          handleClientOrderSubmit();
+          return false;
+        }
+      });
+
+      // Initialize jQuery Validation on Contact Form
+      $('#contactInquiryForm').validate({
+        rules: {
+          name: { required: true, minlength: 3, maxlength: 60 },
+          store_name: { required: true, minlength: 3, maxlength: 100 },
+          phone: { required: true, digits: true, minlength: 10, maxlength: 10, indianPhone: true },
+          email: { required: true, email: true, maxlength: 100 },
+          message: { required: true, minlength: 10, maxlength: 2000 }
+        },
+        messages: {
+          name: { required: "Please enter your full name", minlength: "At least 3 characters" },
+          store_name: { required: "Please enter your store or supermarket name", minlength: "At least 3 characters" },
+          phone: { required: "Mobile number is required", digits: "Numbers only", minlength: "10 digits required", maxlength: "10 digits required" },
+          email: { required: "Email is required", email: "Please enter a valid email address" },
+          message: { required: "Please enter your inquiry message", minlength: "At least 10 characters" }
+        },
+        errorElement: 'span',
+        errorClass: 'error-feedback',
+        errorPlacement: function(error, element) {
+          error.html('<i class="ti ti-alert-circle"></i> ' + error.text());
+          error.insertAfter(element);
+        },
+        highlight: function(element) {
+          $(element).addClass('error').removeClass('valid');
+        },
+        unhighlight: function(element) {
+          $(element).removeClass('error').addClass('valid');
+        },
+        submitHandler: function(form) {
+          const btn = $('#btnContactSubmit');
+          const origText = btn.html();
+          btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:spin 0.75s linear infinite"></i> Submitting...');
+
+          const payload = {
+            name: $('#contact_name').val().trim(),
+            store_name: $('#contact_store').val().trim(),
+            phone: $('#contact_phone').val().trim(),
+            email: $('#contact_email').val().trim(),
+            subject: $('#contact_subject').val(),
+            message: $('#contact_message').val().trim()
+          };
+
+          fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(data => {
+            btn.prop('disabled', false).html(origText);
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Inquiry Submitted!',
+                html: `
+                  <div style="text-align: left; background: #f8fafc; padding: 14px; border-radius: 10px; margin: 12px 0; font-size: 13px;">
+                    <div><strong>Inquiry Ref:</strong> #${data.inquiry_id || 'LOGGED'}</div>
+                    <div><strong>Customer:</strong> ${payload.name}</div>
+                    <div><strong>Store:</strong> ${payload.store_name}</div>
+                    <div><strong>Mobile:</strong> +91 ${payload.phone}</div>
+                  </div>
+                  <p style="font-size: 13px; color: #64748b;">The administrator has been notified. Our retail specialist will get in touch with you shortly!</p>
+                `,
+                confirmButtonColor: '#1366d9'
+              });
+              form.reset();
+              $('#contactInquiryForm .form-control-contact').removeClass('error valid');
+            } else {
+              Swal.fire({ icon: 'error', title: 'Submission Error', text: data.error || 'Could not submit inquiry.' });
+            }
+          })
+          .catch(err => {
+            btn.prop('disabled', false).html(origText);
+            Swal.fire({ icon: 'error', title: 'Network Error', text: 'Unable to connect to server.' });
+          });
+
+          return false;
+        }
+      });
+    });
+
+    function switchPublicCycle(cycle) {
+      selectedCycle = cycle;
+      const isYearly = cycle === 'yearly';
+
+      $('#pillMonthly').toggleClass('active', !isYearly);
+      $('#pillYearly').toggleClass('active', isYearly);
+
+      $('.price-val').each(function() {
+        const m = $(this).data('monthly');
+        const y = $(this).data('yearly');
+        if (isYearly) {
+          const monthlyEq = Math.round(y / 12);
+          $(this).text('₹' + monthlyEq);
+        } else {
+          $(this).text('₹' + m);
+        }
+      });
+
+      $('.yearly-note').toggle(isYearly);
+    }
+
+    function selectPay(btn, method) {
+      $('.pay-btn-opt').removeClass('active');
+      $(btn).addClass('active');
+      selectedPayment = method;
+      $('#publicUpiBox').toggle(method === 'UPI');
+    }
+
+    function openClientCheckout(planId, planName, priceMonthly, priceYearly) {
+      targetPlanId = planId;
+      $('#checkoutPlanTitle').text(planName);
+
+      const isYearly = selectedCycle === 'yearly';
+      $('#checkoutCycleBadge').text(isYearly ? 'Annual Plan (20% Off)' : 'Monthly Plan');
+
+      const amount = Number(isYearly ? priceYearly : priceMonthly);
+      const base = amount / 1.18;
+      const gst = amount - base;
+
+      $('#checkoutAmountDisplay').text('₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+      $('#publicTaxableBase').text('Base: ₹' + base.toFixed(2));
+      $('#publicTaxGst').text('GST (18%): ₹' + gst.toFixed(2));
+
+      const upiUrl = `upi://pay?pa=grocerycloud@icici&pn=GroceryERP&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Register_' + planName)}`;
+      $('#publicQrImg').attr('src', `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiUrl)}`);
+
+      if (checkoutValidator) {
+        checkoutValidator.resetForm();
+        $('#clientCheckoutForm .form-control-client').removeClass('error valid');
+      }
+
+      $('#clientCheckoutModal').addClass('show');
+      setTimeout(() => $('#cust_store_name').focus(), 150);
+    }
+
+    function closeClientCheckout() {
+      $('#clientCheckoutModal').removeClass('show');
+      if (checkoutValidator) {
+        checkoutValidator.resetForm();
+        $('#clientCheckoutForm .form-control-client').removeClass('error valid');
+      }
+    }
+
+    function handleClientOrderSubmit() {
+      const btn = $('#btnSubmitClientOrder');
+      const origText = btn.html();
+      btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:spin 0.75s linear infinite"></i> Processing Order...');
+
+      const payload = {
+        plan_id: targetPlanId,
+        billing_cycle: selectedCycle,
+        store_name: $('#cust_store_name').val().trim(),
+        owner_name: $('#cust_owner_name').val().trim(),
+        phone: $('#cust_phone').val().trim(),
+        email: $('#cust_email').val().trim(),
+        city: $('#cust_city').val().trim(),
+        payment_method: selectedPayment
+      };
+
+      fetch('/api/subscriptions/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        btn.prop('disabled', false).html(origText);
+
+        if (!ok || !data.success) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Registration Error',
+            text: data.error || 'Could not complete registration. Please check your inputs.'
+          });
+        } else {
+          closeClientCheckout();
+          Swal.fire({
+            icon: 'success',
+            title: 'Order Placed Successfully!',
+            html: `
+              <div style="text-align: left; background: #f8fafc; padding: 14px; border-radius: 10px; margin: 12px 0; font-size: 13px;">
+                <div><strong>Order Reference:</strong> ${data.order_id}</div>
+                <div><strong>Store Registered:</strong> ${payload.store_name}</div>
+                <div><strong>Mobile Login ID:</strong> +91 ${payload.phone}</div>
+                <div style="margin-top: 8px; color: #10b981; font-weight: 600;">Status: Pending Administrator Approval</div>
+              </div>
+              <p style="font-size: 13px; color: #64748b;">The administrator has been notified. As soon as your store account is verified and approved, you can sign in directly using your mobile number!</p>
+            `,
+            confirmButtonText: 'Go to Subscriber Login',
+            confirmButtonColor: '#4f46e5'
+          }).then(() => {
+            window.location.href = '/subscriber/login';
+          });
+        }
+      })
+      .catch(err => {
+        btn.prop('disabled', false).html(origText);
+        Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not connect to server. Please try again.' });
+      });
+    }
+  </script>
+</body>
+</html>

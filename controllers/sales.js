@@ -931,6 +931,24 @@ exports.createSale = async (req, res) => {
 
     await transaction.commit();
 
+    // Trigger Sale Notification for milestone / significant transactions
+    try {
+      const { createNotification } = require('./notification');
+      if (grandTotal >= 2000) {
+        createNotification({
+          company_id: companyId,
+          type: 'sale',
+          title: `High-Value Sale: ₹${grandTotal.toFixed(2)}`,
+          message: `Invoice #${invoiceNumber} recorded for ₹${grandTotal.toFixed(2)}. ${customer ? `Customer: ${customer.name}` : 'Walk-in customer'}.`,
+          icon: 'ti-receipt-2',
+          severity: 'success',
+          link: `/admin/sales/view/${sale.id}`
+        }).catch(e => console.warn('Sale notif err:', e.message));
+      }
+    } catch (e) {
+      // Non-blocking
+    }
+
 
     // ========================================================
     // Response

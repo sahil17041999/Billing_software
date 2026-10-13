@@ -7,7 +7,7 @@ const MySQLStore = require("express-mysql-session")(session);
 const cors = require("cors");
 const compression = require("compression");
 
-const { sequelize, pool, testConnection } = require("./config/database");
+const { sequelize, pool, testConnection, ensureRequiredColumns } = require("./config/database");
 const { setupAssociations, seedSubscriptionPlans } = require("./models");
 const { attachUser, requirePlanFeature, errorHandler } = require("./middleware/auth");
 const { sqlInjectionGuard, securityHeaders, sanitizeInputs } = require("./middleware/security");
@@ -90,6 +90,11 @@ const initializeApp = async () => {
     // Test database connection
     await testConnection();
 
+    // Auto-migrate and ensure any newly added columns exist in DB
+    if (typeof ensureRequiredColumns === 'function') {
+      await ensureRequiredColumns();
+    }
+
     // Setup model associations
     setupAssociations();
 
@@ -129,31 +134,16 @@ const settingsRoutes = require('./routes/settings');
 const subscriptionRoutes = require('./routes/subscription');
 const notificationRoutes = require('./routes/notification');
 const subscriberRoutes = require('./routes/subscriber');
+const inquiryRoutes = require('./routes/inquiry');
+const publicRoutes = require('./routes/public');
 
 // Favicon handler
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "assets", "images", "logos", "favicon.png"));
 });
 
-// Home route
-app.get("/", (req, res) => {
-  if (req.session.userId) {
-    if (req.session.role === 'cashier') {
-      return res.redirect('/admin/sales/pos');
-    }
-    if (req.session.companyId > 1) {
-      return res.redirect('/subscriber/dashboard');
-    }
-    return res.redirect('/admin/dashboard');
-  } else {
-    res.redirect('/admin/login');
-  }
-});
-
-// Public B2C Subscription & Pricing Storefront
-app.get("/pricing", (req, res) => require('./controllers/subscription').getPublicPricing(req, res));
-app.get("/plans", (req, res) => res.redirect('/pricing'));
-app.post("/api/subscriptions/order", (req, res) => require('./controllers/subscription').orderSubscription(req, res));
+// Mount Full Public B2C Website Routes (Home, Features, Pricing, About, Contact, APIs)
+app.use("/", publicRoutes);
 
 // ============================================
 // STRICT BI-DIRECTIONAL PANEL ISOLATION GUARDS
@@ -268,6 +258,9 @@ app.use("/subscriber/settings", requirePlanFeature('smtp'), settingsRoutes);
 
 // Subscription & Licensing routes
 app.use("/admin/subscription", subscriptionRoutes);
+
+// Contact Inquiries Management routes (Super Admin)
+app.use("/admin/inquiries", inquiryRoutes);
 
 // Subscriber Store Owner Management Panel & Login routes
 app.use("/subscriber", subscriberRoutes);

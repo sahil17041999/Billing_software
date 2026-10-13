@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us &bull; Grocery POS Cloud ERP</title>
+  <meta name="description" content="Reach our retail POS specialists. Phone and WhatsApp support, hardware compatibility assistance, and live supermarket demos.">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+
+  <!-- Standard Typography: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
+  <!-- Centralized B2C Stylesheet -->
+  <link rel="stylesheet" href="/assets/css/b2c-website.css" />
+
+  <!-- jQuery, jQuery Validation & SweetAlert2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+  <!-- Shared Top Navigation Header -->
+  <%- include('partials/header') %>
+
+  <!-- Page Hero -->
+  <section class="b2c-hero" style="padding: 70px 20px 80px;">
+    <div class="hero-badge">
+      <i class="ti ti-headset"></i> 24/7 DEDICATED RETAIL ASSISTANCE
+    </div>
+    <h1 style="font-size: 42px;">We're Here to Help Your Store Grow</h1>
+    <p style="max-width: 680px;">Have questions about pricing plans, thermal printer compatibility, or want a custom multi-counter supermarket walkthrough? Our specialists are just a message away.</p>
+  </section>
+
+  <!-- Contact Us Main Section -->
+  <main class="contact-section" style="margin-top: -35px;">
+    <div class="contact-grid">
+      <!-- Left: Contact Details Panel -->
+      <div class="contact-info-panel">
+        <div>
+          <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.8px; margin-bottom: 6px; display: block;">Get in Touch Directly</span>
+          <h3>Talk with Our Retail Engineers</h3>
+          <p>We pride ourselves on providing the fastest support in the retail software industry. Reach out via phone, WhatsApp, or email.</p>
+
+          <div class="contact-cards-stack">
+            <a href="tel:+919876543210" style="text-decoration: none; color: inherit;" class="contact-card-item">
+              <div class="contact-card-icon" style="color: #38bdf8;">
+                <i class="ti ti-phone-call"></i>
+              </div>
+              <div>
+                <strong>Call Us Directly</strong>
+                <span>+91 98765 43210 &bull; Mon–Sat, 9AM–9PM IST</span>
+              </div>
+            </a>
+
+            <a href="https://wa.me/919876543210" target="_blank" style="text-decoration: none; color: inherit;" class="contact-card-item">
+              <div class="contact-card-icon" style="color: #22c55e;">
+                <i class="ti ti-brand-whatsapp"></i>
+              </div>
+              <div>
+                <strong>Instant WhatsApp Chat</strong>
+                <span>Quick answers on hardware, setup &amp; pricing</span>
+              </div>
+            </a>
+
+            <a href="mailto:support@grocerypos.com" style="text-decoration: none; color: inherit;" class="contact-card-item">
+              <div class="contact-card-icon" style="color: #f59e0b;">
+                <i class="ti ti-mail"></i>
+              </div>
+              <div>
+                <strong>Support &amp; Sales Desk</strong>
+                <span>support@grocerypos.com / sales@grocerypos.com</span>
+              </div>
+            </a>
+
+            <div class="contact-card-item">
+              <div class="contact-card-icon" style="color: #7c3aed;">
+                <i class="ti ti-clock"></i>
+              </div>
+              <div>
+                <strong>Rapid Response SLA</strong>
+                <span>Average resolution time under 15 minutes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 18px;">
+          <i class="ti ti-shield-check text-success me-1"></i> Serving over 500+ supermarkets, kiranas, and hypermarkets nationwide.
+        </div>
+      </div>
+
+      <!-- Right: Interactive Contact Form -->
+      <div class="contact-form-panel">
+        <h3>Send an Inquiry or Book a Demo</h3>
+        <p>Fill out your store details and our team will get back to you with personalized guidance.</p>
+
+        <form id="contactInquiryForm" novalidate>
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label for="contact_name">Your Name <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="contact_name" name="name" class="form-control-contact" required placeholder="e.g. Ramesh Kumar">
+            </div>
+            <div class="form-group-client">
+              <label for="contact_store">Store / Supermarket Name <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="contact_store" name="store_name" class="form-control-contact" required placeholder="e.g. Apex Fresh Supermarket">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label for="contact_phone">10-Digit Mobile Number <span style="color: #ef4444;">*</span></label>
+              <input type="tel" id="contact_phone" name="phone" maxlength="10" class="form-control-contact" required placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group-client">
+              <label for="contact_email">Email Address <span style="color: #ef4444;">*</span></label>
+              <input type="email" id="contact_email" name="email" class="form-control-contact" required placeholder="e.g. ramesh@store.com">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group-client">
+              <label for="contact_city">City &amp; State</label>
+              <input type="text" id="contact_city" name="city" class="form-control-contact" placeholder="e.g. Mumbai, Maharashtra">
+            </div>
+            <div class="form-group-client">
+              <label for="contact_counters">Number of Billing Counters</label>
+              <select id="contact_counters" name="counters" class="form-control-contact" style="cursor: pointer;">
+                <option value="1 Counter">1 Billing Counter (Single POS)</option>
+                <option value="2-3 Counters">2 - 3 Counters (Medium Supermarket)</option>
+                <option value="4+ Counters">4+ Counters (Large Hypermarket / Chain)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-client">
+            <label for="contact_subject">Inquiry Reason</label>
+            <select id="contact_subject" name="subject" class="form-control-contact" style="cursor: pointer;">
+              <option value="Demo Request">Request a Live System Demo</option>
+              <option value="Pricing & Plans">Subscription Pricing &amp; Custom Sizing</option>
+              <option value="Hardware Assistance">Thermal Printer / Barcode Scanner Support</option>
+              <option value="Catalog Migration">Migrating Existing Inventory Catalog</option>
+              <option value="Other">Other Retail Inquiry</option>
+            </select>
+          </div>
+
+          <div class="form-group-client">
+            <label for="contact_message">Your Questions / Specific Needs</label>
+            <textarea id="contact_message" name="message" class="form-control-contact" placeholder="Tell us about your current store setup, questions about GST compliance, or hardware you already own..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-contact-submit" id="btnContactSubmit">
+            <i class="ti ti-send"></i> Submit Inquiry Message
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- FAQ Section on Contact Page -->
+  <section class="faq-section" style="margin-top: 50px;">
+    <div class="section-header-wrap">
+      <span class="section-eyebrow">Quick Help</span>
+      <h2 class="section-main-heading">Common Onboarding Questions</h2>
+      <p class="section-subheading">Here are answers to the most frequent inquiries from prospective retailers.</p>
+    </div>
+
+    <div class="faq-accordion">
+      <div class="faq-item open">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>How fast can our store start billing with Grocery POS Cloud ERP?</span>
+          <i class="ti ti-chevron-down"></i>
+        </div>
+        <div class="faq-answer" style="display: block;">
+          Most stores start billing in under 30 minutes! Once you select a plan, you can immediately upload your product inventory via Excel/CSV or use our pre-seeded FMCG catalog, plug in your barcode scanner and thermal printer, and begin checkouts right away.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Can your team help import our existing Excel product list?</span>
+          <i class="ti ti-chevron-down"></i>
+        </div>
+        <div class="faq-answer">
+          Yes, absolutely! Our technical support team assists with formatting and migrating your existing stock, barcodes, and pricing into your cloud store account at zero additional charge.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>What happens if our internet connection disconnects temporarily?</span>
+          <i class="ti ti-chevron-down"></i>
+        </div>
+        <div class="faq-answer">
+          You can run the software on any mobile 4G/5G hotspot, Wi-Fi, or LAN. The system is engineered to consume minimal bandwidth (under 20KB per invoice) so even basic mobile hotspot connections provide instant billing.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shared Footer -->
+  <%- include('partials/footer') %>
+
+  <script>
+    function toggleFaq(el) {
+      const item = el.closest('.faq-item');
+      const answer = item.querySelector('.faq-answer');
+      const isOpen = item.classList.contains('open');
+
+      document.querySelectorAll('.faq-item').forEach(i => {
+        i.classList.remove('open');
+        const ans = i.querySelector('.faq-answer');
+        if (ans) ans.style.display = 'none';
+      });
+
+      if (!isOpen) {
+        item.classList.add('open');
+        if (answer) answer.style.display = 'block';
+      }
+    }
+
+    $(document).ready(function() {
+      // Restrict phone to digits only
+      $('#contact_phone').on('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      });
+
+      // Custom Indian mobile validator (starts with 6, 7, 8, 9, exactly 10 digits)
+      $.validator.addMethod("indianPhone", function(value, element) {
+        return this.optional(element) || /^[6-9]\d{9}$/.test(value);
+      }, "Please enter a valid 10-digit Indian mobile number (e.g. 9876543210)");
+
+      // Initialize jQuery Validation on Contact Form
+      $('#contactInquiryForm').validate({
+        rules: {
+          name: {
+            required: true,
+            minlength: 3,
+            maxlength: 60
+          },
+          store_name: {
+            required: true,
+            minlength: 3,
+            maxlength: 100
+          },
+          phone: {
+            required: true,
+            digits: true,
+            minlength: 10,
+            maxlength: 10,
+            indianPhone: true
+          },
+          email: {
+            required: true,
+            email: true,
+            maxlength: 100
+          },
+          message: {
+            required: true,
+            minlength: 10,
+            maxlength: 2000
+          }
+        },
+        messages: {
+          name: {
+            required: "Please enter your full name",
+            minlength: "Name must be at least 3 characters long"
+          },
+          store_name: {
+            required: "Please enter your store or supermarket name",
+            minlength: "Store name must be at least 3 characters long"
+          },
+          phone: {
+            required: "Mobile number is required for follow-up",
+            digits: "Numbers only",
+            minlength: "Mobile number must be exactly 10 digits",
+            maxlength: "Mobile number must be exactly 10 digits"
+          },
+          email: {
+            required: "Email address is required",
+            email: "Please enter a valid email address (e.g. store@example.com)"
+          },
+          message: {
+            required: "Please write your inquiry or questions",
+            minlength: "Message must be at least 10 characters long"
+          }
+        },
+        errorElement: 'span',
+        errorClass: 'error-feedback',
+        errorPlacement: function(error, element) {
+          error.html('<i class="ti ti-alert-circle"></i> ' + error.text());
+          error.insertAfter(element);
+        },
+        highlight: function(element) {
+          $(element).addClass('error').removeClass('valid');
+        },
+        unhighlight: function(element) {
+          $(element).removeClass('error').addClass('valid');
+        },
+        submitHandler: function(form) {
+          const btn = $('#btnContactSubmit');
+          const origText = btn.html();
+          btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:spin 0.75s linear infinite"></i> Sending Inquiry...');
+
+          const payload = {
+            name: $('#contact_name').val().trim(),
+            store_name: $('#contact_store').val().trim(),
+            phone: $('#contact_phone').val().trim(),
+            email: $('#contact_email').val().trim(),
+            subject: $('#contact_subject').val() + ' (' + $('#contact_counters').val() + ')',
+            message: $('#contact_message').val().trim() + ($('#contact_city').val() ? ` | Location: ${$('#contact_city').val().trim()}` : '')
+          };
+
+          fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(data => {
+            btn.prop('disabled', false).html(origText);
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Inquiry Submitted Successfully!',
+                html: `
+                  <div style="text-align: left; background: #f8fafc; padding: 14px; border-radius: 10px; margin: 12px 0; font-size: 13px;">
+                    <div><strong>Inquiry Ref:</strong> #${data.inquiry_id || 'LOGGED'}</div>
+                    <div><strong>Customer:</strong> ${payload.name}</div>
+                    <div><strong>Store:</strong> ${payload.store_name}</div>
+                    <div><strong>Contact Mobile:</strong> +91 ${payload.phone}</div>
+                  </div>
+                  <p style="font-size: 13px; color: #64748b;">Your inquiry has been routed to the administrative team. A retail specialist will get in touch with you shortly!</p>
+                `,
+                confirmButtonColor: '#1366d9'
+              });
+              form.reset();
+              $('#contactInquiryForm .form-control-contact').removeClass('error valid');
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Submission Error',
+                text: data.error || 'Could not submit inquiry. Please try again.'
+              });
+            }
+          })
+          .catch(err => {
+            btn.prop('disabled', false).html(origText);
+            Swal.fire({ icon: 'error', title: 'Network Error', text: 'Unable to connect to server. Please try again.' });
+          });
+
+          return false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

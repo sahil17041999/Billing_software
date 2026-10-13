@@ -7,7 +7,9 @@
 <!-- Standard Website Font-Family: Plus Jakarta Sans & Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link
+  href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+  rel="stylesheet">
 
 <!-- jQuery, DataTables & UI Libraries -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -337,10 +339,19 @@
     padding: 8px 6px;
     animation: paletteFadeIn 0.15s ease-out;
   }
+
   @keyframes paletteFadeIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   .palette-group-title {
     font-size: 10.5px;
     font-weight: 800;
@@ -349,6 +360,7 @@
     letter-spacing: 0.5px;
     padding: 6px 12px 4px;
   }
+
   .palette-item {
     display: flex;
     align-items: center;
@@ -361,10 +373,13 @@
     font-weight: 600;
     transition: background 0.15s;
   }
-  .palette-item:hover, .palette-item.active {
+
+  .palette-item:hover,
+  .palette-item.active {
     background: #f1f5f9;
     color: #2563eb;
   }
+
   .palette-item .palette-icon {
     width: 28px;
     height: 28px;
@@ -376,6 +391,7 @@
     justify-content: center;
     font-size: 15px;
   }
+
   .palette-item kbd {
     margin-left: auto;
     font-size: 10.5px;
@@ -668,8 +684,14 @@
       }
     });
 
+    const hasServerPagination = $table.closest('.card-modern, .card-body-modern, .table-responsive-wrapper, main').find('.pagination-modern, .pagination-bar-wrapper').length > 0 || $table.hasClass('server-paginated');
+
     const defaultOptions = {
       responsive: true,
+      paging: !hasServerPagination,
+      info: !hasServerPagination,
+      lengthChange: !hasServerPagination,
+      searching: !hasServerPagination,
       pageLength: 15,
       lengthMenu: [[10, 15, 25, 50, 100, -1], [10, 15, 25, 50, 100, "All"]],
       columnDefs: noSortCols.length > 0 ? [{ targets: noSortCols, orderable: false }] : [],
@@ -682,12 +704,12 @@
         infoFiltered: "(filtered from _MAX_ total)",
         paginate: {
           first: '<i class="ti ti-chevrons-left"></i>',
-          previous: '<i class="ti ti-chevron-left"></i>',
-          next: '<i class="ti ti-chevron-right"></i>',
+          previous: '<i class="ti ti-chevron-left"></i> <span class="d-none d-sm-inline" style="margin-left: 2px;">Prev</span>',
+          next: '<span class="d-none d-sm-inline" style="margin-right: 2px;">Next</span> <i class="ti ti-chevron-right"></i>',
           last: '<i class="ti ti-chevrons-right"></i>'
         }
       },
-      dom: '<"dt-header-toolbar"<"dt-left"lB><"dt-right"f>>rt<"dt-footer-toolbar"<"dt-info"i><"dt-pagination"p>>',
+      dom: hasServerPagination ? 'rt' : '<"dt-header-toolbar"<"dt-left"lB><"dt-right"f>>rt<"dt-footer-toolbar"<"dt-info"i><"dt-pagination"p>>',
       buttons: [
         { extend: 'excelHtml5', className: 'btn-dt-export btn-dt-excel', text: '<i class="ti ti-file-spreadsheet"></i> Excel', titleAttr: 'Export Excel' },
         { extend: 'csvHtml5', className: 'btn-dt-export btn-dt-csv', text: '<i class="ti ti-file-text"></i> CSV', titleAttr: 'Export CSV' },
@@ -703,9 +725,12 @@
   $(document).ready(function () {
     $('table.table-modern').each(function () {
       const $t = $(this);
+      const hasServerPagination = $t.closest('.card-modern, .card-body-modern, .table-responsive-wrapper, main').find('.pagination-modern, .pagination-bar-wrapper').length > 0 || $t.hasClass('server-paginated');
       if (
+        hasServerPagination ||
         $t.data('no-datatable') ||
         $t.hasClass('no-datatable') ||
+        $t.hasClass('server-paginated') ||
         $t.hasClass('items-table') ||
         $t.attr('id') === 'entitlementsTable' ||
         $t.attr('id') === 'cartTableElement' ||
@@ -725,732 +750,1081 @@
   });
 </script>
 
-<% if (typeof session !== 'undefined' && session && session.isImpersonating) { %>
-<div style="background: linear-gradient(90deg, #d97706, #b45309); color: #ffffff; padding: 10px 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);">
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <i class="ti ti-shield-lock" style="font-size: 18px;"></i>
-    <span>Super Admin Workspace Access: Currently managing <strong><%= session.impersonatedStoreName || 'Client Store' %></strong></span>
+<% if (typeof session !=='undefined' && session && session.isImpersonating) { %>
+  <div
+    style="background: linear-gradient(90deg, #d97706, #b45309); color: #ffffff; padding: 10px 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <i class="ti ti-shield-lock" style="font-size: 18px;"></i>
+      <span>Super Admin Workspace Access: Currently managing <strong>
+          <%= session.impersonatedStoreName || 'Client Store' %>
+        </strong></span>
+    </div>
+    <a href="/admin/subscription/impersonate/exit" class="btn btn-sm btn-light"
+      style="font-weight: 800; font-size: 12px; color: #92400e; border-radius: 999px; padding: 4px 16px; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+      <i class="ti ti-arrow-back-up"></i> Exit &amp; Return to Super Admin
+    </a>
   </div>
-  <a href="/admin/subscription/impersonate/exit" class="btn btn-sm btn-light" style="font-weight: 800; font-size: 12px; color: #92400e; border-radius: 999px; padding: 4px 16px; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-    <i class="ti ti-arrow-back-up"></i> Exit &amp; Return to Super Admin
-  </a>
-</div>
-<% } %>
+  <% } %>
 
-<!-- Advanced Enterprise Page Loader Overlay -->
-<div id="pageLoaderOverlay" class="advanced-page-loader" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center;">
-  <div style="background: rgba(255, 255, 255, 0.98); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; padding: 32px 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 380px; animation: loaderPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
-    <div style="position: relative; width: 68px; height: 68px; margin-bottom: 18px;">
-      <div style="position: absolute; inset: 0; border: 4px solid #e2e8f0; border-top-color: #1366d9; border-radius: 50%; animation: loaderSpin 0.85s linear infinite;"></div>
-      <div style="position: absolute; inset: 6px; border: 3px solid transparent; border-top-color: #06b6d4; border-radius: 50%; animation: loaderSpin 1.2s linear infinite reverse;"></div>
-      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #1366d9; font-size: 24px;">
-        <i class="ti ti-loader-2" id="pageLoaderIcon" style="animation: loaderSpin 1s linear infinite;"></i>
-      </div>
-    </div>
-    <div id="pageLoaderTitle" style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 4px; font-family: 'Plus Jakarta Sans', sans-serif;">Processing...</div>
-    <div id="pageLoaderSubtitle" style="font-size: 13px; color: #64748b; font-weight: 500;">Please wait a moment</div>
-  </div>
-</div>
-
-<!-- Modern Admin Top Header -->
-<header class="app-header">
-  <div class="header-left">
-    <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Toggle navigation" onclick="if(window.toggleMobileSidebar) window.toggleMobileSidebar(event);">
-      <i class="ti ti-menu-2"></i>
-    </button>
-
-    <!-- Universal Smart Back Button -->
-    <button type="button" class="header-back-btn" id="globalHeaderBackBtn" onclick="handleGoBack()" title="Go Back (Alt + Left)">
-      <i class="ti ti-arrow-left"></i>
-      <span>Back</span>
-    </button>
-
-    <div class="header-search-bar" style="position: relative;">
-      <% const isHeaderSubscriber = (typeof user !== 'undefined' && user && user.company_id > 1); %>
-      <% const hpfx = isHeaderSubscriber ? '/subscriber' : '/admin'; %>
-      <i class="ti ti-search search-icon"></i>
-      <input type="text" id="globalHeaderSearch" placeholder="Search products, invoices, customers... (Ctrl + K)" autocomplete="off">
-
-      <!-- Quick Command & Search Dropdown Palette -->
-      <div id="quickSearchPalette" class="quick-search-palette" style="display: none;">
-        <div class="palette-group-title">Quick Actions &amp; Navigation</div>
-        <a href="<%= hpfx %>/sales/pos" class="palette-item"><span class="palette-icon"><i class="ti ti-device-laptop"></i></span><span>Open POS Terminal</span><kbd>F2</kbd></a>
-        <a href="<%= hpfx %>/master/products" class="palette-item"><span class="palette-icon"><i class="ti ti-package"></i></span><span>Products Catalog</span><kbd>F4</kbd></a>
-        <a href="<%= hpfx %>/sales/" class="palette-item"><span class="palette-icon"><i class="ti ti-file-invoice"></i></span><span>Invoices &amp; Bills</span><kbd>Sales</kbd></a>
-        <a href="<%= hpfx %>/master/customers" class="palette-item"><span class="palette-icon"><i class="ti ti-users"></i></span><span>Customers Directory</span><kbd>F8</kbd></a>
-        <a href="<%= hpfx %>/reports/sales" class="palette-item"><span class="palette-icon"><i class="ti ti-chart-bar"></i></span><span>Sales Analytics</span><kbd>Reports</kbd></a>
-        <a href="<%= isHeaderSubscriber ? '/subscriber/dashboard#my-plan-section' : '/admin/subscription' %>" class="palette-item"><span class="palette-icon"><i class="ti ti-sparkles"></i></span><span>Subscriptions &amp; Plans</span><kbd>Pro</kbd></a>
-        <a href="<%= hpfx %>/day-end/form" class="palette-item"><span class="palette-icon"><i class="ti ti-calendar-time"></i></span><span>Day End Register</span><kbd>F9</kbd></a>
-        <a href="<%= hpfx %>/settings/smtp" class="palette-item"><span class="palette-icon"><i class="ti ti-mail-cog"></i></span><span>SMTP Settings &amp; Logo</span><kbd>Settings</kbd></a>
-      </div>
-    </div>
-  </div>
-
-  <div class="header-right">
-    <!-- Quick Action "+ Quick Add" Dropdown (Easy & Fast) -->
-    <div style="position: relative;">
-      <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" id="headerQuickAddBtn" style="padding: 6px 14px; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(19, 102, 217, 0.28);" title="Quick Create New (Alt + N)">
-        <i class="ti ti-plus" style="font-size: 15px;"></i>
-        <span>Quick Add</span>
-      </button>
-      <div id="headerQuickAddMenu" class="dropdown-menu-custom" style="display: none; width: 220px; top: calc(100% + 8px); right: 0; box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16); border-radius: 14px; padding: 6px; z-index: 1060;">
-        <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 6px 12px 4px; letter-spacing: 0.05em;">Instant Actions</div>
-        <a href="<%= hpfx %>/sales/pos" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
-          <span style="width: 26px; height: 26px; border-radius: 6px; background: #edf5ff; color: #1366d9; display: flex; align-items: center; justify-content: center;"><i class="ti ti-device-laptop"></i></span>
-          <span>New POS Bill</span>
-          <kbd style="margin-left: auto; font-size: 10px; padding: 1px 5px; background: #f1f5f9; border-radius: 4px; color: #64748b;">F2</kbd>
-        </a>
-        <a href="<%= hpfx %>/master/products" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
-          <span style="width: 26px; height: 26px; border-radius: 6px; background: #ecfdf5; color: #107c41; display: flex; align-items: center; justify-content: center;"><i class="ti ti-package"></i></span>
-          <span>Add Product</span>
-          <kbd style="margin-left: auto; font-size: 10px; padding: 1px 5px; background: #f1f5f9; border-radius: 4px; color: #64748b;">F4</kbd>
-        </a>
-        <a href="<%= hpfx %>/master/customers" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
-          <span style="width: 26px; height: 26px; border-radius: 6px; background: #fff5eb; color: #f2994a; display: flex; align-items: center; justify-content: center;"><i class="ti ti-user-plus"></i></span>
-          <span>Add Customer</span>
-        </a>
-        <a href="<%= hpfx %>/expenses" class="dropdown-item-custom" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
-          <span style="width: 26px; height: 26px; border-radius: 6px; background: #fde7e9; color: #d83b01; display: flex; align-items: center; justify-content: center;"><i class="ti ti-receipt"></i></span>
-          <span>Record Expense</span>
-        </a>
-      </div>
-    </div>
-    <!-- Subscription / Founder Badge -->
-    <% if (isHeaderSubscriber) { %>
-      <a href="/subscriber/dashboard#my-plan-section" class="header-subscription-badge" title="Manage Store Subscription Plan" style="background: rgba(79, 70, 229, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); color: #4f46e5;">
-        <i class="ti ti-sparkles" style="color: #4f46e5;"></i>
-        <span class="sub-plan-text" style="color: #4f46e5; font-weight: 800;">
-          <%= (typeof currentSubscription !== 'undefined' && currentSubscription && currentSubscription.plan) ? currentSubscription.plan.name.toUpperCase() : 'STORE PLAN' %>
-        </span>
-      </a>
-    <% } else { %>
-      <a href="/admin/subscription" class="header-subscription-badge" title="Platform Founder & Super Administrator" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: #ca8a04;">
-        <i class="ti ti-crown" style="color: #eab308;"></i>
-        <span class="sub-plan-text" style="color: #ca8a04; font-weight: 800;">FOUNDER</span>
-      </a>
-    <% } %>
-
-    <!-- Notification Bell -->
-    <div style="position: relative;">
-      <div class="header-icon-btn" id="notificationDropdownBtn" title="Notifications" style="position: relative; cursor: pointer;">
-        <i class="ti ti-bell fs-5"></i>
-        <span class="notification-dot" id="headerNotifDot" style="display: none;"></span>
-        <span id="headerNotifBadge" style="display: none; position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; align-items: center; justify-content: center; line-height: 1;">0</span>
-      </div>
-
-      <!-- Notification Dropdown Panel -->
-      <div id="headerNotifMenu" class="dropdown-menu-custom" style="display: none; width: 360px; max-width: 90vw; padding: 0; right: 0; top: calc(100% + 8px); box-shadow: 0 15px 35px rgba(0,0,0,0.25); border-radius: 16px; overflow: hidden; z-index: 1060;">
-        <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: var(--bg-hover, #f8fafc);">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <strong style="font-size: 14px; color: var(--text-color, #0f172a);">Notifications</strong>
-            <span id="headerNotifUnreadCount" style="font-size: 11px; background: rgba(79, 70, 229, 0.1); color: #4f46e5; padding: 2px 8px; border-radius: 999px; font-weight: 700;">0 New</span>
+    <!-- Advanced Enterprise Page Loader Overlay -->
+    <div id="pageLoaderOverlay" class="advanced-page-loader"
+      style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center;">
+      <div
+        style="background: rgba(255, 255, 255, 0.98); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; padding: 32px 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 380px; animation: loaderPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="position: relative; width: 68px; height: 68px; margin-bottom: 18px;">
+          <div
+            style="position: absolute; inset: 0; border: 4px solid #e2e8f0; border-top-color: #1366d9; border-radius: 50%; animation: loaderSpin 0.85s linear infinite;">
           </div>
-          <button type="button" id="headerMarkAllReadBtn" style="background: none; border: none; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">Mark all read</button>
-        </div>
-
-        <div id="headerNotifList" style="max-height: 320px; overflow-y: auto; padding: 6px 0;">
-          <div style="text-align: center; padding: 28px 16px; color: #94a3b8; font-size: 13px;">
-            <i class="ti ti-bell-off fs-1" style="display: block; margin-bottom: 6px; opacity: 0.5;"></i>
-            Loading notifications...
+          <div
+            style="position: absolute; inset: 6px; border: 3px solid transparent; border-top-color: #06b6d4; border-radius: 50%; animation: loaderSpin 1.2s linear infinite reverse;">
+          </div>
+          <div
+            style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #1366d9; font-size: 24px;">
+            <i class="ti ti-loader-2" id="pageLoaderIcon" style="animation: loaderSpin 1s linear infinite;"></i>
           </div>
         </div>
-
-        <div style="padding: 10px 16px; border-top: 1px solid var(--border-color, #e2e8f0); text-align: center; background: var(--bg-hover, #f8fafc);">
-          <a href="<%= hpfx %>/notifications" style="color: #4f46e5; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-            <span>Open Notification Center</span>
-            <i class="ti ti-arrow-right"></i>
-          </a>
+        <div id="pageLoaderTitle"
+          style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 4px; font-family: 'Plus Jakarta Sans', sans-serif;">
+          Processing...</div>
+        <div id="pageLoaderSubtitle" style="font-size: 13px; color: #64748b; font-weight: 500;">Please wait a moment
         </div>
       </div>
     </div>
 
-    <!-- User Profile Dropdown -->
-    <div class="user-profile-dropdown" id="userProfileContainer">
-      <button class="user-dropdown-btn" id="userDropdownTrigger" type="button">
-        <img src="<%= (typeof user !== 'undefined' && user && user.avatar) ? user.avatar : '/assets/images/profile/user-1.jpg' %>" alt="Profile avatar" class="header-user-avatar-img">
-        <div class="user-dropdown-meta header-user-text">
-          <div class="name">
-            <% if (typeof user !=='undefined' && user) { %>
-              <%= user.first_name || user.username || 'Administrator' %>
-                <% } else { %>
-                  Administrator
-                  <% } %>
-          </div>
-          <div class="role">
-            <% if (isHeaderSubscriber) { %>
-              Store Owner
-            <% } else if (typeof user !=='undefined' && user && user.role) { %>
-              <%= user.role.name || 'Admin' %>
-            <% } else { %>
-              Platform Founder
-            <% } %>
+    <!-- Modern Admin Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Toggle navigation"
+          onclick="if(window.toggleMobileSidebar) window.toggleMobileSidebar(event);">
+          <i class="ti ti-menu-2"></i>
+        </button>
+
+        <div class="header-search-bar" style="position: relative;">
+          <% const isHeaderSubscriber=(typeof user !=='undefined' && user && user.company_id> 1); %>
+            <% const hpfx=isHeaderSubscriber ? '/subscriber' : '/admin' ; %>
+              <i class="ti ti-search search-icon"></i>
+              <input type="text" id="globalHeaderSearch" placeholder="Search products, invoices, customers..."
+                autocomplete="off">
+              <span class="search-shortcut-badge"
+                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; padding: 2px 7px; font-size: 10.5px; font-weight: 700; color: #64748b; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; pointer-events: none; z-index: 5; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);"><kbd
+                  style="background: none; border: none; padding: 0; color: inherit; font-size: inherit; font-family: inherit;">Ctrl</kbd>
+                + <kbd
+                  style="background: none; border: none; padding: 0; color: inherit; font-size: inherit; font-family: inherit;">K</kbd></span>
+
+              <!-- Quick Command & Search Dropdown Palette -->
+              <div id="quickSearchPalette" class="quick-search-palette" style="display: none;">
+                <div class="palette-group-title">Quick Actions &amp; Navigation</div>
+                <a href="<%= hpfx %>/sales/pos" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-device-laptop"></i></span><span>Open POS Terminal</span><kbd>F2</kbd></a>
+                <a href="<%= hpfx %>/master/products" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-package"></i></span><span>Products Catalog</span><kbd>F4</kbd></a>
+                <a href="<%= hpfx %>/sales/" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-file-invoice"></i></span><span>Invoices &amp; Bills</span><kbd>Sales</kbd></a>
+                <a href="<%= hpfx %>/master/customers" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-users"></i></span><span>Customers Directory</span><kbd>F8</kbd></a>
+                <a href="<%= hpfx %>/reports/sales" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-chart-bar"></i></span><span>Sales Analytics</span><kbd>Reports</kbd></a>
+                <a href="<%= isHeaderSubscriber ? '/subscriber/dashboard#my-plan-section' : '/admin/subscription' %>"
+                  class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-sparkles"></i></span><span>Subscriptions &amp; Plans</span><kbd>Pro</kbd></a>
+                <a href="<%= hpfx %>/day-end/form" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-calendar-time"></i></span><span>Day End Register</span><kbd>F9</kbd></a>
+                <a href="<%= hpfx %>/settings/smtp" class="palette-item"><span class="palette-icon"><i
+                      class="ti ti-mail-cog"></i></span><span>SMTP Settings</span><kbd>Settings</kbd></a>
+              </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Quick Action "+ Quick Add" Dropdown (Easy & Fast) -->
+        <div style="position: relative;">
+          <button type="button" class="btn-modern btn-primary-modern btn-sm-modern" id="headerQuickAddBtn"
+            style="padding: 7px 16px; font-weight: 700; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);"
+            title="Quick Create New (Alt + N)">
+            <i class="ti ti-plus" style="font-size: 15px;"></i>
+            <span>Quick Add</span>
+          </button>
+          <div id="headerQuickAddMenu" class="dropdown-menu-custom"
+            style="display: none; width: 220px; top: calc(100% + 8px); right: 0; box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16); border-radius: 14px; padding: 6px; z-index: 1060;">
+            <div
+              style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 6px 12px 4px; letter-spacing: 0.05em;">
+              Instant Actions</div>
+            <a href="<%= hpfx %>/sales/pos" class="dropdown-item-custom"
+              style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+              <span
+                style="width: 26px; height: 26px; border-radius: 6px; background: #edf5ff; color: #1366d9; display: flex; align-items: center; justify-content: center;"><i
+                  class="ti ti-device-laptop"></i></span>
+              <span>New POS Bill</span>
+              <kbd
+                style="margin-left: auto; font-size: 10px; padding: 1px 5px; background: #f1f5f9; border-radius: 4px; color: #64748b;">F2</kbd>
+            </a>
+            <a href="<%= hpfx %>/master/products" class="dropdown-item-custom"
+              style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+              <span
+                style="width: 26px; height: 26px; border-radius: 6px; background: #ecfdf5; color: #107c41; display: flex; align-items: center; justify-content: center;"><i
+                  class="ti ti-package"></i></span>
+              <span>Add Product</span>
+              <kbd
+                style="margin-left: auto; font-size: 10px; padding: 1px 5px; background: #f1f5f9; border-radius: 4px; color: #64748b;">F4</kbd>
+            </a>
+            <a href="<%= hpfx %>/master/customers" class="dropdown-item-custom"
+              style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+              <span
+                style="width: 26px; height: 26px; border-radius: 6px; background: #fff5eb; color: #f2994a; display: flex; align-items: center; justify-content: center;"><i
+                  class="ti ti-user-plus"></i></span>
+              <span>Add Customer</span>
+            </a>
+            <a href="<%= hpfx %>/expenses" class="dropdown-item-custom"
+              style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+              <span
+                style="width: 26px; height: 26px; border-radius: 6px; background: #fde7e9; color: #d83b01; display: flex; align-items: center; justify-content: center;"><i
+                  class="ti ti-receipt"></i></span>
+              <span>Record Expense</span>
+            </a>
           </div>
         </div>
-        <i class="ti ti-chevron-down fs-3 text-muted ms-1 header-user-chevron"></i>
-      </button>
-
-      <!-- Dropdown Menu -->
-      <div class="dropdown-menu-custom" id="userDropdownMenu">
-        <div class="dropdown-user-header">
-          <div class="full-name">
-            <% if (typeof user !=='undefined' && user) { %>
-              <%= user.first_name %>
-                <%= user.last_name || '' %>
-                  <% } else { %>
-                    Admin User
-                    <% } %>
-          </div>
-          <div class="email">
-            <% if (typeof user !=='undefined' && user) { %>
-              <%= user.email || 'admin@grocerybilling.com' %>
-                <% } else { %>
-                  admin@grocerybilling.com
-                  <% } %>
-          </div>
-        </div>
-
-        <a href="<%= hpfx %>/users/profile" class="dropdown-item-custom" onclick="showPageLoader('Loading Profile...')">
-          <i class="ti ti-user-circle fs-5"></i>
-          <span>My Profile</span>
-        </a>
+        <!-- Subscription / Founder Badge -->
         <% if (isHeaderSubscriber) { %>
-          <a href="/subscriber/dashboard#my-plan-section" class="dropdown-item-custom" onclick="showPageLoader('Loading Subscription...')">
-            <i class="ti ti-credit-card fs-5"></i>
-            <span>My Subscription Plan</span>
+          <a href="/subscriber/dashboard#my-plan-section" class="header-subscription-badge"
+            title="Manage Store Subscription Plan"
+            style="background: rgba(79, 70, 229, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); color: #4f46e5;">
+            <i class="ti ti-sparkles" style="color: #4f46e5;"></i>
+            <span class="sub-plan-text" style="color: #4f46e5; font-weight: 800;">
+              <%= (typeof currentSubscription !=='undefined' && currentSubscription && currentSubscription.plan) ?
+                currentSubscription.plan.name.toUpperCase() : 'STORE PLAN' %>
+            </span>
           </a>
-          <a href="/subscriber/dashboard" class="dropdown-item-custom" onclick="showPageLoader('Loading Dashboard...')">
-            <i class="ti ti-dashboard fs-5"></i>
-            <span>Store Dashboard</span>
-          </a>
-        <% } else { %>
-          <a href="/admin/subscription" class="dropdown-item-custom" onclick="showPageLoader('Loading Subscriptions...')">
-            <i class="ti ti-credit-card fs-5"></i>
-            <span>Subscriptions &amp; Plans</span>
-          </a>
-          <a href="/admin/dashboard" class="dropdown-item-custom" onclick="showPageLoader('Loading Dashboard...')">
-            <i class="ti ti-dashboard fs-5"></i>
-            <span>Dashboard</span>
-          </a>
-        <% } %>
-        <a href="<%= hpfx %>/master/products" class="dropdown-item-custom" onclick="showPageLoader('Loading Products...')">
-          <i class="ti ti-package fs-5"></i>
-          <span>Manage Products</span>
-        </a>
-        <a href="<%= hpfx %>/reports/sales" class="dropdown-item-custom" onclick="showPageLoader('Loading Reports...')">
-          <i class="ti ti-chart-bar fs-5"></i>
-          <span>Sales Analytics</span>
-        </a>
-        <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
-        <a href="/admin/logout" class="dropdown-item-custom danger" id="headerLogoutBtn" onclick="handleLogout(event);">
-          <i class="ti ti-logout fs-5"></i>
-          <span>Sign Out</span>
-        </a>
+          <% } else { %>
+            <a href="/admin/subscription" class="header-subscription-badge"
+              title="Platform Founder & Super Administrator"
+              style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: #ca8a04;">
+              <i class="ti ti-crown" style="color: #eab308;"></i>
+              <span class="sub-plan-text" style="color: #ca8a04; font-weight: 800;">FOUNDER</span>
+            </a>
+            <% } %>
+
+              <!-- Notification Bell -->
+              <div style="position: relative;">
+                <div class="header-icon-btn" id="notificationDropdownBtn" title="Notifications"
+                  style="position: relative; cursor: pointer;">
+                  <i class="ti ti-bell fs-5"></i>
+                  <span class="notification-dot" id="headerNotifDot" style="display: none;"></span>
+                  <span id="headerNotifBadge"
+                    style="display: none; position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 0 0 2px #ffffff, 0 2px 5px rgba(239, 68, 68, 0.4); animation: notifPulse 2s infinite;">0</span>
+                </div>
+
+                <!-- Notification Dropdown Panel -->
+                <div id="headerNotifMenu" class="dropdown-menu-custom"
+                  style="display: none; width: 380px; max-width: 92vw; padding: 0; right: 0; top: calc(100% + 10px); box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16); border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; overflow: hidden; z-index: 1060; background: #ffffff;">
+                  
+                  <!-- Dropdown Top Header -->
+                  <div style="padding: 14px 18px 10px 18px; border-bottom: 1px solid var(--border-color, #e2e8f0); background: #ffffff;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <strong style="font-size: 14.5px; color: var(--text-color, #0f172a); font-weight: 700;">Notifications</strong>
+                        <span id="headerNotifUnreadCount"
+                          style="font-size: 11px; background: rgba(79, 70, 229, 0.1); color: #4f46e5; padding: 2px 8px; border-radius: 999px; font-weight: 700;">0 New</span>
+                      </div>
+                      
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <!-- Sound Toggle -->
+                        <button type="button" id="headerNotifSoundToggle" title="Toggle Alert Sound"
+                          style="background: #f1f5f9; border: none; width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s;">
+                          <i class="ti ti-volume" id="headerNotifSoundIcon"></i>
+                        </button>
+                        <!-- Mark All Read -->
+                        <button type="button" id="headerMarkAllReadBtn"
+                          style="background: none; border: none; color: var(--primary, #1366d9); font-size: 12px; font-weight: 600; cursor: pointer; padding: 2px 4px;">
+                          Mark all read
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Header Quick Filter Tabs -->
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" class="header-notif-tab active" data-filter="all" onclick="filterHeaderNotifs('all', this)"
+                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 600; border-radius: 6px; border: 1px solid #e2e8f0; background: #eef5ff; color: #1366d9; cursor: pointer;">All</button>
+                      <button type="button" class="header-notif-tab" data-filter="unread" onclick="filterHeaderNotifs('unread', this)"
+                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 600; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer;">Unread</button>
+                      <button type="button" class="header-notif-tab" data-filter="danger" onclick="filterHeaderNotifs('danger', this)"
+                        style="padding: 4px 10px; font-size: 11.5px; font-weight: 600; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; cursor: pointer;">Critical</button>
+                    </div>
+                  </div>
+
+                  <!-- Dropdown Notifications List -->
+                  <div id="headerNotifList" style="max-height: 330px; overflow-y: auto; padding: 0;">
+                    <div style="text-align: center; padding: 32px 16px; color: #94a3b8; font-size: 13px;">
+                      <i class="ti ti-bell-off fs-1" style="display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+                      Loading notifications...
+                    </div>
+                  </div>
+
+                  <!-- Dropdown Footer -->
+                  <div style="padding: 10px 16px; border-top: 1px solid var(--border-color, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: #f8fafc;">
+                    <button type="button" id="headerEnablePushBtn" onclick="requestPushNotificationPermission()"
+                      style="background: none; border: none; font-size: 12px; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="ti ti-device-desktop"></i>
+                      <span>Desktop Alerts</span>
+                    </button>
+                    <a href="<%= hpfx %>/notifications"
+                      style="color: var(--primary, #1366d9); font-size: 12.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                      <span>Notification Center</span>
+                      <i class="ti ti-arrow-right"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- User Profile Dropdown -->
+              <div class="user-profile-dropdown" id="userProfileContainer">
+                <button class="user-dropdown-btn" id="userDropdownTrigger" type="button">
+                  <img
+                    src="<%= (typeof user !== 'undefined' && user && user.avatar) ? user.avatar : '/assets/images/profile/user-1.jpg' %>"
+                    alt="Profile avatar" class="header-user-avatar-img">
+                  <div class="user-dropdown-meta header-user-text">
+                    <div class="name">
+                      <% if (typeof user !=='undefined' && user) { %>
+                        <%= user.first_name || user.username || 'Administrator' %>
+                          <% } else { %>
+                            Administrator
+                            <% } %>
+                    </div>
+                    <div class="role">
+                      <% if (isHeaderSubscriber) { %>
+                        Store Owner
+                        <% } else if (typeof user !=='undefined' && user && user.role) { %>
+                          <%= user.role.name || 'Admin' %>
+                            <% } else { %>
+                              Platform Founder
+                              <% } %>
+                    </div>
+                  </div>
+                  <i class="ti ti-chevron-down fs-3 text-muted ms-1 header-user-chevron"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="dropdown-menu-custom" id="userDropdownMenu">
+                  <div class="dropdown-user-header">
+                    <div class="full-name">
+                      <% if (typeof user !=='undefined' && user) { %>
+                        <%= user.first_name %>
+                          <%= user.last_name || '' %>
+                            <% } else { %>
+                              Admin User
+                              <% } %>
+                    </div>
+                    <div class="email">
+                      <% if (typeof user !=='undefined' && user) { %>
+                        <%= user.email || 'admin@grocerybilling.com' %>
+                          <% } else { %>
+                            admin@grocerybilling.com
+                            <% } %>
+                    </div>
+                  </div>
+
+                  <a href="<%= hpfx %>/users/profile" class="dropdown-item-custom"
+                    onclick="showPageLoader('Loading Profile...')">
+                    <i class="ti ti-user-circle fs-5"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <% if (isHeaderSubscriber) { %>
+                    <a href="/subscriber/dashboard#my-plan-section" class="dropdown-item-custom"
+                      onclick="showPageLoader('Loading Subscription...')">
+                      <i class="ti ti-credit-card fs-5"></i>
+                      <span>My Subscription Plan</span>
+                    </a>
+                    <a href="/subscriber/dashboard" class="dropdown-item-custom"
+                      onclick="showPageLoader('Loading Dashboard...')">
+                      <i class="ti ti-dashboard fs-5"></i>
+                      <span>Store Dashboard</span>
+                    </a>
+                    <% } else { %>
+                      <a href="/admin/subscription" class="dropdown-item-custom"
+                        onclick="showPageLoader('Loading Subscriptions...')">
+                        <i class="ti ti-credit-card fs-5"></i>
+                        <span>Subscriptions &amp; Plans</span>
+                      </a>
+                      <a href="/admin/dashboard" class="dropdown-item-custom"
+                        onclick="showPageLoader('Loading Dashboard...')">
+                        <i class="ti ti-dashboard fs-5"></i>
+                        <span>Dashboard</span>
+                      </a>
+                      <% } %>
+                        <a href="<%= hpfx %>/master/products" class="dropdown-item-custom"
+                          onclick="showPageLoader('Loading Products...')">
+                          <i class="ti ti-package fs-5"></i>
+                          <span>Manage Products</span>
+                        </a>
+                        <a href="<%= hpfx %>/reports/sales" class="dropdown-item-custom"
+                          onclick="showPageLoader('Loading Reports...')">
+                          <i class="ti ti-chart-bar fs-5"></i>
+                          <span>Sales Analytics</span>
+                        </a>
+                        <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
+                        <a href="/admin/logout" class="dropdown-item-custom danger" id="headerLogoutBtn"
+                          onclick="handleLogout(event);">
+                          <i class="ti ti-logout fs-5"></i>
+                          <span>Sign Out</span>
+                        </a>
+                </div>
+              </div>
       </div>
-    </div>
-  </div>
-</header>
+    </header>
 
-<script>
-  // Robust Logout Handler with SweetAlert2 confirmation & fallback
-  function handleLogout(e) {
-    if (e && typeof e.preventDefault === 'function') {
-      e.preventDefault();
-    }
+    <!-- Global Toast Notification Container -->
+    <div id="erpGlobalToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; max-width: 380px; width: calc(100vw - 32px); pointer-events: none;"></div>
 
-    // Close user dropdown if open
-    const menu = document.getElementById('userDropdownMenu');
-    if (menu) menu.classList.remove('show');
+    <style>
+      @keyframes notifPulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { transform: scale(1.08); box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+      .erp-toast-item {
+        pointer-events: auto;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(20px);
+        opacity: 0;
+        animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transition: all 0.25s ease;
+      }
+      .erp-toast-item.toast-closing {
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+      }
+      @keyframes toastSlideIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .header-notif-row {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 16px;
+        text-decoration: none;
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        transition: background 0.15s ease;
+      }
+      .header-notif-row:hover {
+        background: #f8fafc;
+      }
+      .header-notif-row.unread {
+        background: #f0f7ff;
+      }
+      .header-notif-row.unread:hover {
+        background: #e8f2fe;
+      }
+    </style>
 
-    if (typeof Swal !== 'undefined' && typeof showConfirm === 'function') {
-      showConfirm('Sign Out?', 'Are you sure you want to end your current session?', 'Yes, Sign Out')
-        .then(function (result) {
-          if (result && result.isConfirmed) {
+    <script>
+
+      // Robust Logout Handler with SweetAlert2 confirmation & fallback
+      function handleLogout(e) {
+        if (e && typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
+
+        // Close user dropdown if open
+        const menu = document.getElementById('userDropdownMenu');
+        if (menu) menu.classList.remove('show');
+
+        if (typeof Swal !== 'undefined' && typeof showConfirm === 'function') {
+          showConfirm('Sign Out?', 'Are you sure you want to end your current session?', 'Yes, Sign Out')
+            .then(function (result) {
+              if (result && result.isConfirmed) {
+                if (typeof showPageLoader === 'function') showPageLoader('Signing out...');
+                window.location.href = '/admin/logout';
+              }
+            })
+            .catch(function () {
+              // If Swal fails or is dismissed
+            });
+        } else {
+          if (confirm('Are you sure you want to sign out?')) {
             if (typeof showPageLoader === 'function') showPageLoader('Signing out...');
             window.location.href = '/admin/logout';
           }
-        })
-        .catch(function () {
-          // If Swal fails or is dismissed
-        });
-    } else {
-      if (confirm('Are you sure you want to sign out?')) {
-        if (typeof showPageLoader === 'function') showPageLoader('Signing out...');
-        window.location.href = '/admin/logout';
+        }
       }
-    }
-  }
 
-  // =============================================
-  // UNIVERSAL BACK BUTTON HANDLER
-  // =============================================
-  function handleGoBack() {
-    if (window.location.pathname === '/admin/dashboard') {
-      // Already on home dashboard, show toast or do nothing
-      return;
-    }
-    if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
-      if (typeof startTurboProgress === 'function') startTurboProgress();
-      window.history.back();
-    } else {
-      if (typeof startTurboProgress === 'function') startTurboProgress();
-      window.location.href = '/admin/dashboard';
-    }
-  }
+      document.addEventListener('DOMContentLoaded', function () {
+        // User profile dropdown toggle
+        const trigger = document.getElementById('userDropdownTrigger');
+        const menu = document.getElementById('userDropdownMenu');
 
-  document.addEventListener('DOMContentLoaded', function () {
-    // User profile dropdown toggle
-    const trigger = document.getElementById('userDropdownTrigger');
-    const menu = document.getElementById('userDropdownMenu');
+        if (trigger && menu) {
+          trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+          });
 
-    if (trigger && menu) {
-      trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        menu.classList.toggle('show');
-      });
-
-      document.addEventListener('click', function (e) {
-        if (!menu.contains(e.target) && !trigger.contains(e.target)) {
-          menu.classList.remove('show');
+          document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+              menu.classList.remove('show');
+            }
+          });
         }
-      });
-    }
 
-    // Header Notifications Dropdown Engine
-    const notifBtn = document.getElementById('notificationDropdownBtn');
-    const notifMenu = document.getElementById('headerNotifMenu');
-    const notifBadge = document.getElementById('headerNotifBadge');
-    const notifUnreadText = document.getElementById('headerNotifUnreadCount');
-    const notifList = document.getElementById('headerNotifList');
-    const markAllBtn = document.getElementById('headerMarkAllReadBtn');
+        // ============================================================
+        // ADVANCED NOTIFICATION CLIENT ENGINE
+        // ============================================================
+        const notifBtn = document.getElementById('notificationDropdownBtn');
+        const notifMenu = document.getElementById('headerNotifMenu');
+        const notifBadge = document.getElementById('headerNotifBadge');
+        const notifDot = document.getElementById('headerNotifDot');
+        const notifUnreadText = document.getElementById('headerNotifUnreadCount');
+        const notifList = document.getElementById('headerNotifList');
+        const markAllBtn = document.getElementById('headerMarkAllReadBtn');
+        const soundToggleBtn = document.getElementById('headerNotifSoundToggle');
+        const soundIcon = document.getElementById('headerNotifSoundIcon');
 
-    if (notifBtn && notifMenu) {
-      notifBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const isOpen = notifMenu.style.display === 'block';
-        notifMenu.style.display = isOpen ? 'none' : 'block';
-        if (menu) menu.classList.remove('show');
-        if (!isOpen) {
-          fetchHeaderNotifications();
+        let cachedNotifications = [];
+        let previousUnreadCount = null;
+        let activeHeaderFilter = 'all';
+
+        // Sound State Initialization
+        function updateSoundIconState() {
+          const isMuted = localStorage.getItem('erp_notif_sound') === 'muted';
+          if (soundIcon) {
+            soundIcon.className = isMuted ? 'ti ti-volume-off' : 'ti ti-volume';
+            soundIcon.style.color = isMuted ? '#ef4444' : '#1366d9';
+          }
+          if (soundToggleBtn) {
+            soundToggleBtn.title = isMuted ? 'Sound Alerts Muted (Click to Unmute)' : 'Sound Alerts Active (Click to Mute)';
+          }
         }
-      });
+        updateSoundIconState();
 
-      document.addEventListener('click', function(e) {
-        if (!notifMenu.contains(e.target) && !notifBtn.contains(e.target)) {
-          notifMenu.style.display = 'none';
-        }
-      });
-    }
-
-    function fetchHeaderNotifications() {
-      fetch('/api/notifications')
-        .then(res => res.json())
-        .then(data => {
-          if (!data || !data.success) return;
-
-          if (notifBadge && notifUnreadText) {
-            if (data.unread_count > 0) {
-              notifBadge.style.display = 'flex';
-              notifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
-              notifUnreadText.textContent = `${data.unread_count} New`;
+        if (soundToggleBtn) {
+          soundToggleBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isMuted = localStorage.getItem('erp_notif_sound') === 'muted';
+            if (isMuted) {
+              localStorage.removeItem('erp_notif_sound');
+              updateSoundIconState();
+              playNotificationChime();
             } else {
-              notifBadge.style.display = 'none';
-              notifUnreadText.textContent = 'All Caught Up';
+              localStorage.setItem('erp_notif_sound', 'muted');
+              updateSoundIconState();
             }
+          });
+        }
+
+        // Web Audio API Synthesizer Chime
+        function playNotificationChime() {
+          if (localStorage.getItem('erp_notif_sound') === 'muted') return;
+          try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+
+            // Tone 1: D5 (587.33Hz)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, now);
+            gain1.gain.setValueAtTime(0.18, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.32);
+
+            // Tone 2: A5 (880.00Hz) - sweet high harmony
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, now + 0.08);
+            gain2.gain.setValueAtTime(0.22, now + 0.08);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(now + 0.08);
+            osc2.stop(now + 0.48);
+          } catch (e) {
+            // Audio context permission notice
+          }
+        }
+        window.playNotificationChime = playNotificationChime;
+
+        // Floating Toast Engine
+        function showNotificationToast(notif) {
+          const container = document.getElementById('erpGlobalToastContainer');
+          if (!container) return;
+
+          const toast = document.createElement('div');
+          toast.className = 'erp-toast-item';
+          
+          const iconColor = notif.severity === 'danger' ? '#dc2626' : (notif.severity === 'warning' ? '#d97706' : (notif.severity === 'success' ? '#059669' : '#2563eb'));
+          const iconBg = notif.severity === 'danger' ? '#fef2f2' : (notif.severity === 'warning' ? '#fffbeb' : (notif.severity === 'success' ? '#f0fdf4' : '#eff6ff'));
+
+          toast.innerHTML = `
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: ${iconBg}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+              <i class="ti ${notif.icon || 'ti-bell'}"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                <strong style="font-size: 13.5px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${notif.title}</strong>
+                <span style="font-size: 10.5px; color: #94a3b8; flex-shrink: 0;">Just now</span>
+              </div>
+              <p style="margin: 0 0 8px 0; font-size: 12px; color: #475569; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${notif.message}</p>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${notif.link ? `<a href="${notif.link}" style="font-size: 11.5px; font-weight: 700; color: #1366d9; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">Open <i class="ti ti-arrow-right"></i></a>` : ''}
+                <button type="button" onclick="this.closest('.erp-toast-item').remove()" style="background: none; border: none; font-size: 11.5px; color: #94a3b8; cursor: pointer; padding: 0;">Dismiss</button>
+              </div>
+            </div>
+            <button type="button" onclick="this.closest('.erp-toast-item').remove()" style="background: none; border: none; color: #94a3b8; font-size: 15px; cursor: pointer; padding: 2px; line-height: 1;">&times;</button>
+          `;
+
+          container.appendChild(toast);
+
+          // Auto-remove after 6.5 seconds
+          setTimeout(() => {
+            if (toast && toast.parentNode) {
+              toast.classList.add('toast-closing');
+              setTimeout(() => toast.remove(), 250);
+            }
+          }, 6500);
+        }
+        window.showNotificationToast = showNotificationToast;
+
+        // Browser Native Desktop Notification
+        window.requestPushNotificationPermission = function () {
+          if (!('Notification' in window)) {
+            alert('This browser does not support desktop notifications.');
+            return;
+          }
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification('Grocery Billing ERP', {
+                body: 'Desktop notifications are now enabled! You will be alerted for inventory and sales.',
+                icon: '/assets/images/logos/favicon.png'
+              });
+              const btn = document.getElementById('headerEnablePushBtn');
+              if (btn) btn.innerHTML = '<i class="ti ti-check" style="color: #10b981;"></i><span style="color: #10b981;">Alerts Enabled</span>';
+            }
+          });
+        };
+
+        // Header Bell Dropdown Toggle
+        if (notifBtn && notifMenu) {
+          notifBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = notifMenu.style.display === 'block';
+            notifMenu.style.display = isOpen ? 'none' : 'block';
+            if (menu) menu.classList.remove('show');
+            if (!isOpen) {
+              fetchHeaderNotifications(false);
+            }
+          });
+
+          document.addEventListener('click', function (e) {
+            if (!notifMenu.contains(e.target) && !notifBtn.contains(e.target)) {
+              notifMenu.style.display = 'none';
+            }
+          });
+        }
+
+        // Header Tab Filter Switcher
+        window.filterHeaderNotifs = function (filter, btn) {
+          activeHeaderFilter = filter;
+          document.querySelectorAll('.header-notif-tab').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = '#ffffff';
+            b.style.color = '#64748b';
+          });
+          if (btn) {
+            btn.classList.add('active');
+            btn.style.background = '#eef5ff';
+            btn.style.color = '#1366d9';
+          }
+          renderHeaderNotifList();
+        };
+
+        // Render Dropdown List from cached array
+        function renderHeaderNotifList() {
+          if (!notifList) return;
+
+          let filtered = cachedNotifications;
+          if (activeHeaderFilter === 'unread') {
+            filtered = cachedNotifications.filter(n => !n.is_read);
+          } else if (activeHeaderFilter === 'danger') {
+            filtered = cachedNotifications.filter(n => n.severity === 'danger');
           }
 
-          if (notifList) {
-            if (!data.notifications || data.notifications.length === 0) {
-              notifList.innerHTML = `
-                <div style="text-align: center; padding: 24px 16px; color: #94a3b8; font-size: 13px;">
-                  <i class="ti ti-circle-check fs-2" style="color: #10b981; display: block; margin-bottom: 4px;"></i>
-                  No unread notifications!
+          if (!filtered || filtered.length === 0) {
+            notifList.innerHTML = `
+              <div style="text-align: center; padding: 28px 16px; color: #94a3b8; font-size: 13px;">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; color: #10b981; margin-bottom: 8px;">
+                  <i class="ti ti-check"></i>
                 </div>
-              `;
-              return;
+                <div style="font-weight: 600; color: #334155;">No ${activeHeaderFilter !== 'all' ? activeHeaderFilter : ''} notifications!</div>
+                <div style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">You are completely up to date.</div>
+              </div>
+            `;
+            return;
+          }
+
+          notifList.innerHTML = filtered.map(n => {
+            const iconColor = n.severity === 'danger' ? '#ef4444' : (n.severity === 'warning' ? '#f59e0b' : (n.severity === 'success' ? '#10b981' : '#3b82f6'));
+            const iconBg = n.severity === 'danger' ? 'rgba(239, 68, 68, 0.1)' : (n.severity === 'warning' ? 'rgba(245, 158, 11, 0.1)' : (n.severity === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)'));
+            
+            return `
+              <div class="header-notif-row ${!n.is_read ? 'unread' : ''}" id="headerRow-${n.id}">
+                <div style="width: 34px; height: 34px; border-radius: 10px; background: ${iconBg}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; margin-top: 2px;">
+                  <i class="ti ${n.icon || 'ti-bell'}"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px;">
+                    <a href="${n.link || '#'}" onclick="headerMarkSingleRead(${n.id}, event, '${n.link || ''}')" style="color: var(--text-color, #0f172a); font-size: 13px; font-weight: ${n.is_read ? '600' : '700'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-decoration: none; display: block; max-width: 190px;">
+                      ${n.title}
+                    </a>
+                    <span style="font-size: 10.5px; color: #94a3b8; flex-shrink: 0;">${n.time_ago || ''}</span>
+                  </div>
+                  <div style="color: #64748b; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px;">
+                    ${n.message}
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    ${n.link ? `<a href="${n.link}" onclick="headerMarkSingleRead(${n.id}, event, '${n.link}')" style="font-size: 11px; font-weight: 700; color: #1366d9; text-decoration: none;">View &rarr;</a>` : ''}
+                    ${!n.is_read ? `<button type="button" onclick="headerMarkSingleRead(${n.id}, event, null)" style="background: none; border: none; padding: 0; color: #64748b; font-size: 11px; cursor: pointer; text-decoration: underline;">Mark read</button>` : ''}
+                    <button type="button" onclick="headerDeleteNotification(${n.id}, event)" style="background: none; border: none; padding: 0; color: #94a3b8; font-size: 11px; cursor: pointer; margin-left: auto;" title="Delete notification"><i class="ti ti-trash"></i></button>
+                  </div>
+                </div>
+                ${!n.is_read ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #2563eb; margin-top: 6px; flex-shrink: 0;"></span>' : ''}
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Fetch Notifications Engine
+        function fetchHeaderNotifications(triggerSensoryAlerts = true) {
+          fetch('/api/notifications?limit=25')
+            .then(res => res.json())
+            .then(data => {
+              if (!data || !data.success) return;
+
+              cachedNotifications = data.notifications || [];
+
+              // Update Badge and Count
+              if (notifBadge && notifUnreadText) {
+                if (data.unread_count > 0) {
+                  notifBadge.style.display = 'flex';
+                  notifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                  notifUnreadText.textContent = `${data.unread_count} New`;
+                } else {
+                  notifBadge.style.display = 'none';
+                  notifUnreadText.textContent = 'All Caught Up';
+                }
+              }
+
+              // Detect New Incoming Alerts for Sensory Feedback
+              if (previousUnreadCount !== null && data.unread_count > previousUnreadCount && triggerSensoryAlerts) {
+                playNotificationChime();
+                const newest = cachedNotifications.find(n => !n.is_read);
+                if (newest) {
+                  showNotificationToast(newest);
+                  // Browser native notification if backgrounded
+                  if (document.hidden && ('Notification' in window) && Notification.permission === 'granted') {
+                    new Notification(newest.title, {
+                      body: newest.message,
+                      icon: '/assets/images/logos/favicon.png'
+                    });
+                  }
+                }
+              }
+
+              previousUnreadCount = data.unread_count;
+              renderHeaderNotifList();
+            })
+            .catch(err => console.warn('Error fetching notifications:', err));
+        }
+
+        // Mark Single Read
+        window.headerMarkSingleRead = function (id, e, link) {
+          if (e && e.stopPropagation) e.stopPropagation();
+          fetch(`/api/notifications/${id}/read`, { method: 'POST' })
+            .then(() => {
+              const item = cachedNotifications.find(n => n.id === id);
+              if (item) item.is_read = true;
+              if (link && link !== '#' && link !== '') {
+                window.location.href = link;
+              } else {
+                fetchHeaderNotifications(false);
+              }
+            })
+            .catch(() => {
+              if (link && link !== '#' && link !== '') window.location.href = link;
+            });
+        };
+
+        // Delete Single Notification
+        window.headerDeleteNotification = function (id, e) {
+          if (e && e.stopPropagation) e.stopPropagation();
+          fetch(`/api/notifications/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(res => {
+              if (res.success) {
+                cachedNotifications = cachedNotifications.filter(n => n.id !== id);
+                fetchHeaderNotifications(false);
+              }
+            });
+        };
+
+        // Mark All As Read
+        if (markAllBtn) {
+          markAllBtn.addEventListener('click', function () {
+            fetch('/api/notifications/mark-all-read', { method: 'POST' })
+              .then(() => fetchHeaderNotifications(false))
+              .catch(err => console.error(err));
+          });
+        }
+
+        // Initial fetch and auto-poll every 25 seconds
+        fetchHeaderNotifications(false);
+        setInterval(() => fetchHeaderNotifications(true), 25000);
+
+        // Immediate fetch when user returns to the browser tab
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) {
+            fetchHeaderNotifications(true);
+          }
+        });
+
+
+        // =============================================
+        // GLOBAL KEYBOARD SHORTCUTS ENGINE
+        // =============================================
+        document.addEventListener('keydown', function (e) {
+
+          // Ignore when typing inside input/textarea/select unless it's a Function key or Esc or Ctrl+K
+          const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+
+          // F1 or Shift + ? -> Open Shortcuts Help
+          if (e.key === 'F1' || (e.key === '?' && !isInput)) {
+            e.preventDefault();
+            openShortcutsModal();
+            return;
+          }
+
+          const isSub = window.location.pathname.startsWith('/subscriber');
+          const pfx = isSub ? '/subscriber' : '/admin';
+
+          // F2 -> Instant POS Terminal
+          if (e.key === 'F2') {
+            e.preventDefault();
+            if (!window.location.pathname.endsWith('/sales/pos')) {
+              if (typeof showPageLoader === 'function') showPageLoader('Opening POS Terminal (F2)...');
+              window.location.href = pfx + '/sales/pos';
             }
-
-            notifList.innerHTML = data.notifications.map(n => {
-              const iconColor = n.severity === 'danger' ? '#ef4444' : (n.severity === 'warning' ? '#f59e0b' : (n.severity === 'success' ? '#10b981' : '#3b82f6'));
-              const bg = n.is_read ? 'transparent' : 'rgba(79, 70, 229, 0.05)';
-              return `
-                <a href="${n.link || '#'}" onclick="headerMarkSingleRead(${n.id}, event, '${n.link || ''}')" style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px; text-decoration: none; background: ${bg}; border-bottom: 1px solid var(--border-color, #e2e8f0); transition: background 0.15s;">
-                  <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0,0,0,0.04); color: ${iconColor}; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; margin-top: 2px;">
-                    <i class="ti ${n.icon || 'ti-bell'}"></i>
-                  </div>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 2px;">
-                      <strong style="color: var(--text-color, #0f172a); font-size: 13px; font-weight: ${n.is_read ? '500' : '700'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${n.title}</strong>
-                      <span style="font-size: 11px; color: #94a3b8; flex-shrink: 0;">${n.time_ago || ''}</span>
-                    </div>
-                    <div style="color: #64748b; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                      ${n.message}
-                    </div>
-                  </div>
-                  ${!n.is_read ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #4f46e5; margin-top: 6px; flex-shrink: 0;"></span>' : ''}
-                </a>
-              `;
-            }).join('');
+            return;
           }
-        })
-        .catch(err => console.error('Error fetching notifications:', err));
-    }
 
-    window.headerMarkSingleRead = function(id, e, link) {
-      fetch(`/api/notifications/${id}/read`, { method: 'POST' })
-        .then(() => {
-          if (link && link !== '#' && link !== '') {
-            window.location.href = link;
-          } else {
-            fetchHeaderNotifications();
+          // F3 or Ctrl+K -> Focus Search
+          if (e.key === 'F3' || ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K'))) {
+            e.preventDefault();
+            const searchInput = document.getElementById('globalHeaderSearch');
+            if (searchInput) searchInput.focus();
+            return;
           }
-        })
-        .catch(() => {
-          if (link && link !== '#' && link !== '') window.location.href = link;
+
+          // Alt + N -> Quick Add Menu
+          if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+            e.preventDefault();
+            const qaBtn = document.getElementById('headerQuickAddBtn');
+            if (qaBtn) qaBtn.click();
+            return;
+          }
+
+          // F4 -> Quick Products
+          if (e.key === 'F4') {
+            e.preventDefault();
+            if (!window.location.pathname.includes('/master/products')) {
+              if (typeof showPageLoader === 'function') showPageLoader('Opening Products Catalog (F4)...');
+              window.location.href = pfx + '/master/products';
+            }
+            return;
+          }
+
+          // F8 -> Quick Customers
+          if (e.key === 'F8') {
+            e.preventDefault();
+            if (!window.location.pathname.includes('/master/customers')) {
+              if (typeof showPageLoader === 'function') showPageLoader('Opening Customers Directory (F8)...');
+              window.location.href = pfx + '/master/customers';
+            }
+            return;
+          }
+
+          // F9 -> Day End Closing
+          if (e.key === 'F9') {
+            e.preventDefault();
+            if (!window.location.pathname.includes('/day-end')) {
+              if (typeof showPageLoader === 'function') showPageLoader('Opening Day End Closing (F9)...');
+              window.location.href = pfx + '/day-end/form';
+            }
+            return;
+          }
+
+          // Esc -> Close Shortcuts Modal, quick palettes, and active modals
+          if (e.key === 'Escape') {
+            closeShortcutsModal();
+            const searchPalette = document.getElementById('quickSearchPalette');
+            if (searchPalette) searchPalette.style.display = 'none';
+            const qaMenu = document.getElementById('headerQuickAddMenu');
+            if (qaMenu) qaMenu.style.display = 'none';
+            document.querySelectorAll('.modal-backdrop-modern.show').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.dropdown-menu-custom').forEach(d => { d.classList.remove('show'); d.style.display = 'none'; });
+          }
         });
-    };
 
-    if (markAllBtn) {
-      markAllBtn.addEventListener('click', function() {
-        fetch('/api/notifications/mark-all-read', { method: 'POST' })
-          .then(() => fetchHeaderNotifications())
-          .catch(err => console.error(err));
-      });
-    }
-
-    // Initial fetch and auto-poll every 45s
-    fetchHeaderNotifications();
-    setInterval(fetchHeaderNotifications, 45000);
-
-    // =============================================
-    // GLOBAL KEYBOARD SHORTCUTS ENGINE
-    // =============================================
-    document.addEventListener('keydown', function (e) {
-      // Alt + LeftArrow -> Universal Back
-      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Left')) {
-        e.preventDefault();
-        handleGoBack();
-        return;
-      }
-
-      // Ignore when typing inside input/textarea/select unless it's a Function key or Esc or Ctrl+K
-      const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
-
-      // F1 or Shift + ? -> Open Shortcuts Help
-      if (e.key === 'F1' || (e.key === '?' && !isInput)) {
-        e.preventDefault();
-        openShortcutsModal();
-        return;
-      }
-
-      const isSub = window.location.pathname.startsWith('/subscriber');
-      const pfx = isSub ? '/subscriber' : '/admin';
-
-      // F2 -> Instant POS Terminal
-      if (e.key === 'F2') {
-        e.preventDefault();
-        if (!window.location.pathname.endsWith('/sales/pos')) {
-          if (typeof showPageLoader === 'function') showPageLoader('Opening POS Terminal (F2)...');
-          window.location.href = pfx + '/sales/pos';
-        }
-        return;
-      }
-
-      // F3 or Ctrl+K -> Focus Search
-      if (e.key === 'F3' || ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K'))) {
-        e.preventDefault();
-        const searchInput = document.getElementById('globalHeaderSearch');
-        if (searchInput) searchInput.focus();
-        return;
-      }
-
-      // Alt + N -> Quick Add Menu
-      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
-        e.preventDefault();
+        // Quick Add Menu toggle
         const qaBtn = document.getElementById('headerQuickAddBtn');
-        if (qaBtn) qaBtn.click();
-        return;
-      }
-
-      // F4 -> Quick Products
-      if (e.key === 'F4') {
-        e.preventDefault();
-        if (!window.location.pathname.includes('/master/products')) {
-          if (typeof showPageLoader === 'function') showPageLoader('Opening Products Catalog (F4)...');
-          window.location.href = pfx + '/master/products';
-        }
-        return;
-      }
-
-      // F8 -> Quick Customers
-      if (e.key === 'F8') {
-        e.preventDefault();
-        if (!window.location.pathname.includes('/master/customers')) {
-          if (typeof showPageLoader === 'function') showPageLoader('Opening Customers Directory (F8)...');
-          window.location.href = pfx + '/master/customers';
-        }
-        return;
-      }
-
-      // F9 -> Day End Closing
-      if (e.key === 'F9') {
-        e.preventDefault();
-        if (!window.location.pathname.includes('/day-end')) {
-          if (typeof showPageLoader === 'function') showPageLoader('Opening Day End Closing (F9)...');
-          window.location.href = pfx + '/day-end/form';
-        }
-        return;
-      }
-
-      // Esc -> Close Shortcuts Modal, quick palettes, and active modals
-      if (e.key === 'Escape') {
-        closeShortcutsModal();
-        const searchPalette = document.getElementById('quickSearchPalette');
-        if (searchPalette) searchPalette.style.display = 'none';
         const qaMenu = document.getElementById('headerQuickAddMenu');
-        if (qaMenu) qaMenu.style.display = 'none';
-        document.querySelectorAll('.modal-backdrop-modern.show').forEach(m => m.classList.remove('show'));
-        document.querySelectorAll('.dropdown-menu-custom').forEach(d => { d.classList.remove('show'); d.style.display = 'none'; });
+        if (qaBtn && qaMenu) {
+          qaBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            qaMenu.style.display = (qaMenu.style.display === 'none' || !qaMenu.style.display) ? 'block' : 'none';
+          });
+          document.addEventListener('click', function (e) {
+            if (!qaMenu.contains(e.target) && e.target !== qaBtn) {
+              qaMenu.style.display = 'none';
+            }
+          });
+        }
+
+        const searchInput = document.getElementById('globalHeaderSearch');
+        const searchPalette = document.getElementById('quickSearchPalette');
+
+        if (searchInput && searchPalette) {
+          // Show palette on focus
+          searchInput.addEventListener('focus', function () {
+            searchPalette.style.display = 'block';
+          });
+
+          // Filter palette items on input
+          searchInput.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            searchPalette.style.display = 'block';
+            const items = searchPalette.querySelectorAll('.palette-item');
+            items.forEach(function (item) {
+              const text = item.textContent.toLowerCase();
+              item.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+          });
+
+          // Enter key submits search
+          searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+              searchPalette.style.display = 'none';
+              if (typeof startTurboProgress === 'function') startTurboProgress();
+              window.location.href = '/admin/master/products?search=' + encodeURIComponent(this.value.trim());
+            } else if (e.key === 'Escape') {
+              searchPalette.style.display = 'none';
+              this.blur();
+            }
+          });
+
+          // Click outside to dismiss palette
+          document.addEventListener('click', function (e) {
+            if (!searchInput.contains(e.target) && !searchPalette.contains(e.target)) {
+              searchPalette.style.display = 'none';
+            }
+          });
+        }
+
+        // Dismiss loader when page is restored or ready
+        if (typeof hidePageLoader === 'function') hidePageLoader();
+      });
+
+      // Modal helpers for Shortcuts Cheatsheet
+      function openShortcutsModal() {
+        const m = document.getElementById('keyboardShortcutsModal');
+        if (m) {
+          m.classList.add('show');
+          document.body.style.overflow = 'hidden';
+        }
       }
-    });
 
-    // Quick Add Menu toggle
-    const qaBtn = document.getElementById('headerQuickAddBtn');
-    const qaMenu = document.getElementById('headerQuickAddMenu');
-    if (qaBtn && qaMenu) {
-      qaBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        qaMenu.style.display = (qaMenu.style.display === 'none' || !qaMenu.style.display) ? 'block' : 'none';
-      });
-      document.addEventListener('click', function(e) {
-        if (!qaMenu.contains(e.target) && e.target !== qaBtn) {
-          qaMenu.style.display = 'none';
+      function closeShortcutsModal() {
+        const m = document.getElementById('keyboardShortcutsModal');
+        if (m) {
+          m.classList.remove('show');
+          document.body.style.overflow = '';
         }
-      });
-    }
+      }
+    </script>
 
-    const searchInput = document.getElementById('globalHeaderSearch');
-    const searchPalette = document.getElementById('quickSearchPalette');
+    <!-- Global Keyboard Shortcuts Cheatsheet Modal -->
+    <div id="keyboardShortcutsModal" class="modal-backdrop-modern"
+      onclick="if(event.target===this)closeShortcutsModal()">
+      <div class="modal-dialog-modern" style="max-width: 620px;">
+        <div class="modal-header-modern">
+          <h2 class="modal-title-modern">
+            <i class="ti ti-keyboard" style="color: var(--primary);"></i> Fast Keyboard Shortcuts
+          </h2>
+          <button type="button" class="modal-close-btn" onclick="closeShortcutsModal()">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
 
-    if (searchInput && searchPalette) {
-      // Show palette on focus
-      searchInput.addEventListener('focus', function () {
-        searchPalette.style.display = 'block';
-      });
+        <div class="modal-body-modern" style="padding: 16px 20px;">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Use these instant keyboard shortcuts from anywhere in the software for ultra-fast operations:
+          </p>
 
-      // Filter palette items on input
-      searchInput.addEventListener('input', function () {
-        const query = this.value.trim().toLowerCase();
-        searchPalette.style.display = 'block';
-        const items = searchPalette.querySelectorAll('.palette-item');
-        items.forEach(function (item) {
-          const text = item.textContent.toLowerCase();
-          item.style.display = text.includes(query) ? 'flex' : 'none';
-        });
-      });
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
 
-      // Enter key submits search
-      searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-          searchPalette.style.display = 'none';
-          if (typeof startTurboProgress === 'function') startTurboProgress();
-          window.location.href = '/admin/master/products?search=' + encodeURIComponent(this.value.trim());
-        } else if (e.key === 'Escape') {
-          searchPalette.style.display = 'none';
-          this.blur();
-        }
-      });
-
-      // Click outside to dismiss palette
-      document.addEventListener('click', function (e) {
-        if (!searchInput.contains(e.target) && !searchPalette.contains(e.target)) {
-          searchPalette.style.display = 'none';
-        }
-      });
-    }
-
-    // Dismiss loader when page is restored or ready
-    if (typeof hidePageLoader === 'function') hidePageLoader();
-  });
-
-  // Modal helpers for Shortcuts Cheatsheet
-  function openShortcutsModal() {
-    const m = document.getElementById('keyboardShortcutsModal');
-    if (m) {
-      m.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeShortcutsModal() {
-    const m = document.getElementById('keyboardShortcutsModal');
-    if (m) {
-      m.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-  }
-</script>
-
-<!-- Global Keyboard Shortcuts Cheatsheet Modal -->
-<div id="keyboardShortcutsModal" class="modal-backdrop-modern" onclick="if(event.target===this)closeShortcutsModal()">
-  <div class="modal-dialog-modern" style="max-width: 620px;">
-    <div class="modal-header-modern">
-      <h2 class="modal-title-modern">
-        <i class="ti ti-keyboard" style="color: var(--primary);"></i> Fast Keyboard Shortcuts
-      </h2>
-      <button type="button" class="modal-close-btn" onclick="closeShortcutsModal()">
-        <i class="ti ti-x"></i>
-      </button>
-    </div>
-
-    <div class="modal-body-modern" style="padding: 16px 20px;">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-        Use these instant keyboard shortcuts from anywhere in the software for ultra-fast operations:
-      </p>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-
-        <!-- POS & Sales Hotkeys -->
-        <div
-          style="background: var(--bg-card-hover, rgba(15,23,42,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
-          <div
-            style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-            <i class="ti ti-device-laptop" style="color: var(--success);"></i> POS Billing &amp; Sales
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>New POS Checkout</span>
-              <kbd
-                style="background: var(--primary); color: #fff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F2</kbd>
+            <!-- POS & Sales Hotkeys -->
+            <div
+              style="background: var(--bg-card-hover, rgba(15,23,42,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+              <div
+                style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i class="ti ti-device-laptop" style="color: var(--success);"></i> POS Billing &amp; Sales
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>New POS Checkout</span>
+                  <kbd
+                    style="background: var(--primary); color: #fff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F2</kbd>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Focus Barcode Input</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F4</kbd>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Instant Cash Checkout</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F9</kbd>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Print Tax Invoice</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Ctrl
+                    + P</kbd>
+                </div>
+              </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Focus Barcode Input</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F4</kbd>
+
+            <!-- Navigation & Quick Tools -->
+            <div
+              style="background: var(--bg-card-hover, rgba(15,23,42,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+              <div
+                style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i class="ti ti-compass" style="color: var(--primary);"></i> Navigation &amp; Search
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Global Search</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Ctrl
+                    + K</kbd>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Products Catalog</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F4</kbd>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Customers Directory</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F8</kbd>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span>Shortcuts Help</span>
+                  <kbd
+                    style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F1
+                    / ?</kbd>
+                </div>
+              </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Instant Cash Checkout</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F9</kbd>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Print Tax Invoice</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Ctrl
-                + P</kbd>
-            </div>
+
           </div>
         </div>
 
-        <!-- Navigation & Quick Tools -->
-        <div
-          style="background: var(--bg-card-hover, rgba(15,23,42,0.04)); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
-          <div
-            style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-            <i class="ti ti-compass" style="color: var(--primary);"></i> Navigation &amp; Search
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Global Search</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Ctrl
-                + K</kbd>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Products Catalog</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F4</kbd>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Customers Directory</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F8</kbd>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Shortcuts Help</span>
-              <kbd
-                style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">F1
-                / ?</kbd>
-            </div>
-          </div>
+        <div class="modal-footer-modern" style="justify-content: flex-end;">
+          <button type="button" class="btn-modern btn-primary-modern" onclick="closeShortcutsModal()">
+            Got It (Esc)
+          </button>
         </div>
-
       </div>
     </div>
 
-    <div class="modal-footer-modern" style="justify-content: flex-end;">
-      <button type="button" class="btn-modern btn-primary-modern" onclick="closeShortcutsModal()">
-        Got It (Esc)
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Progressive Web App (PWA) Engine Script -->
-<script>
-  // Ensure manifest & meta tags exist in <head>
-  (function initPwaMeta() {
-    if (!document.querySelector('link[rel="manifest"]')) {
-      const manifestLink = document.createElement('link');
-      manifestLink.rel = 'manifest';
-      manifestLink.href = '/manifest.json';
-      document.head.appendChild(manifestLink);
-    }
-    if (!document.querySelector('meta[name="theme-color"]')) {
-      const themeMeta = document.createElement('meta');
-      themeMeta.name = 'theme-color';
-      themeMeta.content = '#1366d9';
-      document.head.appendChild(themeMeta);
-    }
-    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
-      const appleMeta = document.createElement('meta');
-      appleMeta.name = 'apple-mobile-web-app-capable';
-      appleMeta.content = 'yes';
-      document.head.appendChild(appleMeta);
-    }
-  })();
-
-  // Register Service Worker for Instant Load & Offline Asset Caching
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('/sw.js')
-        .then(function (registration) {
-          // Service Worker registered successfully
-        })
-        .catch(function (err) {
-          // SW registration silent fallback
-        });
-    });
-  }
-
-  // Handle PWA 1-Click Installation
-  let pwaDeferredPrompt = null;
-  const pwaBtn = document.getElementById('pwaInstallBtn');
-
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    pwaDeferredPrompt = e;
-    if (pwaBtn) {
-      pwaBtn.style.display = 'inline-flex';
-    }
-  });
-
-  if (pwaBtn) {
-    pwaBtn.addEventListener('click', async function () {
-      if (pwaDeferredPrompt) {
-        pwaDeferredPrompt.prompt();
-        const choiceResult = await pwaDeferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          pwaBtn.style.display = 'none';
+    <!-- Progressive Web App (PWA) Engine Script -->
+    <script>
+      // Ensure manifest & meta tags exist in <head>
+      (function initPwaMeta() {
+        if (!document.querySelector('link[rel="manifest"]')) {
+          const manifestLink = document.createElement('link');
+          manifestLink.rel = 'manifest';
+          manifestLink.href = '/manifest.json';
+          document.head.appendChild(manifestLink);
         }
-        pwaDeferredPrompt = null;
-      }
-    });
-  }
+        if (!document.querySelector('meta[name="theme-color"]')) {
+          const themeMeta = document.createElement('meta');
+          themeMeta.name = 'theme-color';
+          themeMeta.content = '#1366d9';
+          document.head.appendChild(themeMeta);
+        }
+        if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+          const appleMeta = document.createElement('meta');
+          appleMeta.name = 'apple-mobile-web-app-capable';
+          appleMeta.content = 'yes';
+          document.head.appendChild(appleMeta);
+        }
+      })();
 
-  window.addEventListener('appinstalled', function () {
-    if (pwaBtn) pwaBtn.style.display = 'none';
-    if (typeof showToast === 'function') {
-      showToast('success', '🎉 Grocery POS Web App installed successfully!');
-    }
-  });
-</script>
+      // Register Service Worker for Instant Load & Offline Asset Caching
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function (registration) {
+              // Service Worker registered successfully
+            })
+            .catch(function (err) {
+              // SW registration silent fallback
+            });
+        });
+      }
+
+      // Handle PWA 1-Click Installation
+      let pwaDeferredPrompt = null;
+      const pwaBtn = document.getElementById('pwaInstallBtn');
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        pwaDeferredPrompt = e;
+        if (pwaBtn) {
+          pwaBtn.style.display = 'inline-flex';
+        }
+      });
+
+      if (pwaBtn) {
+        pwaBtn.addEventListener('click', async function () {
+          if (pwaDeferredPrompt) {
+            pwaDeferredPrompt.prompt();
+            const choiceResult = await pwaDeferredPrompt.userChoice;
+            if (choiceResult.outcome === 'accepted') {
+              pwaBtn.style.display = 'none';
+            }
+            pwaDeferredPrompt = null;
+          }
+        });
+      }
+
+      window.addEventListener('appinstalled', function () {
+        if (pwaBtn) pwaBtn.style.display = 'none';
+        if (typeof showToast === 'function') {
+          showToast('success', '🎉 Grocery POS Web App installed successfully!');
+        }
+      });
+    </script>

@@ -1,0 +1,107 @@
+<!-- views/public/partials/checkout-modal.ejs -->
+<div id="clientCheckoutModal" class="b2c-modal-backdrop" onclick="if(event.target===this)closeClientCheckout()">
+  <div class="b2c-modal-dialog">
+    <div class="b2c-modal-header">
+      <h2 class="b2c-modal-title">
+        <i class="ti ti-shopping-bag-check" style="color: #1366d9;"></i> Subscribe &amp; Create Store
+      </h2>
+      <button type="button" class="b2c-modal-close" onclick="closeClientCheckout()">&times;</button>
+    </div>
+
+    <form id="clientCheckoutForm" novalidate>
+      <div class="b2c-modal-body">
+        <!-- Order Summary Card -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 15px; font-weight: 800; color: #0f172a;" id="checkoutPlanTitle">Professional Store</span>
+            <span style="background: #edf5ff; color: #1366d9; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800;" id="checkoutCycleBadge">Monthly Plan</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12.5px; color: #64748b;">Total Payable (Incl. 18% GST):</span>
+            <span style="font-size: 24px; font-weight: 800; color: #1366d9;" id="checkoutAmountDisplay">₹999.00</span>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 11px; color: #64748b; display: flex; justify-content: space-between;">
+            <span id="publicTaxableBase">Base: ₹846.61</span>
+            <span id="publicTaxGst">GST (18%): ₹152.39</span>
+            <span style="color: #10b981; font-weight: 700;">SAC 998313 (IT SaaS)</span>
+          </div>
+        </div>
+
+        <!-- Store Registration Details -->
+        <div class="form-group-client">
+          <label for="cust_store_name">Store / Grocery / Supermarket Name <span style="color:#ef4444;">*</span></label>
+          <input type="text" id="cust_store_name" name="cust_store_name" class="form-control-client" placeholder="e.g. Apex Supermarket" autocomplete="organization">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group-client">
+            <label for="cust_owner_name">Owner / Contact Name <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="cust_owner_name" name="cust_owner_name" class="form-control-client" placeholder="e.g. Ramesh Kumar" autocomplete="name">
+          </div>
+          <div class="form-group-client">
+            <label for="cust_phone">10-Digit Mobile Number <span style="color:#ef4444;">*</span></label>
+            <input type="tel" id="cust_phone" name="cust_phone" class="form-control-client" placeholder="e.g. 9876543210" maxlength="10" autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group-client">
+            <label for="cust_email">Email Address <span style="color:#ef4444;">*</span></label>
+            <input type="email" id="cust_email" name="cust_email" class="form-control-client" placeholder="name@store.com" autocomplete="email">
+          </div>
+          <div class="form-group-client">
+            <label for="cust_city">City / Location <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="cust_city" name="cust_city" class="form-control-client" placeholder="e.g. Mumbai" autocomplete="address-level2">
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="form-group-client" style="margin-top: 10px;">
+          <label>Choose Payment Method</label>
+          <div class="pay-methods-grid">
+            <button type="button" class="pay-btn-opt active" onclick="selectPay(this, 'UPI')">
+              <i class="ti ti-qrcode" style="font-size: 20px;"></i>
+              <span>Instant UPI QR</span>
+            </button>
+            <button type="button" class="pay-btn-opt" onclick="selectPay(this, 'Card')">
+              <i class="ti ti-credit-card" style="font-size: 20px;"></i>
+              <span>Debit / Credit</span>
+            </button>
+            <button type="button" class="pay-btn-opt" onclick="selectPay(this, 'NetBanking')">
+              <i class="ti ti-building-bank" style="font-size: 20px;"></i>
+              <span>Net Banking</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic UPI QR Scan Box -->
+        <div id="publicUpiBox" style="background: #ffffff; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 14px;">
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Scan &amp; Pay with Any UPI App</div>
+          <div style="width: 140px; height: 140px; margin: 0 auto 8px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px; background: #ffffff;">
+            <img id="publicQrImg" src="" alt="UPI QR" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div style="display: flex; justify-content: center; gap: 6px; flex-wrap: wrap;">
+            <span style="background: #f1f5f9; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #334155;">GPay</span>
+            <span style="background: #f1f5f9; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #334155;">PhonePe</span>
+            <span style="background: #f1f5f9; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #334155;">Paytm</span>
+            <span style="background: #f1f5f9; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #334155;">BHIM UPI</span>
+          </div>
+        </div>
+
+        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 12px; font-size: 12px; color: #065f46; display: flex; align-items: center; gap: 8px;">
+          <i class="ti ti-shield-check fs-5" style="color: #10b981;"></i>
+          <span>100% Secure &amp; Verified. Admin will review and activate your store dashboard immediately upon verification.</span>
+        </div>
+      </div>
+
+      <div class="b2c-modal-footer">
+        <button type="button" class="plan-btn plan-btn-secondary" style="width: auto; padding: 0 18px;" onclick="closeClientCheckout()">
+          Cancel
+        </button>
+        <button type="submit" class="plan-btn plan-btn-primary" id="btnSubmitClientOrder" style="width: auto; padding: 0 24px;">
+          <i class="ti ti-check"></i> Complete Purchase &amp; Register Store
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

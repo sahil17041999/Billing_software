@@ -40,7 +40,7 @@
             <div class="card-body-modern">
               
               <div class="table-responsive-wrapper">
-                <table class="table-modern">
+                <table class="table-modern no-datatable server-paginated">
                   <thead>
                     <tr>
                       <th>Return #</th>
@@ -102,15 +102,29 @@
                   Showing Page <strong><%= page %></strong> of <strong><%= Math.max(1, totalPages) %></strong>
                 </span>
                 <div class="pagination-controls">
+                  <% const maxPages = Math.max(1, totalPages); %>
                   <% if (page > 1) { %>
                     <a href="/admin/returns/purchases?page=<%= page - 1 %>&limit=<%= limit %>" class="page-btn-modern">
                       <i class="ti ti-chevron-left"></i> Previous
                     </a>
+                  <% } else { %>
+                    <span class="page-btn-modern disabled">
+                      <i class="ti ti-chevron-left"></i> Previous
+                    </span>
                   <% } %>
-                  <% if (page < totalPages) { %>
+
+                  <% for (let p = Math.max(1, page - 2); p <= Math.min(maxPages, page + 2); p++) { %>
+                    <a href="/admin/returns/purchases?page=<%= p %>&limit=<%= limit %>" class="page-btn-modern <%= p === page ? 'active' : '' %>"><%= p %></a>
+                  <% } %>
+
+                  <% if (page < maxPages) { %>
                     <a href="/admin/returns/purchases?page=<%= page + 1 %>&limit=<%= limit %>" class="page-btn-modern">
                       Next <i class="ti ti-chevron-right"></i>
                     </a>
+                  <% } else { %>
+                    <span class="page-btn-modern disabled">
+                      Next <i class="ti ti-chevron-right"></i>
+                    </span>
                   <% } %>
                 </div>
               </div>

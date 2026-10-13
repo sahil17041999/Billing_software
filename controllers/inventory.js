@@ -55,12 +55,16 @@ exports.getStockSummary = async (req, res) => {
       stocks: stocks.rows,
       total: stocks.count,
       page: parseInt(page),
+      limit: parseInt(limit),
       totalPages: Math.ceil(stocks.count / limit),
       user: req.user
     });
   } catch (error) {
     console.error('Get Stock Summary Error:', error);
-    res.status(500).json({ error: error.message });
+    if (req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).render('error', { error: error.message });
   }
 };
 

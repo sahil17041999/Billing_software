@@ -1,4 +1,4 @@
-<!-- Modern Admin Sidebar Navigation with Dynamic RBAC Privileges -->
+<!-- Modern Admin Sidebar Navigation with Standard Industry ERP Grouping -->
 <% const can = (p) => (typeof hasPermission === 'function' ? hasPermission(p) : true); %>
 <% const canFeature = (f) => (typeof canAccessFeature === 'function' ? canAccessFeature(f) : true); %>
 <aside class="sidebar" id="adminSidebar">
@@ -32,12 +32,12 @@
 
   <!-- Navigation Menu Links -->
   <div class="sidebar-nav-container">
-    
+    <% const isSubUser = (typeof user !== 'undefined' && user && user.company_id > 1); %>
+    <% const pfx = isSubUser ? '/subscriber' : '/admin'; %>
+
     <!-- MAIN SECTION -->
     <div class="nav-group-title">Main</div>
     
-    <% const isSubUser = (typeof user !== 'undefined' && user && user.company_id > 1); %>
-    <% const pfx = isSubUser ? '/subscriber' : '/admin'; %>
     <% if (can('dashboard.view')) { %>
     <a href="<%= isSubUser ? '/subscriber/dashboard' : '/admin/dashboard' %>" class="nav-item-link <%= (typeof currentPage !== 'undefined' && (currentPage === 'dashboard' || currentPage === 'subscriber-dashboard')) ? 'active' : '' %>">
       <span class="icon-box"><i class="ti ti-layout-dashboard"></i></span>
@@ -49,7 +49,7 @@
     <a href="<%= pfx %>/sales/pos" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'pos') ? 'active' : '' %>">
       <span class="icon-box" style="color: var(--primary);"><i class="ti ti-device-laptop"></i></span>
       <span class="label-text">POS Terminal</span>
-      <span class="badge-modern primary" style="margin-left: auto; font-size: 10px; padding: 2px 6px; background: var(--primary-light); color: var(--primary); font-weight: 700;">Live</span>
+      <span class="badge-modern primary" style="margin-left: auto; font-size: 10px; padding: 2px 6px; background: var(--primary-light); color: var(--primary); font-weight: 700;">Live F2</span>
     </a>
     <% } %>
 
@@ -60,7 +60,7 @@
     </a>
     <% } %>
 
-    <!-- MASTER SETUP -->
+    <!-- MASTER DATA -->
     <% if (can('master.products') || can('master.categories_brands') || can('master.customers') || can('suppliers.manage') || can('master.taxes_units')) { %>
     <div class="nav-group-title">Master Data</div>
     
@@ -174,7 +174,8 @@
       <button class="nav-dropdown-trigger" data-toggle="dayendMenu" type="button">
         <span class="icon-box"><i class="ti ti-lock-access"></i></span>
         <span class="label-text">Day End Closing</span>
-        <i class="ti ti-chevron-right arrow-icon"></i>
+        <span class="badge-modern success" style="margin-left: auto; font-size: 10px; padding: 2px 6px; font-weight: 700;">F9</span>
+        <i class="ti ti-chevron-right arrow-icon" style="margin-left: 4px;"></i>
       </button>
       <div class="nav-sub-menu" id="dayendMenu">
         <a href="<%= pfx %>/day-end/" class="nav-sub-link"><i class="ti ti-list-details fs-3"></i> Closings List</a>
@@ -205,7 +206,7 @@
     <% } %>
     <% } %>
 
-    <!-- ADMIN & SETTINGS -->
+    <!-- ADMINISTRATION -->
     <div class="nav-group-title">Administration</div>
 
     <% if (((typeof user !== 'undefined' && user && user.role && user.role.name === 'admin') || can('users.manage') || can('roles.manage')) && canFeature('users')) { %>
@@ -251,6 +252,12 @@
       <span class="icon-box"><i class="ti ti-packages"></i></span>
       <span class="label-text">Subscription Plans</span>
       <span class="badge-modern primary" style="margin-left: auto; font-size: 10px; padding: 2px 7px;">Plans</span>
+    </a>
+
+    <a href="/admin/inquiries" class="nav-item-link <%= (typeof currentPage !== 'undefined' && currentPage === 'inquiries') ? 'active' : '' %>">
+      <span class="icon-box"><i class="ti ti-mail-forward"></i></span>
+      <span class="label-text">Contact Inquiries</span>
+      <span class="badge-modern warning" style="margin-left: auto; font-size: 10px; padding: 2px 7px;">Leads</span>
     </a>
     <% } %>
 

@@ -35,6 +35,7 @@ exports.getClosings = async (req, res) => {
       closings: closings.rows,
       total: closings.count,
       page: parseInt(page),
+      limit: parseInt(limit),
       totalPages: Math.ceil(closings.count / limit),
       user: req.user
     });

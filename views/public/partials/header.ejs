@@ -1,0 +1,30 @@
+<!-- views/public/partials/header.ejs -->
+<header class="b2c-nav">
+  <div class="b2c-nav-inner">
+    <a href="/" class="b2c-brand">
+      <div class="b2c-brand-icon">
+        <i class="ti ti-shopping-cart-discount"></i>
+      </div>
+      <span>Grocery POS <span style="font-size: 13px; font-weight: 600; color: #1366d9;">Cloud ERP</span></span>
+    </a>
+
+    <!-- Center Navigation Links -->
+    <nav class="b2c-nav-menu" id="navMenu">
+      <a href="/" class="b2c-nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'home') ? 'active' : '' %>">Home</a>
+      <a href="/features" class="b2c-nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'features') ? 'active' : '' %>">Features</a>
+      <a href="/pricing" class="b2c-nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'pricing') ? 'active' : '' %>">Pricing</a>
+      <a href="/about" class="b2c-nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'about') ? 'active' : '' %>">About Us</a>
+      <a href="/contact" class="b2c-nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'contact') ? 'active' : '' %>">Contact</a>
+    </nav>
+
+    <!-- Right Header Actions (Subscriber Login Only - Admin removed) -->
+    <div class="b2c-nav-actions">
+      <a href="/subscriber/login" class="btn-subscriber-login">
+        <i class="ti ti-crown"></i> Subscriber Login
+      </a>
+      <button type="button" class="mobile-menu-btn" onclick="toggleMobileMenu()" title="Toggle Menu">
+        <i class="ti ti-menu-2"></i>
+      </button>
+    </div>
+  </div>
+</header>

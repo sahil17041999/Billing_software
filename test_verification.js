@@ -26,9 +26,7 @@ async function runAllTests() {
   console.log('\n--- 1. TYPOGRAPHY & UNIVERSAL BACK BUTTON ---');
   console.log('🔤 Google Fonts Plus Jakarta Sans in Header:', dashHtml.includes('family=Plus+Jakarta+Sans') ? '✅ Verified' : '❌ Missing');
   console.log('🔤 Google Fonts Inter in Header:', dashHtml.includes('family=Inter') ? '✅ Verified' : '❌ Missing');
-  console.log('🔙 Universal Header Back Button Present:', dashHtml.includes('globalHeaderBackBtn') ? '✅ Verified' : '❌ Missing');
-  console.log('🔙 handleGoBack() Smart Fallback Script:', dashHtml.includes('function handleGoBack()') ? '✅ Verified' : '❌ Missing');
-  console.log('🔙 Alt + LeftArrow Shortcut Supported:', dashHtml.includes('ArrowLeft') && dashHtml.includes('handleGoBack') ? '✅ Verified' : '❌ Missing');
+  console.log('🔙 Header Back Button Removed as Requested:', !dashHtml.includes('globalHeaderBackBtn') ? '✅ Verified' : '❌ Still Present');
   console.log('💎 Header Subscription Badge Present:', dashHtml.includes('header-subscription-badge') ? '✅ Verified' : '❌ Missing');
 
   // 3. Test CSS Stylesheet (Typography & Pagination)

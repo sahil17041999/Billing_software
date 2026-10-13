@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Inquiries &amp; Leads - Grocery Billing ERP</title>
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+
+  <!-- Standard Admin Typography & Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+  <link rel="stylesheet" href="/assets/css/admin-theme.css" />
+
+  <!-- jQuery & SweetAlert2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    /* Status Badges */
+    .inquiry-status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: capitalize;
+      letter-spacing: 0.2px;
+    }
+    .status-new { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+    .status-read { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .status-contacted { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .status-resolved { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+    /* Action Buttons in Table */
+    .action-btn-pill {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: #475569;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.18s ease;
+    }
+    .action-btn-pill:hover {
+      background: #f8fafc;
+      color: var(--text-main);
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+    .action-btn-pill.whatsapp { color: #16a34a; }
+    .action-btn-pill.whatsapp:hover { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+    .action-btn-pill.phone { color: #2563eb; }
+    .action-btn-pill.phone:hover { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+    .action-btn-pill.danger { color: #dc2626; }
+    .action-btn-pill.danger:hover { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+
+    /* KPI Summary Card Improvements */
+    .inq-kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .inq-kpi-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    /* Modal Backdrop */
+    .inquiry-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .inquiry-modal-backdrop.show { display: flex; }
+    .inquiry-modal-dialog {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: modalSlideUp 0.22s ease-out;
+    }
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Modern Pagination Bar */
+    .pagination-bar-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+    }
+    .pagination-summary-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-link-btn {
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-body);
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .page-link-btn:hover:not(.disabled):not(.active) {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+    .page-link-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+    }
+    .page-link-btn.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Shared Unified Sidebar -->
+    <%- include('../partials/sidebar.ejs', { currentPage: 'inquiries' }) %>
+
+    <div class="page-wrapper">
+      <div class="body-wrapper">
+        <!-- Shared Unified Header -->
+        <%- include('../partials/header.ejs') %>
+
+        <main class="page-content">
+
+          <!-- Page Title Box -->
+          <div class="page-title-box" style="margin-bottom: 22px;">
+            <div class="page-title-left">
+              <h1 class="page-main-heading">
+                <i class="ti ti-mail-forward" style="color: var(--primary);"></i> Contact Inquiries &amp; Leads
+              </h1>
+              <p class="page-subheading">
+                Website customer inquiries, supermarket demo bookings, plan inquiries, and direct follow-ups.
+              </p>
+            </div>
+            
+            <div class="page-title-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" onclick="window.location.reload()" class="btn-modern btn-outline-modern" title="Refresh Inquiries">
+                <i class="ti ti-refresh"></i> Refresh
+              </button>
+              <a href="/contact" target="_blank" class="btn-modern btn-primary-modern" title="Open Storefront Contact Page">
+                <i class="ti ti-external-link"></i> Public Contact Form
+              </a>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+            <div class="inq-kpi-card" style="border-left: 4px solid var(--primary);">
+              <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Total Inquiries</div>
+              <div style="font-size: 26px; font-weight: 800; color: var(--text-main); margin-top: 4px;"><%= stats.total %></div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">All-time website leads</div>
+            </div>
+
+            <div class="inq-kpi-card" style="border-left: 4px solid #ef4444;">
+              <div style="font-size: 11.5px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center;">
+                <span>New Leads</span>
+                <% if (stats.new > 0) { %>
+                  <span style="background: #fef2f2; color: #ef4444; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; border: 1px solid #fecaca;">
+                    <%= stats.new %> UNREAD
+                  </span>
+                <% } %>
+              </div>
+              <div style="font-size: 26px; font-weight: 800; color: #ef4444; margin-top: 4px;"><%= stats.new %></div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Pending customer requests</div>
+            </div>
+
+            <div class="inq-kpi-card" style="border-left: 4px solid #2563eb;">
+              <div style="font-size: 11.5px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px;">Contacted / In Progress</div>
+              <div style="font-size: 26px; font-weight: 800; color: #2563eb; margin-top: 4px;"><%= stats.contacted %></div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Follow-ups &amp; discussions</div>
+            </div>
+
+            <div class="inq-kpi-card" style="border-left: 4px solid #16a34a;">
+              <div style="font-size: 11.5px; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 0.5px;">Resolved Leads</div>
+              <div style="font-size: 26px; font-weight: 800; color: #16a34a; margin-top: 4px;"><%= stats.resolved %></div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Converted to subscribers</div>
+            </div>
+          </div>
+
+          <!-- Main Card: Filter Toolbar & Inquiries Table -->
+          <div class="card-modern" style="padding: 0; overflow: hidden;">
+
+            <!-- Filter & Search Toolbar -->
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #ffffff;">
+              <form method="GET" action="/admin/inquiries" id="inquiryFilterForm" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <!-- Status Tabs -->
+                <div style="display: flex; gap: 6px; background: var(--bg-subtle, #f1f5f9); padding: 4px; border-radius: 10px;">
+                  <a href="/admin/inquiries?status=all&search=<%= encodeURIComponent(filters.search || '') %>&limit=<%= pagination.limit %>" 
+                     style="padding: 6px 12px; font-size: 12px; text-decoration: none; border-radius: 7px; font-weight: 700; transition: all 0.2s; color: <%= filters.status === 'all' ? 'var(--primary)' : 'var(--text-muted)' %>; background: <%= filters.status === 'all' ? '#ffffff' : 'transparent' %>; box-shadow: <%= filters.status === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' %>;">
+                    All (<%= stats.total %>)
+                  </a>
+                  <a href="/admin/inquiries?status=new&search=<%= encodeURIComponent(filters.search || '') %>&limit=<%= pagination.limit %>" 
+                     style="padding: 6px 12px; font-size: 12px; text-decoration: none; border-radius: 7px; font-weight: 700; transition: all 0.2s; color: <%= filters.status === 'new' ? '#ef4444' : 'var(--text-muted)' %>; background: <%= filters.status === 'new' ? '#ffffff' : 'transparent' %>; box-shadow: <%= filters.status === 'new' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' %>;">
+                    New (<%= stats.new %>)
+                  </a>
+                  <a href="/admin/inquiries?status=contacted&search=<%= encodeURIComponent(filters.search || '') %>&limit=<%= pagination.limit %>" 
+                     style="padding: 6px 12px; font-size: 12px; text-decoration: none; border-radius: 7px; font-weight: 700; transition: all 0.2s; color: <%= filters.status === 'contacted' ? '#2563eb' : 'var(--text-muted)' %>; background: <%= filters.status === 'contacted' ? '#ffffff' : 'transparent' %>; box-shadow: <%= filters.status === 'contacted' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' %>;">
+                    Contacted (<%= stats.contacted %>)
+                  </a>
+                  <a href="/admin/inquiries?status=resolved&search=<%= encodeURIComponent(filters.search || '') %>&limit=<%= pagination.limit %>" 
+                     style="padding: 6px 12px; font-size: 12px; text-decoration: none; border-radius: 7px; font-weight: 700; transition: all 0.2s; color: <%= filters.status === 'resolved' ? '#16a34a' : 'var(--text-muted)' %>; background: <%= filters.status === 'resolved' ? '#ffffff' : 'transparent' %>; box-shadow: <%= filters.status === 'resolved' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' %>;">
+                    Resolved (<%= stats.resolved %>)
+                  </a>
+                </div>
+
+                <!-- Search Input Field -->
+                <div style="flex-grow: 1; min-width: 220px; position: relative;">
+                  <input type="text" name="search" class="form-control" placeholder="Search by name, store, mobile, email, message..." value="<%= filters.search || '' %>" style="padding-left: 36px; height: 38px; border-radius: 8px; font-size: 13px;">
+                  <i class="ti ti-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                  <input type="hidden" name="status" value="<%= filters.status %>">
+                  <input type="hidden" name="limit" value="<%= pagination.limit %>">
+                </div>
+
+                <button type="submit" class="btn-modern btn-primary-modern" style="height: 38px; padding: 0 16px;">
+                  <i class="ti ti-filter"></i> Filter
+                </button>
+
+                <% if (filters.search) { %>
+                  <a href="/admin/inquiries?status=<%= filters.status %>&limit=<%= pagination.limit %>" class="btn-modern btn-outline-modern" style="height: 38px; padding: 0 14px; text-decoration: none; display: inline-flex; align-items: center;">
+                    Clear Search
+                  </a>
+                <% } %>
+              </form>
+            </div>
+
+            <!-- Inquiries Data Table -->
+            <div style="overflow-x: auto;">
+              <table class="table-modern no-datatable server-paginated" style="width: 100%; margin: 0;">
+                <thead>
+                  <tr>
+                    <th style="width: 135px;">Date &amp; Time</th>
+                    <th>Customer &amp; Store</th>
+                    <th>Contact Info</th>
+                    <th>Subject &amp; Message</th>
+                    <th style="text-align: center; width: 110px;">Status</th>
+                    <th style="text-align: right; width: 150px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (inquiries && inquiries.length > 0) { %>
+                    <% inquiries.forEach(inq => { %>
+                      <tr id="inqRow_<%= inq.id %>" style="<%= inq.status === 'new' ? 'background: rgba(239, 68, 68, 0.02);' : '' %>">
+                        <td style="font-size: 12px; color: var(--text-muted);">
+                          <strong style="color: var(--text-main);"><%= new Date(inq.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></strong><br>
+                          <span style="font-size: 11px;"><%= new Date(inq.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) %></span>
+                        </td>
+
+                        <td>
+                          <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main);"><%= inq.name %></div>
+                          <% if (inq.store_name) { %>
+                            <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 1px;">
+                              <i class="ti ti-building-store" style="color: var(--primary);"></i> <%= inq.store_name %>
+                            </div>
+                          <% } %>
+                        </td>
+
+                        <td>
+                          <div style="font-size: 13px; font-weight: 600;">
+                            <a href="tel:<%= inq.phone %>" style="color: var(--primary); text-decoration: none;" title="Click to call">
+                              <i class="ti ti-phone"></i> +91 <%= inq.phone %>
+                            </a>
+                          </div>
+                          <% if (inq.email) { %>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 1px;">
+                              <a href="mailto:<%= inq.email %>" style="color: var(--text-muted); text-decoration: none;">
+                                <i class="ti ti-mail"></i> <%= inq.email %>
+                              </a>
+                            </div>
+                          <% } %>
+                        </td>
+
+                        <td>
+                          <div style="font-weight: 700; font-size: 13px; color: var(--text-main);"><%= inq.subject || 'Inquiry' %></div>
+                          <div style="font-size: 12.5px; color: var(--text-muted); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;">
+                            <%= inq.message %>
+                          </div>
+                        </td>
+
+                        <td style="text-align: center;">
+                          <span class="inquiry-status-pill status-<%= inq.status %>" id="statusBadge_<%= inq.id %>">
+                            <%= inq.status %>
+                          </span>
+                        </td>
+
+                        <td style="text-align: right;">
+                          <div style="display: inline-flex; gap: 6px;">
+                            <!-- 1-Click WhatsApp Lead Reply -->
+                            <a href="https://wa.me/91<%= inq.phone %>?text=<%= encodeURIComponent('Hello ' + inq.name + ', thank you for contacting Grocery POS ERP regarding ' + (inq.subject || 'your inquiry') + '!') %>" target="_blank" class="action-btn-pill whatsapp" title="Chat on WhatsApp">
+                              <i class="ti ti-brand-whatsapp"></i>
+                            </a>
+
+                            <!-- 1-Click Call Lead -->
+                            <a href="tel:<%= inq.phone %>" class="action-btn-pill phone" title="Call Lead">
+                              <i class="ti ti-phone"></i>
+                            </a>
+
+                            <!-- View Details & Internal Notes Modal -->
+                            <button type="button" class="action-btn-pill" title="View Full Details" onclick="viewInquiryDetail('<%= inq.id %>')">
+                              <i class="ti ti-eye"></i>
+                            </button>
+
+                            <!-- Delete Inquiry Record -->
+                            <button type="button" class="action-btn-pill danger" title="Delete Inquiry" onclick="deleteInquiry('<%= inq.id %>')">
+                              <i class="ti ti-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="6" style="text-align: center; padding: 48px 20px;">
+                        <i class="ti ti-mail-off" style="font-size: 42px; color: #cbd5e1; display: block; margin-bottom: 10px;"></i>
+                        <div style="font-size: 15px; font-weight: 700; color: var(--text-main);">No contact inquiries found</div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Inquiries submitted through the B2C storefront will appear here in real time.</div>
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Standard Full-Featured Pagination Bar -->
+            <div class="pagination-bar-wrapper">
+              <!-- Left: Summary & Limit Selector -->
+              <div class="pagination-summary-group">
+                <span style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
+                  <% if (pagination.total > 0) { %>
+                    Showing <strong><%= pagination.startIndex %></strong> to <strong><%= pagination.endIndex %></strong> of <strong><%= pagination.total %></strong> records
+                  <% } else { %>
+                    Showing <strong>0</strong> records
+                  <% } %>
+                </span>
+
+                <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-muted);">
+                  <span>Show:</span>
+                  <select onchange="changeLimit(this.value)" class="form-select-sm" style="border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 8px; font-size: 12px; background: #ffffff; color: var(--text-main); font-weight: 600; cursor: pointer;">
+                    <option value="10" <%= pagination.limit === 10 ? 'selected' : '' %>>10 per page</option>
+                    <option value="15" <%= pagination.limit === 15 ? 'selected' : '' %>>15 per page</option>
+                    <option value="25" <%= pagination.limit === 25 ? 'selected' : '' %>>25 per page</option>
+                    <option value="50" <%= pagination.limit === 50 ? 'selected' : '' %>>50 per page</option>
+                    <option value="100" <%= pagination.limit === 100 ? 'selected' : '' %>>100 per page</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Right: Page Controls -->
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <% 
+                  const searchParam = encodeURIComponent(filters.search || '');
+                  const statusParam = filters.status || 'all';
+                  const limitVal = pagination.limit;
+                  const curPage = pagination.page;
+                  const totalPages = pagination.totalPages;
+
+                  function getPageUrl(p) {
+                    return `/admin/inquiries?page=${p}&limit=${limitVal}&status=${statusParam}&search=${searchParam}`;
+                  }
+                %>
+
+                <!-- First Page -->
+                <a href="<%= getPageUrl(1) %>" class="page-link-btn <%= curPage <= 1 ? 'disabled' : '' %>" title="First Page">
+                  <i class="ti ti-chevrons-left"></i>
+                </a>
+
+                <!-- Prev Page -->
+                <a href="<%= getPageUrl(curPage - 1) %>" class="page-link-btn <%= curPage <= 1 ? 'disabled' : '' %>" title="Previous Page">
+                  <i class="ti ti-chevron-left"></i>
+                </a>
+
+                <!-- Numbered Page Buttons with Smart Sliding Window -->
+                <% 
+                  const maxButtons = 5;
+                  let startPage = Math.max(1, curPage - 2);
+                  let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+                  if (endPage - startPage < maxButtons - 1) {
+                    startPage = Math.max(1, endPage - maxButtons + 1);
+                  }
+                %>
+
+                <% if (startPage > 1) { %>
+                  <a href="<%= getPageUrl(1) %>" class="page-link-btn">1</a>
+                  <% if (startPage > 2) { %>
+                    <span style="padding: 0 4px; color: var(--text-muted);">&hellip;</span>
+                  <% } %>
+                <% } %>
+
+                <% for (let p = startPage; p <= endPage; p++) { %>
+                  <a href="<%= getPageUrl(p) %>" class="page-link-btn <%= p === curPage ? 'active' : '' %>">
+                    <%= p %>
+                  </a>
+                <% } %>
+
+                <% if (endPage < totalPages) { %>
+                  <% if (endPage < totalPages - 1) { %>
+                    <span style="padding: 0 4px; color: var(--text-muted);">&hellip;</span>
+                  <% } %>
+                  <a href="<%= getPageUrl(totalPages) %>" class="page-link-btn"><%= totalPages %></a>
+                <% } %>
+
+                <!-- Next Page -->
+                <a href="<%= getPageUrl(curPage + 1) %>" class="page-link-btn <%= curPage >= totalPages ? 'disabled' : '' %>" title="Next Page">
+                  <i class="ti ti-chevron-right"></i>
+                </a>
+
+                <!-- Last Page -->
+                <a href="<%= getPageUrl(totalPages) %>" class="page-link-btn <%= curPage >= totalPages ? 'disabled' : '' %>" title="Last Page">
+                  <i class="ti ti-chevrons-right"></i>
+                </a>
+              </div>
+            </div>
+
+          </div>
+
+        </main>
+
+        <!-- Shared Unified Footer -->
+        <%- include('../partials/footer.ejs') %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inquiry Details & Follow-up Modal -->
+  <div id="inquiryDetailModal" class="inquiry-modal-backdrop" onclick="if(event.target===this)closeInquiryModal()">
+    <div class="inquiry-modal-dialog">
+      <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="ti ti-id-badge" style="color: var(--primary);"></i> Inquiry Details &bull; #<span id="modalInqId"></span>
+        </h3>
+        <button type="button" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;" onclick="closeInquiryModal()">&times;</button>
+      </div>
+
+      <div style="padding: 24px;">
+        <!-- Lead Meta Box -->
+        <div style="background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 18px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+            <div><span style="color: var(--text-muted);">Customer:</span> <strong id="modalName" style="color: var(--text-main);"></strong></div>
+            <div><span style="color: var(--text-muted);">Store:</span> <strong id="modalStore" style="color: var(--text-main);"></strong></div>
+            <div><span style="color: var(--text-muted);">Phone:</span> <strong id="modalPhone" style="color: var(--text-main);"></strong></div>
+            <div><span style="color: var(--text-muted);">Email:</span> <strong id="modalEmail" style="color: var(--text-main);"></strong></div>
+            <div><span style="color: var(--text-muted);">Subject:</span> <strong id="modalSubject" style="color: var(--text-main);"></strong></div>
+            <div><span style="color: var(--text-muted);">Date:</span> <strong id="modalDate" style="color: var(--text-main);"></strong></div>
+          </div>
+        </div>
+
+        <!-- Full Customer Message -->
+        <div style="margin-bottom: 20px;">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">Customer Inquiry Message:</label>
+          <div id="modalMessage" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; font-size: 13.5px; line-height: 1.6; color: var(--text-main); min-height: 80px; white-space: pre-wrap;"></div>
+        </div>
+
+        <!-- Direct Action Buttons -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <a id="modalWhatsappBtn" href="#" target="_blank" class="btn-modern btn-outline-modern" style="flex: 1; justify-content: center; background: #f0fdf4; color: #16a34a; border-color: #86efac; text-decoration: none;">
+            <i class="ti ti-brand-whatsapp"></i> WhatsApp Customer
+          </a>
+          <a id="modalCallBtn" href="#" class="btn-modern btn-outline-modern" style="flex: 1; justify-content: center; background: #eff6ff; color: #2563eb; border-color: #93c5fd; text-decoration: none;">
+            <i class="ti ti-phone"></i> Call Phone
+          </a>
+          <a id="modalEmailBtn" href="#" class="btn-modern btn-outline-modern" style="flex: 1; justify-content: center; text-decoration: none;">
+            <i class="ti ti-mail"></i> Send Email
+          </a>
+        </div>
+
+        <!-- Status & Notes Form -->
+        <form id="inquiryUpdateForm" onsubmit="saveInquiryUpdate(event)">
+          <input type="hidden" id="modalTargetId" name="id">
+
+          <div style="margin-bottom: 14px;">
+            <label for="modalStatusSelect" style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">Lead Status:</label>
+            <select id="modalStatusSelect" name="status" class="form-control" style="border-radius: 8px;">
+              <option value="new">New (Unread Lead)</option>
+              <option value="read">Read</option>
+              <option value="contacted">Contacted (In Progress)</option>
+              <option value="resolved">Resolved (Converted / Closed)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 18px;">
+            <label for="modalNotesText" style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">Internal Admin Notes (Only visible to admin):</label>
+            <textarea id="modalNotesText" name="admin_notes" class="form-control" style="height: 80px; resize: vertical; border-radius: 8px;" placeholder="Add internal notes about conversation, demo date, plan quoted, etc..."></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn-modern btn-outline-modern" onclick="closeInquiryModal()">Close</button>
+            <button type="submit" class="btn-modern btn-primary-modern" id="btnSaveInqUpdate">
+              <i class="ti ti-check"></i> Save Status &amp; Notes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeInquiryId = null;
+
+    function changeLimit(limit) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('limit', limit);
+      url.searchParams.set('page', '1');
+      window.location.href = url.toString();
+    }
+
+    function viewInquiryDetail(id) {
+      activeInquiryId = id;
+      $('#modalInqId').text(id);
+      $('#modalTargetId').val(id);
+
+      fetch(`/admin/inquiries/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success || !data.inquiry) {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Could not fetch details.' });
+            return;
+          }
+
+          const inq = data.inquiry;
+          $('#modalName').text(inq.name || '-');
+          $('#modalStore').text(inq.store_name || '-');
+          $('#modalPhone').text('+91 ' + inq.phone);
+          $('#modalEmail').text(inq.email || '-');
+          $('#modalSubject').text(inq.subject || 'General');
+          $('#modalDate').text(new Date(inq.created_at).toLocaleString('en-IN'));
+          $('#modalMessage').text(inq.message || '');
+          $('#modalStatusSelect').val(inq.status);
+          $('#modalNotesText').val(inq.admin_notes || '');
+
+          // Direct reply links
+          $('#modalWhatsappBtn').attr('href', `https://wa.me/91${inq.phone}?text=${encodeURIComponent('Hello ' + inq.name + ', thank you for contacting Grocery POS ERP regarding ' + (inq.subject || 'your inquiry') + '!')}`);
+          $('#modalCallBtn').attr('href', `tel:${inq.phone}`);
+          $('#modalEmailBtn').attr('href', inq.email ? `mailto:${inq.email}?subject=${encodeURIComponent('Re: ' + (inq.subject || 'Grocery POS ERP Inquiry'))}` : '#');
+
+          // Update status badge on row to 'read' if it was 'new'
+          if ($(`#statusBadge_${id}`).hasClass('status-new')) {
+            $(`#statusBadge_${id}`).removeClass('status-new').addClass('status-read').text('read');
+          }
+
+          $('#inquiryDetailModal').addClass('show');
+        })
+        .catch(err => {
+          Swal.fire({ icon: 'error', title: 'Network Error', text: err.message });
+        });
+    }
+
+    function closeInquiryModal() {
+      $('#inquiryDetailModal').removeClass('show');
+    }
+
+    function saveInquiryUpdate(e) {
+      e.preventDefault();
+      const id = $('#modalTargetId').val();
+      const status = $('#modalStatusSelect').val();
+      const notes = $('#modalNotesText').val();
+
+      const btn = $('#btnSaveInqUpdate');
+      const origText = btn.html();
+      btn.prop('disabled', true).html('<i class="ti ti-loader-2" style="animation:spin 0.75s linear infinite"></i> Saving...');
+
+      fetch(`/admin/inquiries/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, admin_notes: notes })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.prop('disabled', false).html(origText);
+        if (data.success) {
+          // Update status badge on table row
+          const badge = $(`#statusBadge_${id}`);
+          badge.removeClass('status-new status-read status-contacted status-resolved');
+          badge.addClass(`status-${status}`).text(status);
+
+          closeInquiryModal();
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated',
+            text: 'Inquiry record updated successfully.',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire({ icon: 'error', title: 'Update Error', text: data.error });
+        }
+      })
+      .catch(err => {
+        btn.prop('disabled', false).html(origText);
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+      });
+    }
+
+    function deleteInquiry(id) {
+      Swal.fire({
+        title: 'Delete Inquiry?',
+        text: 'This will permanently remove this customer inquiry record.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, Delete It'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(`/admin/inquiries/${id}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              $(`#inqRow_${id}`).fadeOut(300, function() { $(this).remove(); });
+              Swal.fire({ icon: 'success', title: 'Deleted', text: 'Inquiry removed.', timer: 1200, showConfirmButton: false });
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: data.error });
+            }
+          })
+          .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Network Error', text: err.message });
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

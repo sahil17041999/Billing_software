@@ -10,64 +10,121 @@
   <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
 
   <style>
-    .notif-filter-tabs {
-      display: flex;
-      gap: 10px;
-      border-bottom: 1px solid var(--border-color, #e2e8f0);
-      padding-bottom: 16px;
-      margin-bottom: 20px;
-      overflow-x: auto;
+    :root {
+      --primary: #1366d9;
+      --primary-light: #eef5ff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
     }
 
-    .notif-filter-btn {
-      padding: 8px 18px;
-      border-radius: 10px;
-      font-size: 13.5px;
-      font-weight: 600;
-      border: 1px solid var(--border-color, #e2e8f0);
+    /* Filters and Toolbar */
+    .notif-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .notif-search-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: #ffffff;
-      color: var(--text-muted, #64748b);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 14px;
+      width: 280px;
+      max-width: 100%;
+      transition: all 0.2s;
+    }
+    .notif-search-input:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(19, 102, 217, 0.12);
+    }
+    .notif-search-input input {
+      border: none;
+      outline: none;
+      font-size: 13.5px;
+      width: 100%;
+      color: var(--text-main);
+    }
+
+    .notif-filter-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .notif-pill-btn {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: var(--text-muted);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
     }
-
-    .notif-filter-btn:hover {
+    .notif-pill-btn:hover {
       background: #f8fafc;
-      color: var(--primary, #1366d9);
+      color: var(--primary);
       border-color: #cbd5e1;
     }
-
-    .notif-filter-btn.active {
-      background: var(--primary-light, #eef5ff);
-      color: var(--primary, #1366d9);
-      border-color: var(--primary, #1366d9);
-      font-weight: 700;
+    .notif-pill-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 6px rgba(19, 102, 217, 0.25);
     }
 
+    /* Bulk Action Bar */
+    .bulk-action-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    .bulk-action-bar.visible {
+      display: flex;
+    }
+
+    /* Notification Item Card */
     .notif-item-row {
       display: flex;
       align-items: flex-start;
       gap: 16px;
       padding: 16px 20px;
-      border-radius: 12px;
+      border-radius: 14px;
       margin-bottom: 12px;
       background: #ffffff;
-      border: 1px solid var(--border-color, #e2e8f0);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
       transition: all 0.2s ease;
+      position: relative;
     }
-
     .notif-item-row:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
       border-color: #cbd5e1;
+      transform: translateY(-1px);
     }
-
     .notif-item-row.unread {
       background: #f8faff;
-      border-left: 4px solid var(--primary, #1366d9);
+      border-left: 4px solid var(--primary);
       border-color: #dbeafe;
     }
 
@@ -87,16 +144,60 @@
     .severity-danger { background: #fef2f2; color: #dc2626; }
     .severity-success { background: #f0fdf4; color: #059669; }
 
+    .badge-pill-soft {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Action Buttons */
     .btn-notif-action {
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 8px;
+      padding: 5px 12px;
+      border-radius: 7px;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.2s;
+    }
+
+    /* Modal Backdrop and Box */
+    .notif-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .notif-modal-box {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      animation: modalSlideUp 0.25s ease-out;
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes spinner-border {
+      to { transform: rotate(360deg); }
+    }
+    .notif-container-fading {
+      opacity: 0.5;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
     }
   </style>
 </head>
@@ -114,152 +215,394 @@
         <main class="page-content">
 
           <!-- Page Header -->
-          <div class="page-title-box">
+          <div class="page-title-box" style="margin-bottom: 20px;">
             <div class="page-title-left">
               <h1 class="page-main-heading">
-                <i class="ti ti-bell" style="color: var(--primary);"></i> Notification Center
+                <i class="ti ti-bell-ringing" style="color: var(--primary);"></i> Notification Center
               </h1>
               <p class="page-subheading">
-                Real-time inventory alerts, store order approvals, and system notifications.
+                Enterprise real-time inventory triggers, sales milestones, store approvals, and broadcast communications.
               </p>
             </div>
             
-            <div class="page-title-actions">
-              <button type="button" onclick="markAllNotificationsRead()" class="btn-modern btn-outline-modern">
-                <i class="ti ti-check-all"></i> Mark All as Read
+            <div class="page-title-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- Test Notification Button -->
+              <button type="button" onclick="triggerTestAlert()" class="btn-modern btn-outline-modern" title="Trigger a test alert with sound and toast">
+                <i class="ti ti-flame" style="color: #f59e0b;"></i> Test Alert
               </button>
-              <button type="button" onclick="clearReadNotifications()" class="btn-modern btn-outline-modern">
+
+              <!-- Broadcast Announcement Button (Admin / Super Admin) -->
+              <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
+                <button type="button" onclick="openBroadcastModal()" class="btn-modern btn-primary-modern">
+                  <i class="ti ti-speakerphone"></i> Send Broadcast
+                </button>
+              <% } %>
+
+              <!-- Notification Settings -->
+              <button type="button" onclick="openSettingsModal()" class="btn-modern btn-outline-modern" title="Notification Preferences">
+                <i class="ti ti-settings"></i> Settings
+              </button>
+
+              <!-- Mark All as Read -->
+              <button type="button" onclick="markAllNotificationsRead()" class="btn-modern btn-outline-modern">
+                <i class="ti ti-check-all"></i> Mark All Read
+              </button>
+
+              <!-- Clear Read -->
+              <button type="button" onclick="clearReadNotifications()" class="btn-modern btn-outline-modern" style="color: #ef4444;">
                 <i class="ti ti-trash"></i> Clear Read
               </button>
             </div>
           </div>
 
-          <!-- Notification Stats Strip (Zoho/Admin Style) -->
+          <!-- Notification Stats Strip -->
           <% 
-            const totalNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.length : 0;
-            const unreadNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.filter(n => !n.is_read).length : 0;
-            const stockNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.filter(n => n.type === 'stock').length : 0;
-            const subNotifs = (typeof notifications !== 'undefined' && notifications) ? notifications.filter(n => n.type === 'subscription' || n.type === 'approval').length : 0;
+            const totalCount = (typeof stats !== 'undefined' && stats.total) ? stats.total : (notifications ? notifications.length : 0);
+            const unreadCount = (typeof stats !== 'undefined' && stats.unread) ? stats.unread : (notifications ? notifications.filter(n => !n.is_read).length : 0);
+            const dangerCount = (typeof stats !== 'undefined' && stats.danger) ? stats.danger : (notifications ? notifications.filter(n => n.severity === 'danger').length : 0);
+            const stockCount = (typeof stats !== 'undefined' && stats.stock) ? stats.stock : (notifications ? notifications.filter(n => n.type === 'stock').length : 0);
+            const saleCount = (typeof stats !== 'undefined' && stats.sale) ? stats.sale : (notifications ? notifications.filter(n => n.type === 'sale').length : 0);
           %>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 22px;">
             
-            <div class="stat-card-modern" style="padding: 18px 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Alerts</span>
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+            <div class="stat-card-modern" style="padding: 16px 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Alerts</span>
+                <div style="width: 34px; height: 34px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 17px;">
                   <i class="ti ti-bell"></i>
                 </div>
               </div>
-              <div style="font-size: 24px; font-weight: 800; color: #0f172a;"><%= totalNotifs %></div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">In notification history</div>
+              <div id="statsTotalNumber" style="font-size: 24px; font-weight: 800; color: #0f172a;"><%= totalCount %></div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">Stored in alert logs</div>
             </div>
 
-            <div class="stat-card-modern" style="padding: 18px 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Unread Notices</span>
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: <%= unreadNotifs > 0 ? '#fef2f2' : '#f0fdf4' %>; color: <%= unreadNotifs > 0 ? '#dc2626' : '#059669' %>; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+            <div class="stat-card-modern" style="padding: 16px 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Unread Notices</span>
+                <div id="statsUnreadIconBox" style="width: 34px; height: 34px; border-radius: 10px; background: <%= unreadCount > 0 ? '#fef2f2' : '#f0fdf4' %>; color: <%= unreadCount > 0 ? '#dc2626' : '#059669' %>; display: flex; align-items: center; justify-content: center; font-size: 17px;">
                   <i class="ti ti-alert-circle"></i>
                 </div>
               </div>
-              <div style="font-size: 24px; font-weight: 800; color: <%= unreadNotifs > 0 ? '#dc2626' : '#059669' %>;"><%= unreadNotifs %></div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= unreadNotifs === 0 ? 'All caught up' : 'Pending review' %></div>
+              <div id="statsUnreadNumber" style="font-size: 24px; font-weight: 800; color: <%= unreadCount > 0 ? '#dc2626' : '#059669' %>;"><%= unreadCount %></div>
+              <div id="statsUnreadSubtext" style="font-size: 11.5px; color: #64748b; margin-top: 2px;"><%= unreadCount === 0 ? 'All caught up' : 'Pending review' %></div>
             </div>
 
-            <div class="stat-card-modern" style="padding: 18px 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Low Stock Items</span>
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
-                  <i class="ti ti-alert-triangle"></i>
+            <div class="stat-card-modern" style="padding: 16px 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Critical Alerts</span>
+                <div style="width: 34px; height: 34px; border-radius: 10px; background: #fef2f2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                  <i class="ti ti-alert-octagon"></i>
                 </div>
               </div>
-              <div style="font-size: 24px; font-weight: 800; color: #d97706;"><%= stockNotifs %></div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Restock triggers</div>
+              <div id="statsDangerNumber" style="font-size: 24px; font-weight: 800; color: #ef4444;"><%= dangerCount %></div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">Out of stock &amp; urgency</div>
             </div>
 
-            <div class="stat-card-modern" style="padding: 18px 20px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Store &amp; Licenses</span>
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: #faf5ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 18px;">
-                  <i class="ti ti-crown"></i>
+            <div class="stat-card-modern" style="padding: 16px 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Stock Triggers</span>
+                <div style="width: 34px; height: 34px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                  <i class="ti ti-packages"></i>
                 </div>
               </div>
-              <div style="font-size: 24px; font-weight: 800; color: #7c3aed;"><%= subNotifs %></div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Subscription events</div>
+              <div id="statsStockNumber" style="font-size: 24px; font-weight: 800; color: #d97706;"><%= stockCount %></div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">Restock &amp; batch expiry</div>
+            </div>
+
+            <div class="stat-card-modern" style="padding: 16px 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Sales &amp; Revenue</span>
+                <div style="width: 34px; height: 34px; border-radius: 10px; background: #f0fdf4; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                  <i class="ti ti-receipt-2"></i>
+                </div>
+              </div>
+              <div id="statsSaleNumber" style="font-size: 24px; font-weight: 800; color: #059669;"><%= saleCount %></div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">Transactions &amp; milestones</div>
             </div>
 
           </div>
 
           <!-- Main Notification Card -->
-          <div class="card-modern" style="padding: 24px; background: #ffffff; border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px;">
+          <div class="card-modern" style="padding: 22px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px;">
             
-            <!-- Filter Tabs -->
-            <div class="notif-filter-tabs">
-              <button class="notif-filter-btn active" onclick="filterNotifs('all', this)">
-                <i class="ti ti-bell"></i> All Alerts (<%= totalNotifs %>)
+            <!-- Toolbar: Search & Multi-Filters -->
+            <div class="notif-toolbar">
+              <!-- Live Search -->
+              <div class="notif-search-input">
+                <i class="ti ti-search" style="color: #94a3b8; font-size: 16px;"></i>
+                <input type="text" id="notifSearchInput" placeholder="Search notifications..." value="<%= (typeof filters !== 'undefined' && filters.search) ? filters.search : '' %>" oninput="handleSearchInput(this.value)" />
+              </div>
+
+              <!-- Quick Status Filter (All / Unread / Read) -->
+              <% const activeStatus = (typeof filters !== 'undefined' && filters.status) ? filters.status : 'all'; %>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" class="notif-pill-btn <%= activeStatus === 'all' ? 'active' : '' %>" data-status="all" onclick="setStatusFilter('all', this)">All Status</button>
+                <button type="button" class="notif-pill-btn <%= activeStatus === 'unread' ? 'active' : '' %>" data-status="unread" onclick="setStatusFilter('unread', this)">Unread Only (<span id="statsUnreadPill"><%= unreadCount %></span>)</button>
+                <button type="button" class="notif-pill-btn <%= activeStatus === 'read' ? 'active' : '' %>" data-status="read" onclick="setStatusFilter('read', this)">Read Only</button>
+              </div>
+
+              <!-- Severity Selector -->
+              <% const activeSeverity = (typeof filters !== 'undefined' && filters.severity) ? filters.severity : 'all'; %>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="severityFilter" style="font-size: 12.5px; font-weight: 600; color: #64748b;">Severity:</label>
+                <select id="severityFilter" onchange="handleSeverityChange(this.value)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 12.5px; outline: none; background: #ffffff; color: var(--text-main); cursor: pointer;">
+                  <option value="all" <%= activeSeverity === 'all' ? 'selected' : '' %>>All Severities</option>
+                  <option value="danger" <%= activeSeverity === 'danger' ? 'selected' : '' %>>Danger / Critical</option>
+                  <option value="warning" <%= activeSeverity === 'warning' ? 'selected' : '' %>>Warning</option>
+                  <option value="info" <%= activeSeverity === 'info' ? 'selected' : '' %>>Information</option>
+                  <option value="success" <%= activeSeverity === 'success' ? 'selected' : '' %>>Success</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Category Pills -->
+            <% const activeCat = (typeof filters !== 'undefined' && filters.type) ? filters.type : 'all'; %>
+            <div class="notif-filter-pills" style="margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+              <button class="notif-pill-btn <%= activeCat === 'all' ? 'active' : '' %>" data-cat="all" onclick="setCategoryFilter('all', this)">
+                <i class="ti ti-layout-grid"></i> All Categories (<span id="statsTotalPill"><%= totalCount %></span>)
               </button>
-              <button class="notif-filter-btn" onclick="filterNotifs('stock', this)">
-                <i class="ti ti-alert-triangle" style="color: #d97706;"></i> Low Stock (<%= stockNotifs %>)
+              <button class="notif-pill-btn <%= activeCat === 'stock' ? 'active' : '' %>" data-cat="stock" onclick="setCategoryFilter('stock', this)">
+                <i class="ti ti-packages" style="color: #d97706;"></i> Inventory &amp; Stock (<span id="statsStockPill"><%= stockCount %></span>)
               </button>
-              <button class="notif-filter-btn" onclick="filterNotifs('subscription', this)">
-                <i class="ti ti-sparkles" style="color: #7c3aed;"></i> Subscriptions
+              <button class="notif-pill-btn <%= activeCat === 'sale' ? 'active' : '' %>" data-cat="sale" onclick="setCategoryFilter('sale', this)">
+                <i class="ti ti-receipt-2" style="color: #059669;"></i> Sales Milestones (<span id="statsSalePill"><%= saleCount %></span>)
               </button>
-              <button class="notif-filter-btn" onclick="filterNotifs('approval', this)">
-                <i class="ti ti-user-check" style="color: #2563eb;"></i> Store Orders
+              <button class="notif-pill-btn <%= activeCat === 'subscription' ? 'active' : '' %>" data-cat="subscription" onclick="setCategoryFilter('subscription', this)">
+                <i class="ti ti-crown" style="color: #7c3aed;"></i> Subscriptions &amp; Plans
               </button>
+              <button class="notif-pill-btn <%= activeCat === 'approval' ? 'active' : '' %>" data-cat="approval" onclick="setCategoryFilter('approval', this)">
+                <i class="ti ti-user-check" style="color: #2563eb;"></i> Store Approvals
+              </button>
+              <button class="notif-pill-btn <%= activeCat === 'system' ? 'active' : '' %>" data-cat="system" onclick="setCategoryFilter('system', this)">
+                <i class="ti ti-speakerphone" style="color: #0284c7;"></i> System Announcements
+              </button>
+            </div>
+
+            <!-- Bulk Actions Bar (Appears when checkboxes selected) -->
+            <div id="bulkActionBar" class="bulk-action-bar">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="bulkSelectedCount" style="font-weight: 700; font-size: 13.5px;">0 items selected</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" onclick="executeBulkAction('mark_read')" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  <i class="ti ti-check"></i> Mark Read
+                </button>
+                <button type="button" onclick="executeBulkAction('mark_unread')" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  <i class="ti ti-mail"></i> Mark Unread
+                </button>
+                <button type="button" onclick="executeBulkAction('delete')" style="background: #ef4444; border: none; color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  <i class="ti ti-trash"></i> Delete Selected
+                </button>
+                <button type="button" onclick="clearBulkSelection()" style="background: none; border: none; color: #94a3b8; font-size: 12px; cursor: pointer; padding: 4px 6px;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- List Header Strip -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 10px; margin-bottom: 12px; font-size: 12.5px; color: #64748b;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="cursor: pointer;" />
+                <label for="selectAllCheckbox" style="cursor: pointer; font-weight: 600;">Select All Visible</label>
+              </div>
+              <span id="filteredCountNotice">
+                <% if (typeof pagination !== 'undefined' && pagination.total > 0) { %>
+                  Showing <%= pagination.startIndex %>-<%= pagination.endIndex %> of <%= pagination.total %> notifications
+                <% } else { %>
+                  Showing <%= notifications ? notifications.length : 0 %> notifications
+                <% } %>
+              </span>
             </div>
 
             <!-- Notifications List -->
             <div id="notifContainer">
               <% if (notifications && notifications.length > 0) { %>
                 <% notifications.forEach(function(n) { %>
-                  <div class="notif-item-row <%= !n.is_read ? 'unread' : '' %>" data-type="<%= n.type %>">
+                  <div class="notif-item-row <%= !n.is_read ? 'unread' : '' %>" 
+                       id="notif-row-<%= n.id %>"
+                       data-id="<%= n.id %>"
+                       data-type="<%= n.type %>"
+                       data-severity="<%= n.severity || 'info' %>"
+                       data-isread="<%= n.is_read ? '1' : '0' %>">
+                    
+                    <!-- Checkbox -->
+                    <div style="display: flex; align-items: center; margin-top: 4px;">
+                      <input type="checkbox" class="notif-checkbox" value="<%= n.id %>" onchange="handleRowCheckboxChange()" style="cursor: pointer; width: 16px; height: 16px;" />
+                    </div>
+
+                    <!-- Icon Box -->
                     <div class="notif-icon-box severity-<%= n.severity || 'info' %>">
                       <i class="ti <%= n.icon || 'ti-bell' %>"></i>
                     </div>
 
+                    <!-- Content -->
                     <div style="flex: 1; min-width: 0;">
-                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                          <strong style="font-size: 15px; color: #0f172a;"><%= n.title %></strong>
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                          <strong class="notif-title-text" style="font-size: 15px; color: #0f172a;"><%= n.title %></strong>
+                          
                           <% if (!n.is_read) { %>
-                            <span style="font-size: 11px; background: var(--primary, #1366d9); color: #fff; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.5px;">NEW</span>
+                            <span class="badge-pill-soft" style="background: var(--primary); color: #fff;">NEW</span>
                           <% } %>
+
+                          <span class="badge-pill-soft severity-<%= n.severity || 'info' %>">
+                            <%= n.severity || 'info' %>
+                          </span>
+
+                          <span class="badge-pill-soft" style="background: #f1f5f9; color: #475569;">
+                            <%= n.type %>
+                          </span>
                         </div>
+
                         <span style="font-size: 12px; color: #64748b; font-weight: 500;">
                           <i class="ti ti-clock me-1"></i><%= n.time_ago || 'recent' %>
                         </span>
                       </div>
 
-                      <p style="color: #475569; font-size: 13.5px; margin: 0 0 12px 0; line-height: 1.5;">
+                      <p class="notif-message-text" style="color: #475569; font-size: 13.5px; margin: 0 0 12px 0; line-height: 1.55;">
                         <%= n.message %>
                       </p>
 
-                      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <% if (n.link) { %>
-                          <a href="<%= n.link %>" class="btn-notif-action" style="background: var(--primary-light, #eef5ff); color: var(--primary, #1366d9); border: 1px solid rgba(19,102,217,0.2);">
-                            <span>Open Related Page</span>
-                            <i class="ti ti-arrow-right"></i>
-                          </a>
-                        <% } %>
+                      <!-- Action Footer per row -->
+                      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <% if (n.link) { %>
+                            <a href="<%= n.link %>" class="btn-notif-action" style="background: var(--primary-light); color: var(--primary); border: 1px solid rgba(19,102,217,0.2);">
+                              <span>Open Target</span>
+                              <i class="ti ti-arrow-right"></i>
+                            </a>
+                          <% } %>
 
-                        <% if (!n.is_read) { %>
-                          <button type="button" onclick="markSingleRead(<%= n.id %>, this)" style="background: none; border: none; color: #64748b; font-size: 12.5px; cursor: pointer; text-decoration: underline; padding: 4px 8px;">
-                            <i class="ti ti-check me-1"></i> Mark as read
+                          <button type="button" onclick="toggleReadStatus(<%= n.id %>, <%= n.is_read ? 'true' : 'false' %>)" style="background: none; border: none; color: #64748b; font-size: 12.5px; cursor: pointer; text-decoration: underline; padding: 3px 6px;">
+                            <i class="ti <%= n.is_read ? 'ti-mail' : 'ti-check' %> me-1"></i>
+                            Mark as <%= n.is_read ? 'unread' : 'read' %>
                           </button>
-                        <% } %>
+                        </div>
+
+                        <button type="button" onclick="deleteSingleNotification(<%= n.id %>)" style="background: none; border: none; color: #94a3b8; font-size: 12px; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; gap: 4px;" title="Delete this notification">
+                          <i class="ti ti-trash"></i> Delete
+                        </button>
                       </div>
                     </div>
                   </div>
                 <% }); %>
               <% } else { %>
-                <div style="text-align: center; padding: 60px 16px; color: #64748b;">
-                  <div style="width: 60px; height: 60px; border-radius: 16px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin-bottom: 14px;">
+                <div id="emptyNoticeState" style="text-align: center; padding: 60px 16px; color: #64748b;">
+                  <div style="width: 64px; height: 64px; border-radius: 16px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin-bottom: 14px;">
                     <i class="ti ti-bell-off"></i>
                   </div>
-                  <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">No notifications found</h3>
-                  <p style="font-size: 13.5px; color: #64748b; margin: 0;">Everything is up-to-date and running smoothly.</p>
+                  <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">No notifications found</h3>
+                  <p style="font-size: 13.5px; color: #64748b; margin: 0;">Everything is running in optimal condition with no pending alerts.</p>
                 </div>
               <% } %>
+            </div>
+
+            <!-- Loading indicator for AJAX pagination -->
+            <div id="notifLoadingIndicator" style="display: none; text-align: center; padding: 36px 0; color: #64748b;">
+              <div style="display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600;">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width: 18px; height: 18px; border-width: 2px; border-style: solid; border-color: var(--primary); border-right-color: transparent; border-radius: 50%; display: inline-block; animation: spinner-border .75s linear infinite;"></span>
+                Loading notifications...
+              </div>
+            </div>
+
+            <!-- Modern Pagination Toolbar -->
+            <% 
+              const pInfo = (typeof pagination !== 'undefined') ? pagination : {
+                total: (notifications ? notifications.length : 0),
+                page: 1,
+                limit: 15,
+                totalPages: 1,
+                hasPrev: false,
+                hasNext: false,
+                startIndex: (notifications && notifications.length > 0 ? 1 : 0),
+                endIndex: (notifications ? notifications.length : 0)
+              };
+            %>
+            <div id="notifPaginationWrapper" class="pagination-modern" style="display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 14px;">
+              <!-- Left info & Limit Selector -->
+              <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <span id="paginationSummaryText" style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
+                  Showing <strong id="pageStartNum"><%= pInfo.startIndex %></strong> to <strong id="pageEndNum"><%= pInfo.endIndex %></strong> of <strong id="pageTotalNum"><%= pInfo.total %></strong> notifications
+                </span>
+                
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label for="perPageSelect" style="font-size: 12.5px; color: #64748b; font-weight: 600;">Per page:</label>
+                  <select id="perPageSelect" onchange="handlePerPageChange(this.value)" style="padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 12.5px; outline: none; background: #ffffff; color: var(--text-main); cursor: pointer;">
+                    <option value="10" <%= pInfo.limit === 10 ? 'selected' : '' %>>10</option>
+                    <option value="15" <%= pInfo.limit === 15 ? 'selected' : '' %>>15</option>
+                    <option value="25" <%= pInfo.limit === 25 ? 'selected' : '' %>>25</option>
+                    <option value="50" <%= pInfo.limit === 50 ? 'selected' : '' %>>50</option>
+                    <option value="100" <%= pInfo.limit === 100 ? 'selected' : '' %>>100</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Right Pagination Controls -->
+              <div class="pagination-controls" id="paginationControls" style="display: flex; align-items: center; gap: 6px;">
+                <% if (pInfo.totalPages > 1) { %>
+                  <!-- First Page -->
+                  <button type="button" class="page-link" <%= pInfo.page <= 1 ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : 'onclick="goToPage(1)"' %> title="First Page">
+                    <i class="ti ti-chevrons-left"></i>
+                  </button>
+
+                  <!-- Previous Page -->
+                  <button type="button" class="page-link" <%= pInfo.page <= 1 ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : `onclick="goToPage(${pInfo.page - 1})"` %> title="Previous Page">
+                    <i class="ti ti-chevron-left"></i> Prev
+                  </button>
+
+                  <!-- Numbered Buttons -->
+                  <% 
+                    const windowRange = 2;
+                    let startP = Math.max(1, pInfo.page - windowRange);
+                    let endP = Math.min(pInfo.totalPages, pInfo.page + windowRange);
+                  %>
+                  <% if (startP > 1) { %>
+                    <button type="button" class="page-link" onclick="goToPage(1)">1</button>
+                    <% if (startP > 2) { %>
+                      <span class="page-link" style="border: none; background: transparent; cursor: default;">...</span>
+                    <% } %>
+                  <% } %>
+
+                  <% for (let p = startP; p <= endP; p++) { %>
+                    <% if (p === pInfo.page) { %>
+                      <button type="button" class="page-link active" style="background: linear-gradient(135deg, #1366d9 0%, #2563eb 100%) !important; color: #fff !important; font-weight: 700;"><%= p %></button>
+                    <% } else { %>
+                      <button type="button" class="page-link" onclick="goToPage(<%= p %>)"><%= p %></button>
+                    <% } %>
+                  <% } %>
+
+                  <% if (endP < pInfo.totalPages) { %>
+                    <% if (endP < pInfo.totalPages - 1) { %>
+                      <span class="page-link" style="border: none; background: transparent; cursor: default;">...</span>
+                    <% } %>
+                    <button type="button" class="page-link" onclick="goToPage(<%= pInfo.totalPages %>)"><%= pInfo.totalPages %></button>
+                  <% } %>
+
+                  <!-- Next Page -->
+                  <button type="button" class="page-link" <%= pInfo.page >= pInfo.totalPages ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : `onclick="goToPage(${pInfo.page + 1})"` %> title="Next Page">
+                    Next <i class="ti ti-chevron-right"></i>
+                  </button>
+
+                  <!-- Last Page -->
+                  <button type="button" class="page-link" <%= pInfo.page >= pInfo.totalPages ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : `onclick="goToPage(${pInfo.totalPages})"` %> title="Last Page">
+                    <i class="ti ti-chevrons-right"></i>
+                  </button>
+                <% } else { %>
+                  <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="First Page">
+                    <i class="ti ti-chevrons-left"></i>
+                  </button>
+                  <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="Previous Page">
+                    <i class="ti ti-chevron-left"></i> Prev
+                  </button>
+                  <button type="button" class="page-link active" style="background: linear-gradient(135deg, #1366d9 0%, #2563eb 100%) !important; color: #fff !important; font-weight: 700;">1</button>
+                  <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="Next Page">
+                    Next <i class="ti ti-chevron-right"></i>
+                  </button>
+                  <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="Last Page">
+                    <i class="ti ti-chevrons-right"></i>
+                  </button>
+                <% } %>
+              </div>
             </div>
 
           </div>
@@ -270,56 +613,753 @@
     </div>
   </div>
 
-  <script>
-    function filterNotifs(type, btn) {
-      document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+  <!-- Broadcast Announcement Modal (Super Admin / Admin) -->
+  <div id="broadcastModal" class="notif-modal-overlay">
+    <div class="notif-modal-box">
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: #f8fafc;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(19,102,217,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 16px;">
+            <i class="ti ti-speakerphone"></i>
+          </div>
+          <strong style="font-size: 15px; color: #0f172a;">Send Broadcast Announcement</strong>
+        </div>
+        <button type="button" onclick="closeBroadcastModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
 
-      const rows = document.querySelectorAll('.notif-item-row');
-      rows.forEach(r => {
-        if (type === 'all' || r.getAttribute('data-type') === type) {
-          r.style.display = 'flex';
-        } else {
-          r.style.display = 'none';
-        }
-      });
+      <form id="broadcastForm" onsubmit="handleBroadcastSubmit(event)" style="padding: 20px;">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Target Audience</label>
+          <select name="target_type" id="broadcastTargetType" class="form-select-modern" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px;" onchange="handleTargetTypeChange(this)">
+            <option value="all">All Stores &amp; Users (System-wide)</option>
+            <option value="current_company">Current Store Only</option>
+            <% if (typeof companies !== 'undefined' && companies && companies.length > 0) { %>
+              <option value="specific_company">Specific Client Store...</option>
+            <% } %>
+          </select>
+        </div>
+
+        <% if (typeof companies !== 'undefined' && companies && companies.length > 0) { %>
+          <div id="specificCompanySelectDiv" style="display: none; margin-bottom: 14px;">
+            <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Select Store</label>
+            <select name="target_company_id" class="form-select-modern" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px;">
+              <% companies.forEach(function(c) { %>
+                <option value="<%= c.id %>"><%= c.name %> (ID: <%= c.id %>)</option>
+              <% }); %>
+            </select>
+          </div>
+        <% } %>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Severity</label>
+            <select name="severity" class="form-select-modern" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px;">
+              <option value="info">Information (Blue)</option>
+              <option value="warning">Warning (Amber)</option>
+              <option value="danger">Critical (Red)</option>
+              <option value="success">Success (Green)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Category</label>
+            <select name="type" class="form-select-modern" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px;">
+              <option value="system">System Notice</option>
+              <option value="alert">Alert / Emergency</option>
+              <option value="stock">Stock Notice</option>
+              <option value="sale">Sales Update</option>
+              <option value="subscription">Subscription Notice</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Announcement Title *</label>
+          <input type="text" name="title" required placeholder="e.g., Scheduled Maintenance Tonight" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px; outline: none;" />
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Announcement Message *</label>
+          <textarea name="message" required rows="3" placeholder="Enter clear description for store managers and cashiers..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px; outline: none;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">Optional Action Link</label>
+          <input type="text" name="link" placeholder="e.g., /admin/subscription or https://..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 13.5px; outline: none;" />
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" onclick="closeBroadcastModal()" class="btn-modern btn-outline-modern">Cancel</button>
+          <button type="submit" id="broadcastSubmitBtn" class="btn-modern btn-primary-modern">
+            <i class="ti ti-send"></i> Dispatch Broadcast
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Settings Modal -->
+  <div id="settingsModal" class="notif-modal-overlay">
+    <div class="notif-modal-box" style="max-width: 440px;">
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: #f8fafc;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: #f1f5f9; color: #334155; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+            <i class="ti ti-settings"></i>
+          </div>
+          <strong style="font-size: 15px; color: #0f172a;">Notification Preferences</strong>
+        </div>
+        <button type="button" onclick="closeSettingsModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
+      </div>
+
+      <div style="padding: 20px;">
+        <!-- Sound Chimes -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">Audible Chimes</div>
+            <div style="font-size: 12px; color: #64748b;">Play a pleasant synthesizer chime on new alerts</div>
+          </div>
+          <button type="button" id="modalSoundToggleBtn" onclick="toggleModalSound()" class="btn-modern btn-outline-modern" style="padding: 5px 12px; font-size: 12px;">
+            <i class="ti ti-volume" id="modalSoundIcon"></i> <span id="modalSoundText">Enabled</span>
+          </button>
+        </div>
+
+        <!-- Audio Test -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">Test Audio Engine</div>
+            <div style="font-size: 12px; color: #64748b;">Preview the dual-tone chime</div>
+          </div>
+          <button type="button" onclick="window.playNotificationChime && window.playNotificationChime()" class="btn-modern btn-outline-modern" style="padding: 5px 12px; font-size: 12px;">
+            <i class="ti ti-player-play"></i> Play Sound
+          </button>
+        </div>
+
+        <!-- Desktop Push -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">Desktop Push Alerts</div>
+            <div style="font-size: 12px; color: #64748b;">Receive OS banners when tab is minimized</div>
+          </div>
+          <button type="button" onclick="window.requestPushNotificationPermission && window.requestPushNotificationPermission()" class="btn-modern btn-primary-modern" style="padding: 5px 12px; font-size: 12px;">
+            <i class="ti ti-device-desktop"></i> Configure
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" onclick="closeSettingsModal()" class="btn-modern btn-outline-modern">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = <%= (typeof pagination !== 'undefined' && pagination.page) ? pagination.page : 1 %>;
+    let currentLimit = <%= (typeof pagination !== 'undefined' && pagination.limit) ? pagination.limit : 15 %>;
+    let currentCategoryFilter = '<%= (typeof filters !== 'undefined' && filters.type) ? filters.type : "all" %>';
+    let currentStatusFilter = '<%= (typeof filters !== 'undefined' && filters.status) ? filters.status : "all" %>';
+    let currentSeverity = '<%= (typeof filters !== 'undefined' && filters.severity) ? filters.severity : "all" %>';
+    let currentSearch = '<%= (typeof filters !== 'undefined' && filters.search) ? filters.search : "" %>';
+    let searchDebounceTimer = null;
+    let isLoading = false;
+
+    // Helper: Escape HTML to avoid XSS
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
-    function markSingleRead(id, btn) {
-      fetch(`/api/notifications/${id}/read`, { method: 'POST' })
+    // Toggle Loading Indicator
+    function showLoading(show) {
+      isLoading = show;
+      const spinner = document.getElementById('notifLoadingIndicator');
+      const container = document.getElementById('notifContainer');
+      const paginationWrapper = document.getElementById('notifPaginationWrapper');
+      if (spinner) spinner.style.display = show ? 'block' : 'none';
+      if (container) {
+        if (show) {
+          container.classList.add('notif-container-fading');
+        } else {
+          container.classList.remove('notif-container-fading');
+        }
+      }
+      if (paginationWrapper && show) {
+        paginationWrapper.style.opacity = '0.6';
+        paginationWrapper.style.pointerEvents = 'none';
+      } else if (paginationWrapper) {
+        paginationWrapper.style.opacity = '1';
+        paginationWrapper.style.pointerEvents = 'auto';
+      }
+    }
+
+    // Main Engine to load notifications via API
+    function loadNotifications(page = 1, updateHistory = true) {
+      currentPage = page;
+      showLoading(true);
+      clearBulkSelection();
+
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: currentLimit,
+        type: currentCategoryFilter,
+        severity: currentSeverity,
+        status: currentStatusFilter,
+        search: currentSearch
+      });
+
+      if (updateHistory) {
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.pushState({ page: currentPage }, '', newUrl);
+      }
+
+      fetch(`/api/notifications?${params.toString()}`)
         .then(res => res.json())
-        .then(res => {
-          if (res.success) {
-            const row = btn.closest('.notif-item-row');
-            if (row) {
-              row.classList.remove('unread');
-              const newBadge = row.querySelector('span[style*="background: var(--primary"]');
-              if (newBadge) newBadge.remove();
-              btn.remove();
-            }
+        .then(data => {
+          showLoading(false);
+          if (!data || !data.success) {
+            console.error('Failed to fetch notifications:', data?.error);
+            return;
           }
+
+          renderNotificationsList(data.notifications || []);
+          renderPagination(data.pagination);
+          updateStats(data.stats, data.pagination?.total);
+        })
+        .catch(err => {
+          showLoading(false);
+          console.error('Error loading notifications:', err);
         });
     }
 
+    // Go to specific page
+    function goToPage(page) {
+      if (page < 1 || isLoading) return;
+      loadNotifications(page, true);
+      const card = document.querySelector('.card-modern');
+      if (card && card.getBoundingClientRect().top < 0) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Change items per page
+    function handlePerPageChange(limit) {
+      currentLimit = parseInt(limit) || 15;
+      loadNotifications(1, true);
+    }
+
+    // Debounced Search Input
+    function handleSearchInput(val) {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        currentSearch = (val || '').trim();
+        loadNotifications(1, true);
+      }, 300);
+    }
+
+    // Category Pill Filter
+    function setCategoryFilter(cat, btn) {
+      if (currentCategoryFilter === cat) return;
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.notif-filter-pills .notif-pill-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      loadNotifications(1, true);
+    }
+
+    // Status Filter (All / Unread / Read)
+    function setStatusFilter(status, btn) {
+      if (currentStatusFilter === status) return;
+      currentStatusFilter = status;
+      document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      loadNotifications(1, true);
+    }
+
+    // Severity Dropdown Filter
+    function handleSeverityChange(val) {
+      currentSeverity = val;
+      loadNotifications(1, true);
+    }
+
+    // Render Notifications HTML inside #notifContainer
+    function renderNotificationsList(items) {
+      const container = document.getElementById('notifContainer');
+      if (!container) return;
+
+      if (!items || items.length === 0) {
+        container.innerHTML = `
+          <div id="emptyNoticeState" style="text-align: center; padding: 60px 16px; color: #64748b;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; color: #94a3b8; margin-bottom: 14px;">
+              <i class="ti ti-bell-off"></i>
+            </div>
+            <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">No notifications found</h3>
+            <p style="font-size: 13.5px; color: #64748b; margin: 0;">Everything is running in optimal condition with no pending alerts matching your criteria.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = items.map(n => {
+        const isUnread = !n.is_read;
+        const sev = n.severity || 'info';
+        const icon = n.icon || 'ti-bell';
+        const linkHtml = n.link ? `
+          <a href="${escapeHtml(n.link)}" class="btn-notif-action" style="background: var(--primary-light); color: var(--primary); border: 1px solid rgba(19,102,217,0.2);">
+            <span>Open Target</span>
+            <i class="ti ti-arrow-right"></i>
+          </a>
+        ` : '';
+
+        return `
+          <div class="notif-item-row ${isUnread ? 'unread' : ''}" 
+               id="notif-row-${n.id}"
+               data-id="${n.id}"
+               data-type="${escapeHtml(n.type)}"
+               data-severity="${escapeHtml(sev)}"
+               data-isread="${isUnread ? '0' : '1'}">
+            
+            <!-- Checkbox -->
+            <div style="display: flex; align-items: center; margin-top: 4px;">
+              <input type="checkbox" class="notif-checkbox" value="${n.id}" onchange="handleRowCheckboxChange()" style="cursor: pointer; width: 16px; height: 16px;" />
+            </div>
+
+            <!-- Icon Box -->
+            <div class="notif-icon-box severity-${escapeHtml(sev)}">
+              <i class="ti ${escapeHtml(icon)}"></i>
+            </div>
+
+            <!-- Content -->
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <strong class="notif-title-text" style="font-size: 15px; color: #0f172a;">${escapeHtml(n.title)}</strong>
+                  
+                  ${isUnread ? '<span class="badge-pill-soft" style="background: var(--primary); color: #fff;">NEW</span>' : ''}
+
+                  <span class="badge-pill-soft severity-${escapeHtml(sev)}">
+                    ${escapeHtml(sev)}
+                  </span>
+
+                  <span class="badge-pill-soft" style="background: #f1f5f9; color: #475569;">
+                    ${escapeHtml(n.type)}
+                  </span>
+                </div>
+
+                <span style="font-size: 12px; color: #64748b; font-weight: 500;">
+                  <i class="ti ti-clock me-1"></i>${escapeHtml(n.time_ago || 'recent')}
+                </span>
+              </div>
+
+              <p class="notif-message-text" style="color: #475569; font-size: 13.5px; margin: 0 0 12px 0; line-height: 1.55;">
+                ${escapeHtml(n.message)}
+              </p>
+
+              <!-- Action Footer per row -->
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  ${linkHtml}
+
+                  <button type="button" onclick="toggleReadStatus(${n.id}, ${isUnread ? 'false' : 'true'})" style="background: none; border: none; color: #64748b; font-size: 12.5px; cursor: pointer; text-decoration: underline; padding: 3px 6px;">
+                    <i class="ti ${isUnread ? 'ti-check' : 'ti-mail'} me-1"></i>
+                    Mark as ${isUnread ? 'read' : 'unread'}
+                  </button>
+                </div>
+
+                <button type="button" onclick="deleteSingleNotification(${n.id})" style="background: none; border: none; color: #94a3b8; font-size: 12px; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; gap: 4px;" title="Delete this notification">
+                  <i class="ti ti-trash"></i> Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Pagination Controls & Summary
+    function renderPagination(pagination) {
+      if (!pagination) return;
+      const { total, page, limit, totalPages, startIndex, endIndex } = pagination;
+
+      const pageStartEl = document.getElementById('pageStartNum');
+      const pageEndEl = document.getElementById('pageEndNum');
+      const pageTotalEl = document.getElementById('pageTotalNum');
+      const summaryEl = document.getElementById('paginationSummaryText');
+      const notice = document.getElementById('filteredCountNotice');
+
+      if (total === 0) {
+        if (summaryEl) summaryEl.innerHTML = 'Showing <strong>0</strong> notifications';
+        if (notice) notice.textContent = 'Showing 0 notifications';
+      } else {
+        if (pageStartEl) pageStartEl.textContent = startIndex;
+        if (pageEndEl) pageEndEl.textContent = endIndex;
+        if (pageTotalEl) pageTotalEl.textContent = total;
+        if (summaryEl) {
+          summaryEl.innerHTML = `Showing <strong>${startIndex}</strong> to <strong>${endIndex}</strong> of <strong>${total}</strong> notifications`;
+        }
+        if (notice) {
+          notice.textContent = `Showing ${startIndex}-${endIndex} of ${total} notifications`;
+        }
+      }
+
+      const controls = document.getElementById('paginationControls');
+      if (!controls) return;
+
+      if (totalPages <= 1) {
+        controls.innerHTML = `
+          <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="First Page">
+            <i class="ti ti-chevrons-left"></i>
+          </button>
+          <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="Previous Page">
+            <i class="ti ti-chevron-left"></i> Prev
+          </button>
+          <button type="button" class="page-link active" style="background: linear-gradient(135deg, #1366d9 0%, #2563eb 100%) !important; color: #fff !important; font-weight: 700;">1</button>
+          <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="Next Page">
+            Next <i class="ti ti-chevron-right"></i>
+          </button>
+          <button type="button" class="page-link" disabled style="opacity: 0.45; cursor: not-allowed;" title="Last Page">
+            <i class="ti ti-chevrons-right"></i>
+          </button>
+        `;
+        return;
+      }
+
+      let html = '';
+
+      // First Page Button
+      html += `
+        <button type="button" class="page-link" ${page <= 1 ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : 'onclick="goToPage(1)"'} title="First Page">
+          <i class="ti ti-chevrons-left"></i>
+        </button>
+      `;
+
+      // Previous Page Button
+      html += `
+        <button type="button" class="page-link" ${page <= 1 ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : `onclick="goToPage(${page - 1})"`} title="Previous Page">
+          <i class="ti ti-chevron-left"></i> Prev
+        </button>
+      `;
+
+      // Smart Windowed Numbered Buttons
+      const windowRange = 2;
+      let startP = Math.max(1, page - windowRange);
+      let endP = Math.min(totalPages, page + windowRange);
+
+      if (startP > 1) {
+        html += `<button type="button" class="page-link" onclick="goToPage(1)">1</button>`;
+        if (startP > 2) {
+          html += `<span class="page-link" style="border: none; background: transparent; cursor: default;">...</span>`;
+        }
+      }
+
+      for (let p = startP; p <= endP; p++) {
+        if (p === page) {
+          html += `<button type="button" class="page-link active" style="background: linear-gradient(135deg, #1366d9 0%, #2563eb 100%) !important; color: #fff !important; font-weight: 700;">${p}</button>`;
+        } else {
+          html += `<button type="button" class="page-link" onclick="goToPage(${p})">${p}</button>`;
+        }
+      }
+
+      if (endP < totalPages) {
+        if (endP < totalPages - 1) {
+          html += `<span class="page-link" style="border: none; background: transparent; cursor: default;">...</span>`;
+        }
+        html += `<button type="button" class="page-link" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+      }
+
+      // Next Page Button
+      html += `
+        <button type="button" class="page-link" ${page >= totalPages ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : `onclick="goToPage(${page + 1})"`} title="Next Page">
+          Next <i class="ti ti-chevron-right"></i>
+        </button>
+      `;
+
+      // Last Page Button
+      html += `
+        <button type="button" class="page-link" ${page >= totalPages ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : `onclick="goToPage(${totalPages})"`} title="Last Page">
+          <i class="ti ti-chevrons-right"></i>
+        </button>
+      `;
+
+      controls.innerHTML = html;
+    }
+
+    // Update real-time stats cards and pills
+    function updateStats(stats, filteredTotal) {
+      if (!stats) return;
+      const totalEl = document.getElementById('statsTotalNumber');
+      const unreadEl = document.getElementById('statsUnreadNumber');
+      const unreadSubEl = document.getElementById('statsUnreadSubtext');
+      const unreadIconEl = document.getElementById('statsUnreadIconBox');
+      const dangerEl = document.getElementById('statsDangerNumber');
+      const stockEl = document.getElementById('statsStockNumber');
+      const saleEl = document.getElementById('statsSaleNumber');
+      const totalPill = document.getElementById('statsTotalPill');
+      const unreadPill = document.getElementById('statsUnreadPill');
+      const stockPill = document.getElementById('statsStockPill');
+      const salePill = document.getElementById('statsSalePill');
+
+      if (totalEl) totalEl.textContent = stats.total;
+      if (unreadEl) {
+        unreadEl.textContent = stats.unread;
+        unreadEl.style.color = stats.unread > 0 ? '#dc2626' : '#059669';
+      }
+      if (unreadSubEl) {
+        unreadSubEl.textContent = stats.unread === 0 ? 'All caught up' : 'Pending review';
+      }
+      if (unreadIconEl) {
+        unreadIconEl.style.background = stats.unread > 0 ? '#fef2f2' : '#f0fdf4';
+        unreadIconEl.style.color = stats.unread > 0 ? '#dc2626' : '#059669';
+      }
+      if (dangerEl) dangerEl.textContent = stats.danger;
+      if (stockEl) stockEl.textContent = stats.stock;
+      if (saleEl) saleEl.textContent = stats.sale;
+
+      if (totalPill) totalPill.textContent = stats.total;
+      if (unreadPill) unreadPill.textContent = stats.unread;
+      if (stockPill) stockPill.textContent = stats.stock;
+      if (salePill) salePill.textContent = stats.sale;
+    }
+
+    // Synchronize UI Controls when history pops (back/forward)
+    function syncUIControls() {
+      const searchInput = document.getElementById('notifSearchInput');
+      if (searchInput) searchInput.value = currentSearch;
+
+      const perPageSelect = document.getElementById('perPageSelect');
+      if (perPageSelect) perPageSelect.value = currentLimit;
+
+      const severityFilter = document.getElementById('severityFilter');
+      if (severityFilter) severityFilter.value = currentSeverity;
+
+      document.querySelectorAll('.notif-filter-pills .notif-pill-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-cat') === currentCategoryFilter);
+      });
+
+      document.querySelectorAll('[data-status]').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-status') === currentStatusFilter);
+      });
+    }
+
+    // Listen to Browser Back / Forward buttons
+    window.addEventListener('popstate', () => {
+      const params = new URLSearchParams(window.location.search);
+      const p = parseInt(params.get('page')) || 1;
+      currentLimit = parseInt(params.get('limit')) || 15;
+      currentCategoryFilter = params.get('type') || 'all';
+      currentSeverity = params.get('severity') || 'all';
+      currentStatusFilter = params.get('status') || 'all';
+      currentSearch = params.get('search') || '';
+
+      syncUIControls();
+      loadNotifications(p, false);
+    });
+
+    // Toggle Read/Unread Single
+    function toggleReadStatus(id, currentIsRead) {
+      const endpoint = currentIsRead ? `/api/notifications/${id}/unread` : `/api/notifications/${id}/read`;
+      fetch(endpoint, { method: 'POST' })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            loadNotifications(currentPage, false);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+
+    // Delete Single Notification
+    function deleteSingleNotification(id) {
+      if (confirm('Delete this notification permanently?')) {
+        fetch(`/api/notifications/${id}`, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(res => {
+            if (res.success) {
+              loadNotifications(currentPage, false);
+            }
+          })
+          .catch(err => console.error(err));
+      }
+    }
+
+    // Bulk Selection Handlers
+    function toggleSelectAll(masterCheckbox) {
+      const isChecked = masterCheckbox.checked;
+      const visibleCheckboxes = document.querySelectorAll('.notif-item-row .notif-checkbox');
+      visibleCheckboxes.forEach(cb => { cb.checked = isChecked; });
+      updateBulkActionBar();
+    }
+
+    function handleRowCheckboxChange() {
+      updateBulkActionBar();
+    }
+
+    function updateBulkActionBar() {
+      const selected = document.querySelectorAll('.notif-checkbox:checked');
+      const bar = document.getElementById('bulkActionBar');
+      const counter = document.getElementById('bulkSelectedCount');
+      if (selected.length > 0) {
+        bar.classList.add('visible');
+        counter.textContent = `${selected.length} notification${selected.length > 1 ? 's' : ''} selected`;
+      } else {
+        bar.classList.remove('visible');
+      }
+    }
+
+    function clearBulkSelection() {
+      document.querySelectorAll('.notif-checkbox').forEach(cb => { cb.checked = false; });
+      const master = document.getElementById('selectAllCheckbox');
+      if (master) master.checked = false;
+      updateBulkActionBar();
+    }
+
+    function executeBulkAction(action) {
+      const selected = Array.from(document.querySelectorAll('.notif-checkbox:checked')).map(cb => parseInt(cb.value));
+      if (selected.length === 0) return;
+
+      if (action === 'delete' && !confirm(`Permanently delete ${selected.length} selected notifications?`)) {
+        return;
+      }
+
+      fetch('/api/notifications/bulk-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ids: selected })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          loadNotifications(currentPage, false);
+        } else {
+          alert(res.error || 'Failed to perform bulk action');
+        }
+      })
+      .catch(err => console.error(err));
+    }
+
+    // Mark All Read
     function markAllNotificationsRead() {
       fetch('/api/notifications/mark-all-read', { method: 'POST' })
         .then(res => res.json())
         .then(res => {
           if (res.success) {
-            window.location.reload();
+            loadNotifications(currentPage, false);
           }
         });
     }
 
+    // Clear All Read
     function clearReadNotifications() {
       if (confirm('Clear all read notifications from your history?')) {
         fetch('/api/notifications/clear', { method: 'POST' })
           .then(res => res.json())
           .then(res => {
             if (res.success) {
-              window.location.reload();
+              loadNotifications(1, false);
             }
           });
+      }
+    }
+
+    // Test Alert Generator
+    function triggerTestAlert() {
+      fetch('/api/notifications/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ severity: 'info' })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success && res.notification) {
+          if (window.playNotificationChime) window.playNotificationChime();
+          if (window.showNotificationToast) window.showNotificationToast(res.notification);
+          setTimeout(() => loadNotifications(1, false), 1200);
+        }
+      })
+      .catch(err => console.error(err));
+    }
+
+    // Broadcast Modal
+    function openBroadcastModal() {
+      document.getElementById('broadcastModal').style.display = 'flex';
+    }
+    function closeBroadcastModal() {
+      document.getElementById('broadcastModal').style.display = 'none';
+    }
+    function handleTargetTypeChange(sel) {
+      const div = document.getElementById('specificCompanySelectDiv');
+      if (div) {
+        div.style.display = sel.value === 'specific_company' ? 'block' : 'none';
+      }
+    }
+    function handleBroadcastSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        target_type: form.target_type.value,
+        target_company_id: form.target_company_id ? form.target_company_id.value : null,
+        severity: form.severity.value,
+        type: form.type.value,
+        title: form.title.value,
+        message: form.message.value,
+        link: form.link.value
+      };
+
+      const btn = document.getElementById('broadcastSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader"></i> Sending...';
+
+      fetch('/api/notifications/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-send"></i> Dispatch Broadcast';
+        if (res.success) {
+          closeBroadcastModal();
+          alert('Broadcast announcement dispatched successfully!');
+          window.location.reload();
+        } else {
+          alert(res.error || 'Failed to dispatch broadcast');
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-send"></i> Dispatch Broadcast';
+        console.error(err);
+      });
+    }
+
+    // Settings Modal
+    function openSettingsModal() {
+      updateModalSoundUI();
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+    function updateModalSoundUI() {
+      const isMuted = localStorage.getItem('erp_notif_sound') === 'muted';
+      const icon = document.getElementById('modalSoundIcon');
+      const text = document.getElementById('modalSoundText');
+      if (icon) icon.className = isMuted ? 'ti ti-volume-off' : 'ti ti-volume';
+      if (text) text.textContent = isMuted ? 'Muted' : 'Enabled';
+    }
+    function toggleModalSound() {
+      const isMuted = localStorage.getItem('erp_notif_sound') === 'muted';
+      if (isMuted) {
+        localStorage.removeItem('erp_notif_sound');
+      } else {
+        localStorage.setItem('erp_notif_sound', 'muted');
+      }
+      updateModalSoundUI();
+      if (window.playNotificationChime && !isMuted) {
+        // Just unmuted, play test sound
+        window.playNotificationChime();
       }
     }
   </script>

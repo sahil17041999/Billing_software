@@ -1659,5 +1659,7 @@ exports.deleteSubscriptionPlan = async (req, res) => {
   }
 };
 
+exports.ensurePlansAvailable = ensurePlansAvailable;
+
 
 

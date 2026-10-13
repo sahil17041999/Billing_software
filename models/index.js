@@ -31,6 +31,7 @@ const SubscriptionPlan = require('./SubscriptionPlan');
 const CompanySubscription = require('./CompanySubscription');
 const SubscriptionInvoice = require('./SubscriptionInvoice');
 const Notification = require('./Notification');
+const ContactInquiry = require('./ContactInquiry');
 
 // Define associations (idempotent guard)
 let associationsSetup = false;
@@ -247,6 +248,7 @@ module.exports = {
   CompanySubscription,
   SubscriptionInvoice,
   Notification,
+  ContactInquiry,
   setupAssociations,
   seedSubscriptionPlans
 };

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features &amp; Capabilities &bull; Grocery POS Cloud ERP</title>
+  <meta name="description" content="Explore advanced POS billing, multi-cart holding, automated GST invoicing, batch expiration radar, customer khata ledger, and day-end audits.">
+  <link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
+
+  <!-- Standard Typography: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="/assets/css/icons/tabler-icons/tabler-icons.css" />
+
+  <!-- Centralized B2C Stylesheet -->
+  <link rel="stylesheet" href="/assets/css/b2c-website.css" />
+
+  <style>
+    .feature-deep-section {
+      padding: 70px 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .feature-deep-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .feature-deep-inner {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+    }
+    .feature-preview-mockup {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.08);
+      position: relative;
+    }
+    .pill-badge-soft {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 14px;
+    }
+    .specs-list {
+      list-style: none;
+      margin: 20px 0 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .specs-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #334155;
+    }
+    .specs-item i {
+      color: #10b981;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Shared Top Navigation Header -->
+  <%- include('partials/header') %>
+
+  <!-- Page Hero -->
+  <section class="b2c-hero" style="padding: 70px 20px 80px;">
+    <div class="hero-badge">
+      <i class="ti ti-cpu"></i> CORE CAPABILITIES &amp; ARCHITECTURE
+    </div>
+    <h1 style="font-size: 42px;">Engineered for High-Velocity Indian Retail</h1>
+    <p style="max-width: 680px;">Deep dive into the specialized POS features, inventory radar, and compliance engines that power daily operations across grocery shops, marts, and supermarkets.</p>
+  </section>
+
+  <!-- Deep Dive 1: Multi-Cart Quick POS Counter -->
+  <section id="pos-section" class="feature-deep-section" style="background: #ffffff;">
+    <div class="feature-deep-inner">
+      <div>
+        <span class="pill-badge-soft" style="background: #eff6ff; color: #1366d9;">Module 01</span>
+        <h2 style="font-size: 30px; font-weight: 800; color: #0f172a; margin-bottom: 14px; line-height: 1.25;">Multi-Level &amp; Multi-Cart POS Terminal</h2>
+        <p style="font-size: 15px; color: #475569; line-height: 1.65;">Eliminate checkout stalls forever. When a customer steps away to grab one more grocery item, hold their cart with one click (or keyboard shortcut) and start billing the next customer immediately. Retrieve the held cart anytime with zero lost data.</p>
+        
+        <ul class="specs-list">
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Instant Cart Switching:</strong> Hold up to 10 active customer carts simultaneously on the same counter.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Split Tender Payments:</strong> Combine Cash + UPI or Card in a single checkout.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Audio Scanning Chime:</strong> Instant auditory feedback on barcode scan without looking at the screen.</span></li>
+        </ul>
+
+        <a href="/pricing" class="btn-hero-primary" style="font-size: 13.5px; padding: 10px 22px;">
+          Explore Store Plans <i class="ti ti-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="feature-preview-mockup">
+        <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <strong style="font-size: 13px; color: #0f172a;">Active POS Terminal Interface</strong>
+          <span style="background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">LIVE COUNTER</span>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+          <button style="padding: 6px 12px; background: #1366d9; color: #fff; border: none; border-radius: 6px; font-size: 11.5px; font-weight: 700;">Cart 1 (Active)</button>
+          <button style="padding: 6px 12px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11.5px; font-weight: 600;">Cart 2 (Held)</button>
+          <button style="padding: 6px 12px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11.5px; font-weight: 600;">+ New Cart</button>
+        </div>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; font-size: 12.5px; color: #334155;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Amul Butter 500g</span><strong>₹275.00</strong></div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Aashirvaad Atta 10kg</span><strong>₹460.00</strong></div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Tata Salt 1kg</span><strong>₹28.00</strong></div>
+          <div style="border-top: 1px dashed #cbd5e1; margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: #0f172a;">
+            <span>Total Payable:</span><span style="color: #1366d9;">₹763.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Dive 2: Barcode & Weighing Scale Engine -->
+  <section id="barcode-section" class="feature-deep-section" style="background: #f8fafc;">
+    <div class="feature-deep-inner">
+      <div class="feature-preview-mockup">
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 40px; color: #10b981; margin-bottom: 10px;"><i class="ti ti-barcode"></i></div>
+          <h4 style="font-size: 16px; font-weight: 800; color: #0f172a;">Universal Barcode Engine</h4>
+          <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Reads standard manufacturer EAN-13, UPC-A, Code-128 barcodes as well as custom in-store weight scale labels.</p>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 18px; flex-wrap: wrap;">
+            <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">EAN-13</span>
+            <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">UPC-A</span>
+            <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">Weight Barcode (24xxxxx)</span>
+            <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">QR Codes</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <span class="pill-badge-soft" style="background: #ecfdf5; color: #059669;">Module 02</span>
+        <h2 style="font-size: 30px; font-weight: 800; color: #0f172a; margin-bottom: 14px; line-height: 1.25;">High-Speed Barcode &amp; Weight Scale Engine</h2>
+        <p style="font-size: 15px; color: #475569; line-height: 1.65;">Say goodbye to manually typing item names. Scan packaged items or weigh loose produce (fruits, vegetables, pulses, grains) with instant barcode reading.</p>
+        
+        <ul class="specs-list">
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Weighing Scale Integration:</strong> Parses price-embedded and weight-embedded barcodes directly from counter scales.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Rapid Product Lookup:</strong> Instant search by brand, category, barcode, or Hindi/regional names.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Custom Label Printing:</strong> Generate and print barcode stickers for unbranded or repacked bulk goods.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Dive 3: Automated GST Invoicing & Thermal Printing -->
+  <section id="gst-section" class="feature-deep-section" style="background: #ffffff;">
+    <div class="feature-deep-inner">
+      <div>
+        <span class="pill-badge-soft" style="background: #f5f3ff; color: #7c3aed;">Module 03</span>
+        <h2 style="font-size: 30px; font-weight: 800; color: #0f172a; margin-bottom: 14px; line-height: 1.25;">100% Automated GST Tax Invoicing</h2>
+        <p style="font-size: 15px; color: #475569; line-height: 1.65;">Full adherence to Indian GST regulations. Configure tax brackets once (0%, 5%, 12%, 18%, 28%) and the system takes care of all CGST, SGST, and IGST calculations with zero math errors.</p>
+        
+        <ul class="specs-list">
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Thermal &amp; A4 Receipt Layouts:</strong> Optimized formatting for 80mm and 58mm thermal rolls or standard A4 sheets.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Branded Invoices:</strong> Embed store logo, custom header, store contact, and return policy footer.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Automated SMTP Email Receipts:</strong> Email PDF tax receipts directly to customer inboxes to save paper.</span></li>
+        </ul>
+      </div>
+
+      <div class="feature-preview-mockup">
+        <div style="background: #fafbfc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 18px; font-family: monospace; font-size: 12px;">
+          <div style="text-align: center; font-weight: bold; margin-bottom: 4px;">APEX SUPERMARKET</div>
+          <div style="text-align: center; font-size: 10px; color: #64748b;">GSTIN: 27AABCS1429B1Z1 | HSN COMPLIANT</div>
+          <div style="border-top: 1px dashed #cbd5e1; margin: 8px 0;"></div>
+          <div style="display: flex; justify-content: space-between;"><span>Taxable Value:</span><span>₹646.61</span></div>
+          <div style="display: flex; justify-content: space-between;"><span>CGST (2.5%):</span><span>₹16.17</span></div>
+          <div style="display: flex; justify-content: space-between;"><span>SGST (2.5%):</span><span>₹16.17</span></div>
+          <div style="display: flex; justify-content: space-between;"><span>GST (18%):</span><span>₹84.05</span></div>
+          <div style="border-top: 1px dashed #cbd5e1; margin-top: 8px; padding-top: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: space-between;">
+            <span>GRAND TOTAL:</span><span>₹763.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Dive 4: Batch Tracking & Expiry Radar -->
+  <section id="batch-section" class="feature-deep-section" style="background: #f8fafc;">
+    <div class="feature-deep-inner">
+      <div class="feature-preview-mockup">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px;">
+            <i class="ti ti-alert-triangle" style="color: #ef4444; font-size: 20px;"></i>
+            <div>
+              <strong style="font-size: 12.5px; color: #991b1b; display: block;">Batch Expiring in 14 Days</strong>
+              <span style="font-size: 11px; color: #b91c1c;">Fresh Curd 400g &bull; Batch #BC-209 &bull; Qty: 24</span>
+            </div>
+          </div>
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px;">
+            <i class="ti ti-package" style="color: #d97706; font-size: 20px;"></i>
+            <div>
+              <strong style="font-size: 12.5px; color: #92400e; display: block;">Low Stock Alert</strong>
+              <span style="font-size: 11px; color: #b45309;">Sunflower Oil 5L &bull; Current Qty: 3 (Threshold: 10)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <span class="pill-badge-soft" style="background: #fffbeb; color: #d97706;">Module 04</span>
+        <h2 style="font-size: 30px; font-weight: 800; color: #0f172a; margin-bottom: 14px; line-height: 1.25;">Smart Inventory &amp; 30-Day Expiry Radar</h2>
+        <p style="font-size: 15px; color: #475569; line-height: 1.65;">Stop food waste and unsellable goods before they cost you money. The system monitors batch numbers and flags products approaching expiry 30 days in advance.</p>
+        
+        <ul class="specs-list">
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Proactive Expiry Radar:</strong> Real-time dashboard warnings and instant notification center alerts.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Automated Reorder Triggers:</strong> Flags low inventory so you never run out of fast-moving grocery staples.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Stock Valuation Ledger:</strong> Real-time purchase cost tracking and FIFO/weighted average inventory valuations.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Dive 5: Customer Khata & Cashier Day-End Audit -->
+  <section id="khata-section" class="feature-deep-section" style="background: #ffffff;">
+    <div class="feature-deep-inner">
+      <div>
+        <span class="pill-badge-soft" style="background: #fff1f2; color: #e11d48;">Module 05</span>
+        <h2 style="font-size: 30px; font-weight: 800; color: #0f172a; margin-bottom: 14px; line-height: 1.25;">Customer Khata &amp; Cashier Day-End Auditing</h2>
+        <p style="font-size: 15px; color: #475569; line-height: 1.65;">Manage trusted customer credit accounts digitally and enforce strict cashier reconciliation shifts with automated Z-closing reports.</p>
+        
+        <ul class="specs-list">
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Digital Khata Ledger:</strong> Record partial payments, view complete purchase history, and export balance statements.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Day-End Z-Reports:</strong> Compare expected drawer cash with actual counts to catch shortages instantly.</span></li>
+          <li class="specs-item"><i class="ti ti-circle-check-filled"></i> <span><strong>Restricted Cashier Accounts:</strong> Cashiers can only bill; profit margins and purchase rates remain hidden.</span></li>
+        </ul>
+      </div>
+
+      <div class="feature-preview-mockup">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+          <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Day-End Closing Shift Summary</div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span>Opening Drawer Float:</span><strong>₹2,000.00</strong></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span>Total Cash Collected:</span><strong>₹34,850.00</strong></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span>Total UPI QR Payments:</span><strong>₹19,420.00</strong></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span>Card Swipes:</span><strong>₹11,300.00</strong></div>
+          <div style="border-top: 1px solid #cbd5e1; margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; font-weight: 800; color: #10b981; font-size: 13px;">
+            <span>Variance / Discrepancy:</span><span>₹0.00 (Balanced)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section style="background: linear-gradient(135deg, #090e1f 0%, #151d38 100%); color: #ffffff; padding: 75px 20px; text-align: center;">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h2 style="font-size: 34px; font-weight: 800; margin-bottom: 14px;">Ready to Upgrade Your Store Counter?</h2>
+      <p style="color: #cbd5e1; font-size: 16px; margin-bottom: 28px;">Experience the speed and simplicity of next-generation cloud POS billing designed specifically for Indian retailers.</p>
+      <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+        <a href="/pricing" class="btn-hero-primary" style="padding: 13px 30px;">
+          <i class="ti ti-crown"></i> View Plans &amp; Start Today
+        </a>
+        <a href="/contact" class="btn-hero-outline" style="padding: 13px 26px;">
+          <i class="ti ti-phone"></i> Schedule a Free Live Demo
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shared Footer -->
+  <%- include('partials/footer') %>
+
+</body>
+</html>

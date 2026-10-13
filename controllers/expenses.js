@@ -51,13 +51,17 @@ exports.getExpenses = async (req, res) => {
       expenses: expenses.rows,
       total: expenses.count,
       page: parseInt(page),
+      limit: parseInt(limit),
       totalPages: Math.ceil(expenses.count / limit),
       categories: ['rent', 'electricity', 'salary', 'transport', 'maintenance', 'supplies', 'packaging', 'other'],
       user: req.user
     });
   } catch (error) {
     console.error('Get Expenses Error:', error);
-    res.status(500).json({ error: error.message });
+    if (req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).render('error', { error: error.message });
   }
 };
 

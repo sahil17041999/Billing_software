@@ -102,7 +102,7 @@ exports.getDashboard = async (req, res) => {
       FROM customers c
       LEFT JOIN sales s ON c.id = s.customer_id
       WHERE c.company_id = ? AND c.outstanding_amount > 0
-      GROUP BY c.id, c.name
+      GROUP BY c.id, c.name, c.outstanding_amount
       ORDER BY c.outstanding_amount DESC
       LIMIT 5
     `, { replacements: [companyId], type: sequelize.QueryTypes.SELECT });
@@ -115,7 +115,7 @@ exports.getDashboard = async (req, res) => {
       FROM suppliers s
       LEFT JOIN purchases p ON s.id = p.supplier_id
       WHERE s.company_id = ? AND s.outstanding_amount > 0
-      GROUP BY s.id, s.name
+      GROUP BY s.id, s.name, s.outstanding_amount
       ORDER BY s.outstanding_amount DESC
       LIMIT 5
     `, { replacements: [companyId], type: sequelize.QueryTypes.SELECT });
@@ -123,17 +123,26 @@ exports.getDashboard = async (req, res) => {
     // Profit Summary
     const [profitSummary] = await sequelize.query(`
       SELECT 
-        COALESCE(SUM(s.grand_total), 0) as total_sales,
-        COALESCE(SUM(p.grand_total), 0) as total_purchase,
-        COALESCE(SUM(e.amount), 0) as total_expenses,
-        COALESCE(SUM(s.grand_total), 0) - COALESCE(SUM(p.grand_total), 0) - COALESCE(SUM(e.amount), 0) as profit
-      FROM sales s
-      LEFT JOIN purchases p ON MONTH(p.purchase_date) = MONTH(NOW())
-      LEFT JOIN expenses e ON MONTH(e.expense_date) = MONTH(NOW())
-      WHERE s.company_id = ? AND MONTH(s.invoice_date) = MONTH(NOW())
-      AND YEAR(s.invoice_date) = YEAR(NOW())
-      AND s.sales_status = 'completed'
-    `, { replacements: [companyId] });
+        COALESCE(sales_q.total_sales, 0) as total_sales,
+        COALESCE(purch_q.total_purchase, 0) as total_purchase,
+        COALESCE(exp_q.total_expenses, 0) as total_expenses,
+        (COALESCE(sales_q.total_sales, 0) - COALESCE(purch_q.total_purchase, 0) - COALESCE(exp_q.total_expenses, 0)) as profit
+      FROM (
+        SELECT COALESCE(SUM(grand_total), 0) as total_sales 
+        FROM sales 
+        WHERE company_id = ? AND MONTH(invoice_date) = MONTH(NOW()) AND YEAR(invoice_date) = YEAR(NOW()) AND sales_status = 'completed'
+      ) as sales_q
+      CROSS JOIN (
+        SELECT COALESCE(SUM(grand_total), 0) as total_purchase 
+        FROM purchases 
+        WHERE company_id = ? AND MONTH(purchase_date) = MONTH(NOW()) AND YEAR(purchase_date) = YEAR(NOW()) AND purchase_status = 'received'
+      ) as purch_q
+      CROSS JOIN (
+        SELECT COALESCE(SUM(amount), 0) as total_expenses 
+        FROM expenses 
+        WHERE company_id = ? AND MONTH(expense_date) = MONTH(NOW()) AND YEAR(expense_date) = YEAR(NOW())
+      ) as exp_q
+    `, { replacements: [companyId, companyId, companyId] });
 
     // Recent Transactions
     const recentSales = await sequelize.query(`
